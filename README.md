@@ -69,11 +69,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 Very early stages of a simple tool able to create multiple automated requests of different ISO data. 
 Currently supporting:
 * California Independent System Operator (CAISO).
-* Independent System Operator New England (ISO-NE).
-* Midcontinent Independent System Operator (MISO).
 * New York Independent System Operator (NYISO).
-* Pennsylvania-New Jersey-Maryland (PJM) Interconnection. 
-* Southwest Power Pool (SPP).
 
 ## Authors
 * Thomas Edmunds, Lawrence Livermore National Laboratory.

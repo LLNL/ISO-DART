@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files / IDE files
+__pycache__/
+*.py[cod]
+*$py.class
+*~
+.ant/
+.idea/
+.spyderproject
+.spyproject
+
+# Distribution / packaging
+build/
+dist/
+DLLs/
+Debug/
+Release/
+*.class
+*.dll
+*.egg-info/
+eggs/
+.eggs/
+*.eps
+*.exe
+*.lib
+*.suo
+*.zip
+
+# OSX
+*.DS_Store
+
+# Wix files
+files.wixobj
+files.wxs
+installer.wixobj
+version.wxi
+
+# Pytest
+pytest.log
+
+# Sphinx
+docs/sphinx-build.log
