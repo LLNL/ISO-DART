@@ -8,6 +8,7 @@ import os
 import datetime
 import time
 import pandas as pd
+import sys
 
 URL = 'http://oasis.caiso.com/oasisapi/SingleZip'
 QUERY_DATE_FORMAT = '%Y%m%dT%H:%M-0000'
@@ -30,7 +31,16 @@ def write_request(params):
             fout = open(os.path.join(XML_DIR, dst_file_name), 'wb')
             fout.write(z.read(src_file_name))
             fout.close()
-
+        try:
+            errCode = z.read(src_file_name).split('<m:ERR_CODE>')[1].split('</m:ERR_CODE>')[0]
+            errMessage = z.read(src_file_name).split('<m:ERR_DESC>')[1].split('</m:ERR_DESC>')[0]
+            print("WARNING!! ERROR CODE:" + errCode + "\t"+ errMessage + "\nProgram End!! Please Try Again.")
+            errDetector = 1
+        except:
+            errDetector = 0
+            pass
+        if errDetector == 1:
+            sys.exit()
     else:
         print(r.text)
         print("WARNING: Request failed!!! with:")
