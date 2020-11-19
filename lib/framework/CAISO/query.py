@@ -1,5 +1,4 @@
 from lib.framework.CAISO.tool_utils import *
-import sys
 
 
 class Query(object):
@@ -28,9 +27,6 @@ class Query(object):
                 has_result = request_to_csv(os.path.join(XML_DIR, xml_file_name), csv_file_name, report=self.report)
                 time.sleep(6)
             start_date += datetime.timedelta(days=step_size)
-            if not has_result:
-                print("WARNING: The Data Does NOT Exist for the Day. Please Try Another Day!!")
-                sys.exit()
 
 
 # Prices reports. Inherit from Query
