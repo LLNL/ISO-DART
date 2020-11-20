@@ -9,4 +9,3 @@ elif iso == 2:
 else:
     print("Not a valid value!")
 
-print ("Some CRAZY STUFF")
