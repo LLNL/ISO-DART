@@ -8,3 +8,5 @@ elif iso == 2:
     exec(open("mainNYISO.py").read())
 else:
     print("Not a valid value!")
+
+print ("Some CRAZY STUFF")
