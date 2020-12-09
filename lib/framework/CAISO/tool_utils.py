@@ -31,9 +31,10 @@ def write_request(params):
             fout = open(os.path.join(XML_DIR, dst_file_name), 'wb')
             fout.write(z.read(src_file_name))
             fout.close()
+        readXml = str(z.read(src_file_name))
         try:
-            errCode = z.read(src_file_name).split('<m:ERR_CODE>')[1].split('</m:ERR_CODE>')[0]
-            errMessage = z.read(src_file_name).split('<m:ERR_DESC>')[1].split('</m:ERR_DESC>')[0]
+            errCode = readXml.split('<m:ERR_CODE>')[1].split('</m:ERR_CODE>')[0]
+            errMessage = readXml.split('<m:ERR_DESC>')[1].split('</m:ERR_DESC>')[0]
             print("WARNING!! ERROR CODE:" + errCode + "\t"+ errMessage + "\nProgram End!! Please Try Again.")
             errDetector = 1
         except:
