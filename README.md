@@ -69,6 +69,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 Very early stages of a simple tool able to create multiple automated requests of different ISO data. 
 Currently supporting:
 * California Independent System Operator (CAISO).
+* Midcontinent Independent System Operator (MISO).
 * New York Independent System Operator (NYISO).
 
 ## Authors
@@ -76,6 +77,23 @@ Currently supporting:
 * Amelia Musselman, Lawrence Livermore National Laboratory.
 * Pedro Sotorrio, Lawrence Livermore National Laboratory.
 * Chih-Che Sun, Lawrence Livermore National Laboratory.
+
+## System Requirements and Installation
+These are very basic instructions so any type of user can get ISO-DART up and running in their machines. More advance 
+users can skip the appropriate steps.
+
+1. Install [Git](https://git-scm.com/).
+2. Install [Anaconda](https://anaconda.com/).
+
+Once Git and Anaconda are installed, in a terminal run the following commands:
+
+```
+git clone https://github.com/LLNL/ISO-DART.git  # Clone ISO-DART GitHub repository
+cd iso-dart  # Change to iso-dart directory
+conda create --name iso-dart python=3.8  # Create iso-dart Anaconda environment
+conda activate iso-dart  # Activate iso-dart environment
+pip install -r requirements.txt  # Install required packages
+```
 
 ## Usage
 The tool as of now is very rudimentary and it works as a simple command line script where the user answers
