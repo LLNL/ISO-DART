@@ -1,5 +1,6 @@
 from lib.framework.NYISO.query import *
 from lib.framework.NYISO.merge import *
+import datetime
 
 raw_dir = os.path.join(os.getcwd(), 'raw_data', 'NYISO')
 data_dir = os.path.join(os.getcwd(), 'data', 'NYISO')
@@ -14,12 +15,19 @@ if os.path.isdir(data_dir):
 else:
     os.makedirs(data_dir)
 
-print('\nPlease enter the start date and duration of the desired data set.')
-day = int(input('Day: '))
-month = int(input('Month: '))
-year = int(input('Year (4-digit format): '))
-duration = int(input('Duration (in days): '))
+ind = 1
+while ind == 1:
+    print('\nPlease enter the start date and duration of the desired data set.')
+    month = int(input('Month: '))
+    day = int(input('Day: '))
+    year = int(input('Year (4-digit format): '))
+    try:
+        datetime.datetime(year=year, month=month, day=day)
+        ind = 0
+    except:
+        print('\nWARNING: The Date Does NOT Exist. Please Try Again!!')
 
+duration = int(input('Duration (in days): '))
 
 data_type = int(input('What type of data? (Answer 1, 2, or 3)\n'
                       '(1) Pricing Data\n'
