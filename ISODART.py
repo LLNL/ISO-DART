@@ -11,4 +11,3 @@ elif iso == 3:
     exec(open("mainNYISO.py").read())
 else:
     print("Not a valid value!")
-
