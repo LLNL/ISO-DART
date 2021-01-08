@@ -25,7 +25,6 @@ class Query(object):
             while not has_result:
                 xml_file_name = write_request(params)
                 has_result = request_to_csv(os.path.join(XML_DIR, xml_file_name), csv_file_name, report=self.report)
-                # time.sleep(6)
             start_date += datetime.timedelta(days=step_size)
 
 
