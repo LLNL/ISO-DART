@@ -16,7 +16,7 @@ def write_request(params):
     if params['type'] is None:
         full_url = base_url + '/%s/%s%s_csv.zip' % (params['dataid'], date, params['filenamedataid'])
     else:
-        full_url = base_url + '/%s/%s%s_%s_csv.zip' %(params['dataid'], date, params['filenamedataid'], params['type'])
+        full_url = base_url + '/%s/%s%s_%s_csv.zip' % (params['dataid'], date, params['filenamedataid'], params['type'])
 
     r = requests.get(full_url)
     file = zipfile.ZipFile(io.BytesIO(r.content))
