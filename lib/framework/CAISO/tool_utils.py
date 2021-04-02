@@ -35,7 +35,7 @@ def write_request(params):
         try:
             errCode = readXml.split('<m:ERR_CODE>')[1].split('</m:ERR_CODE>')[0]
             errMessage = readXml.split('<m:ERR_DESC>')[1].split('</m:ERR_DESC>')[0]
-            print("WARNING!! ERROR CODE:" + errCode + "\t"+ errMessage + "\nProgram End!! Please Try Again.")
+            print("WARNING!! ERROR CODE:" + errCode + "\t" + errMessage + "\nProgram End!! Please Try Again.")
             errDetector = 1
         except:
             errDetector = 0
@@ -134,13 +134,13 @@ def merge_csv(query_name, date_col):
 
 
 def order_separate_csv(query_name, market=None):
-    df = pd.read_csv(os.path.join(RAW_DIR, '%s.csv' % query_name))
+    df = pd.read_csv(os.path.join(RAW_DIR, '{}.csv'.format(query_name)))
     if query_name == 'ENE_WIND_SOLAR_SUMMARY':
         sorted_df = df.sort_values(['OPR_DATE'])
     else:
         sorted_df = df.sort_values(['OPR_DATE', 'INTERVAL_NUM'])
 
-    os.remove(os.path.join(RAW_DIR, '%s.csv' % query_name))
+    os.remove(os.path.join(RAW_DIR, '{}.csv'.format(query_name)))
     start = min(df.OPR_DATE)
     end = max(df.OPR_DATE)
 
@@ -154,18 +154,18 @@ def order_separate_csv(query_name, market=None):
     for item in items:
         temp_df = sorted_df[sorted_df['DATA_ITEM'] == item]
         if market is None:
-            temp_df.to_csv('%s_to_%s_%s_%s.csv' % (start, end, query_name, item), index=False)
+            temp_df.to_csv('{}_to_{}_{}_{}.csv'.format(start, end, query_name, item), index=False)
         else:
-            temp_df.to_csv('%s_to_%s_%s_%s_%s.csv' % (start, end, market, query_name, item), index=False)
+            temp_df.to_csv('{}_to_{}_{}_{}_{}.csv'.format(start, end, market, query_name, item), index=False)
 
 
 def copy_csv(query_name):
-    df = pd.read_csv(os.path.join(RAW_DIR, '%s.csv' % query_name))
-    os.remove(os.path.join(RAW_DIR, '%s.csv' % query_name))
+    df = pd.read_csv(os.path.join(RAW_DIR, '{}.csv'.format(query_name)))
+    os.remove(os.path.join(RAW_DIR, '{}.csv'.format(query_name)))
 
     start = min(df.OPR_DATE)
     end = max(df.OPR_DATE)
 
     os.chdir(os.path.join(DATA_DIR, 'CAISO'))
 
-    df.to_csv('%s_to_%s_%s.csv' % (start, end, query_name), index=False)
+    df.to_csv('{}_to_{}_{}.csv'.format(start, end, query_name), index=False)

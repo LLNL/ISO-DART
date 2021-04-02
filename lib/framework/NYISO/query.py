@@ -14,9 +14,9 @@ def write_request(params):
     date = params['startdate'][0:-2] + '01'  # first date of the month of the day being requested
 
     if params['type'] is None:
-        full_url = base_url + '/%s/%s%s_csv.zip' % (params['dataid'], date, params['filenamedataid'])
+        full_url = base_url + '/{}/{}{}_csv.zip'.format(params['dataid'], date, params['filenamedataid'])
     else:
-        full_url = base_url + '/%s/%s%s_%s_csv.zip' % (params['dataid'], date, params['filenamedataid'], params['type'])
+        full_url = base_url + '/{}/{}{}_{}_csv.zip'.format(params['dataid'], date, params['filenamedataid'], params['type'])
 
     r = requests.get(full_url)
     file = zipfile.ZipFile(io.BytesIO(r.content))

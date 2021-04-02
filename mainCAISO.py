@@ -213,8 +213,8 @@ elif data_type == 3:
     elif load == 2:
         print('\nDownloading from...\n')
         FlexRampReq().get_csv(start, end, step_size=step_size)
-        src = os.path.join(RAW_DIR, '%s.csv' % FlexRampReq.name)
-        dst = os.path.join(DATA_DIR, 'CAISO', '%s_to_%s_%s.csv' % (start, end, FlexRampReq.name))
+        src = os.path.join(RAW_DIR, '{}.csv'.format(FlexRampReq.name))
+        dst = os.path.join(DATA_DIR, 'CAISO', '{}_to_{}_{}.csv'.format(start, end, FlexRampReq.name))
         shutil.copyfile(src, dst)
         os.remove(src)
         print('\nYour data has been successfully downloaded!\n'
@@ -223,8 +223,8 @@ elif data_type == 3:
     elif load == 3:
         print('\nDownloading from...\n')
         FlexRampAggAward().get_csv(start, end, step_size=step_size)
-        src = os.path.join(RAW_DIR, '%s.csv' % FlexRampAggAward.name)
-        dst = os.path.join(DATA_DIR, 'CAISO', '%s_to_%s_%s.csv' % (start, end, FlexRampAggAward.name))
+        src = os.path.join(RAW_DIR, '{}.csv'.format(FlexRampAggAward.name))
+        dst = os.path.join(DATA_DIR, 'CAISO', '{}_to_{}_{}.csv'.format(start, end, FlexRampAggAward.name))
         shutil.copyfile(src, dst)
         os.remove(src)
         print('\nYour data has been successfully downloaded!\n'
@@ -233,8 +233,8 @@ elif data_type == 3:
     elif load == 4:
         print('\nDownloading from...\n')
         FlexRampDC().get_csv(start, end, step_size=step_size)
-        src = os.path.join(RAW_DIR, '%s.csv' % FlexRampDC.name)
-        dst = os.path.join(DATA_DIR, 'CAISO', '%s_to_%s_%s.csv' % (start, end, FlexRampDC.name))
+        src = os.path.join(RAW_DIR, '{}.csv'.format(FlexRampDC.name))
+        dst = os.path.join(DATA_DIR, 'CAISO', '{}_to_{}_{}.csv'.format(start, end, FlexRampDC.name))
         shutil.copyfile(src, dst)
         os.remove(src)
         print('\nYour data has been successfully downloaded!\n'
@@ -243,8 +243,8 @@ elif data_type == 3:
     elif load == 5:
         print('\nDownloading from...\n')
         EIMTransfer().get_csv(start, end, step_size=step_size)
-        src = os.path.join(RAW_DIR, '%s.csv' % EIMTransfer.name)
-        dst = os.path.join(DATA_DIR, 'CAISO', '%s_to_%s_%s.csv' % (start, end, EIMTransfer.name))
+        src = os.path.join(RAW_DIR, '{}.csv'.format(EIMTransfer.name))
+        dst = os.path.join(DATA_DIR, 'CAISO', '{}_to_{}_{}.csv'.format(start, end, EIMTransfer.name))
         shutil.copyfile(src, dst)
         os.remove(src)
         print('\nYour data has been successfully downloaded!\n'
@@ -368,3 +368,5 @@ elif data_type == 4:
         order_separate_csv(AS_OpRes.name)
         print('\nYour data has been successfully downloaded!\n'
               'Check your directory \'data/CAISO\'\n')
+
+shutil.rmtree(raw_dir)

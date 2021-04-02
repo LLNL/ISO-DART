@@ -181,21 +181,23 @@ for s in startdate:
               'path': path}
 
     if params['type'] is None:
-        full_url = base_url + '/%s/%s%s_csv.zip' % (params['dataid'], s, params['filenamedataid'])
+        full_url = base_url + '/{}/{}{}_csv.zip'.format(params['dataid'], s, params['filenamedataid'])
     else:
-        full_url = base_url + '/%s/%s%s_%s_csv.zip' % (params['dataid'], s, params['filenamedataid'], params['type'])
-        source = params['path'] + os.sep + '{}{}_{}.csv'.format(s, params['dataid'], params['type'])
+        full_url = base_url + '/{}/{}{}_{}_csv.zip'.format(params['dataid'], s, params['filenamedataid'], params['type'])
+        src = params['path'] + os.sep + '{}{}_{}.csv'.format(s, params['dataid'], params['type'])
 
     print('\nDownloading from...\n'
-          '\n%s' % full_url)
+          '\n{}'.format(full_url))
     write_request(params)
     if data_type == 4:
-        shutil.copy(source, data_dir)
+        shutil.copy(src, data_dir)
+        os.remove(src)
 
 if data_type == 4:
     pass
 else:
     merge(path, dataid, start, duration)
 
+shutil.rmtree(raw_dir)
 print('\nYour data has been successfully downloaded!\n'
       'Check your directory \'data/NYISO\'')
