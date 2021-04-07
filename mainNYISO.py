@@ -1,6 +1,7 @@
 from lib.framework.NYISO.query import *
 from lib.framework.NYISO.merge import *
 import datetime
+import shutil
 
 raw_dir = os.path.join(os.getcwd(), 'raw_data', 'NYISO')
 data_dir = os.path.join(os.getcwd(), 'data', 'NYISO')
@@ -29,10 +30,11 @@ while ind == 1:
 
 duration = int(input('Duration (in days): '))
 
-data_type = int(input('What type of data? (Answer 1, 2, or 3)\n'
+data_type = int(input('What type of data? (Answer 1, 2, 3, or 4)\n'
                       '(1) Pricing Data\n'
                       '(2) Power Grid Data\n'
-                      '(3) Load Data\n'))
+                      '(3) Load Data\n'
+                      '(4) Bid Data\n'))
 
 if data_type == 1:
     price = int(input('\nWhat type of pricing data? (Answer 1 or 2)\n'
@@ -148,6 +150,10 @@ elif data_type == 3:
         aggType = None
         filenamedataid = dataid
 
+elif data_type == 4:
+    dataid = 'biddata'
+    aggType = 'genbids'
+    filenamedataid = 'biddata'
 
 start = pd.Timestamp(year, month, day).date()
 end = start + pd.Timedelta(days=duration)
@@ -163,27 +169,35 @@ for s in startlist:
     startdate.append(str(s.year) + '{:02d}'.format(s.month) + '{:02d}'.format(s.day))
 
 if aggType is None:
-    path = os.path.join('raw_data/NYISO', dataid)
+    path = os.path.join(raw_dir, dataid)
 else:
-    path = os.path.join('raw_data/NYISO', dataid, aggType)
+    path = os.path.join(raw_dir, dataid, aggType)
 
 for s in startdate:
     params = {'dataid': dataid,
               'type': aggType,
               'startdate': s,
-              'filenamedataid':filenamedataid,
+              'filenamedataid': filenamedataid,
               'path': path}
 
     if params['type'] is None:
-        full_url = base_url + '/%s/%s%s_csv.zip' % (params['dataid'], s, params['filenamedataid'])
+        full_url = base_url + '/{}/{}{}_csv.zip'.format(params['dataid'], s, params['filenamedataid'])
     else:
-        full_url = base_url + '/%s/%s%s_%s_csv.zip' %(params['dataid'], s, params['filenamedataid'], params['type'])
+        full_url = base_url + '/{}/{}{}_{}_csv.zip'.format(params['dataid'], s, params['filenamedataid'], params['type'])
+        src = params['path'] + os.sep + '{}{}_{}.csv'.format(s, params['dataid'], params['type'])
 
     print('\nDownloading from...\n'
-          '\n%s' % full_url)
+          '\n{}'.format(full_url))
     write_request(params)
+    if data_type == 4:
+        shutil.copy(src, data_dir)
+        os.remove(src)
 
-merge(path, dataid, start, duration)
+if data_type == 4:
+    pass
+else:
+    merge(path, dataid, start, duration)
 
+shutil.rmtree(raw_dir)
 print('\nYour data has been successfully downloaded!\n'
       'Check your directory \'data/NYISO\'')

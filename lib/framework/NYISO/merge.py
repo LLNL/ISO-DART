@@ -27,7 +27,7 @@ def merge(path, dataid, start, duration):
     combined_csv = pd.concat([pd.read_csv(os.path.join(path, f)) for f in selected_files])
     os.chdir(destination)
     if len(suffix) > 0:
-        combined_csv.to_csv('%s_to_%s_%s_%s.csv' % (date_list[0], date_list[-1], dataid, suffix), index=False)
+        combined_csv.to_csv('{}_to_{}_{}_{}.csv'.format(date_list[0], date_list[-1], dataid, suffix), index=False)
 
     else:
-        combined_csv.to_csv('%s_to_%s_%s.csv' % (date_list[0], date_list[-1], dataid), index=False)
+        combined_csv.to_csv('{}_to_{}_{}.csv'.format(date_list[0], date_list[-1], dataid), index=False)
