@@ -151,9 +151,32 @@ elif data_type == 3:
         filenamedataid = dataid
 
 elif data_type == 4:
-    dataid = 'biddata'
-    aggType = 'genbids'
-    filenamedataid = 'biddata'
+    bid_data = int(input('\nWhat type of bid data? (Answer 1, 2, 3, or 4)\n'
+                         '(1) Generator and Ancillary Service Bids\n'
+                         '(2) Load Bids\n'
+                         '(3) Transaction Bids\n'
+                         '(4) Generator Commitment Parameter Bids\n'))
+
+    if bid_data == 1:
+        dataid = 'biddata'
+        aggType = 'genbids'
+        filenamedataid = 'biddata'
+
+    elif bid_data == 2:
+        dataid = 'biddata'
+        aggType = 'loadbids'
+        filenamedataid = 'biddata'
+
+    elif bid_data == 3:
+        dataid = 'biddata'
+        aggType = 'tranbids'
+        filenamedataid = 'biddata'
+
+    elif bid_data == 4:
+        dataid = 'biddata'
+        aggType = 'ucdata'
+        filenamedataid = 'biddata'
+
 
 start = pd.Timestamp(year, month, day).date()
 end = start + pd.Timedelta(days=duration)
