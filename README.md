@@ -96,7 +96,32 @@ pip install -r requirements.txt  # Install required packages
 ```
 
 ## Usage
-The tool as of now is very rudimentary and it works as a simple command line script where the user answers
-a few questions regarding the ISO, start date, duration, and type of data they desire to acquire. 
+The tool as of now is very rudimentary, and it works as a simple command line script where the user answers
+a few questions regarding the type of data (ISO or weather data), the specific ISO or weather station, start date, 
+and end date for the desired dataset. 
 
 In the command line just run the following command: `python ISODART.py`
+
+## Weather Module
+The weather module uses the [Meteostat](https://dev.meteostat.net/) python library. Although documentation can
+be found online, below you can find a description of the columns you will get in your dataset:
+
+| Column                 | Description                                  | Type       |
+| ---------------------- | -------------------------------------------- | ---------- |
+| time                   | The datetime of the observation              | Datetime64 |
+| temperature            | The air temperature in *ºF*                  | Float64    |
+| dew_point              | The dew point in *ºF*                        | Float64    |
+| relative_humidity      | The relative humidity in percent (*%*)       | Float64    |
+| precipitation          | The one hour precipitation total in *inches* | Float64    |
+| snow_depth             | The snow depth in *inches*                   | Float64    |
+| wind_dir               | The average wind direction in degrees (*º*)  | Float64    |
+| wind_speed             | The average wind speed in *mph*              | Float64    |
+| wind_peak_gust         | The peak wind gust in *mph*                  | Float64    |
+| air_pressure           | The average sea-level air pressure in *hPa*  | Float64    |
+| sunshine               | The one hour sunshine total in *min*         | Float64    |
+| weather_condition      | The weather condition description            | String     |
+
+
+        NOTE: Keep in mind some of these columns will not show up in the final dataset because the program 
+        will drop those columns where all values are null. 
+
