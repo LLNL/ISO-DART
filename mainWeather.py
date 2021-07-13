@@ -105,7 +105,7 @@ coco_dict = {1: 'Clear',
              27: 'Storm'}
 
 if 'weather_condition' in final_df.columns:
-    final_df.weather_condition_code.replace(coco_dict, inplace=True)
+    final_df.weather_condition.replace(coco_dict, inplace=True)
 
 # Make sure we don't have any escape characters in the location name
 station_name = stations_df['name'][location_id - 1]
