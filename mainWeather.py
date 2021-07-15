@@ -86,7 +86,7 @@ df = data.fetch()
 
 # Rename dataframe columns for more self-explanatory column names
 old_names = df.columns
-new_names = ['temperature', 'dew_point', 'relative_humidty',
+new_names = ['temperature', 'dew_point', 'relative_humidity',
              'precipitation', 'snow_depth', 'wind_dir', 'wind_speed',
              'peak_wind_gust', 'air_pressure', 'sunshine',
              'weather_condition']
