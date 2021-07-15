@@ -1,5 +1,6 @@
 # Import modules
 import os
+import webbrowser
 from datetime import datetime, timedelta
 import meteostat as met
 from meteostat import units
@@ -64,21 +65,6 @@ location_point = met.Point(stations_df['latitude'][location_id - 1],
                            stations_df['longitude'][location_id - 1],
                            stations_df['elevation'][location_id - 1])
 
-# Ask about solar data
-solar_data = input('Do you want to get solar data from NSRDB? (y/n)')
-if solar_data.lower() == 'y':
-    if os.path.isfile('user_config.ini'):
-        user_config_file = 'user_config.ini'
-    else:
-        print('You need to request an API key from the following link:\n'
-              'https://developer.nrel.gov/signup/')
-        api_key = input('API key: ')
-        first_name = input('First name: ')
-        last_name = input('Last name: ')
-        affiliation = input('Affiliation: ')
-        email = input('Email address: ')
-        user_config_file = write_user_config_file(api_key, first_name, last_name, affiliation, email)
-
 # Query the hourly data for the specified location and time range
 data = met.Hourly(location_point, start, end)
 data = data.convert(units.imperial)
@@ -132,7 +118,7 @@ if 'weather_condition' in final_df.columns:
 # Make sure we don't have any escape characters in the location name
 station_name = stations_df['name'][location_id - 1]
 if '/' in station_name:
-    station_name = station_name.replace(' / ', '-')
+    station_name = station_name.replace('/', '-')
 
 # Save final dataset
 final_df.to_csv(os.path.join(data_dir,
@@ -144,15 +130,35 @@ final_df.to_csv(os.path.join(data_dir,
 print('\nYour weather data has been successfully downloaded!\n'
       'Check your directory {}'.format(data_dir))
 
-solar_df = query_solar(stations_df['latitude'][location_id - 1],
-                       stations_df['longitude'][location_id - 1],
-                       year,
-                       user_config_file)
+# Ask about solar data
+solar_data = input('\nDo you want to get solar data from NSRDB? (y/n): ')
+if solar_data.lower() == 'y':
+    if os.path.isfile('user_config.ini'):
+        user_config_file = 'user_config.ini'
+    else:
+        print('You need to request an API key from the following link:\n'
+              'https://developer.nrel.gov/signup/')
+        open_url = input('Do you want to open the link now? (y/n): ')
+        if open_url.lower() == 'y':
+            webbrowser.open('https://developer.nrel.gov/signup/')
+            api_key = input('API key: ')
+            first_name = input('First name: ')
+            last_name = input('Last name: ')
+            affiliation = input('Affiliation: ')
+            email = input('Email address: ')
+            user_config_file = write_user_config_file(api_key, first_name, last_name, affiliation, email)
+        else:
+            print("\nSolar data will not be downloaded until you get an API key.")
 
-solar_df.to_csv(os.path.join(solar_dir,
-                             'solar_data_{year}_{station}_{state}.csv'.format(year=year,
-                                                                              station=station_name,
-                                                                              state=state.upper())))
+    solar_df = query_solar(stations_df['latitude'][location_id - 1],
+                           stations_df['longitude'][location_id - 1],
+                           year,
+                           user_config_file)
 
-print('\nYour solar data has been successfully downloaded!\n'
-      'Check your directory {}'.format(solar_dir))
+    solar_df.to_csv(os.path.join(solar_dir,
+                                 'solar_data_{year}_{station}_{state}.csv'.format(year=year,
+                                                                                  station=station_name,
+                                                                                  state=state.upper())))
+
+    print('\nYour solar data has been successfully downloaded!\n'
+          'Check your directory {}'.format(solar_dir))
