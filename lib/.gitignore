@@ -39,3 +39,6 @@ pytest.log
 
 # Sphinx
 docs/sphinx-build.log
+
+# Configuration files
+*.ini

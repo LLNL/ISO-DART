@@ -3,14 +3,21 @@ import os
 from datetime import datetime, timedelta
 import meteostat as met
 from meteostat import units
+from lib.framework.NSRDB.mainNSRDB import query_solar, write_user_config_file
 
-# Set up output directory
+# Set up output directories
 data_dir = os.path.join(os.getcwd(), 'data', 'weather')
+solar_dir = os.path.join(os.getcwd(), 'data', 'solar')
 
 if os.path.isdir(data_dir):
     pass
 else:
     os.makedirs(data_dir)
+
+if os.path.isdir(solar_dir):
+    pass
+else:
+    os.makedirs(solar_dir)
 
 # Ask for desired dates
 ind = 1
@@ -56,6 +63,21 @@ location_id = int(input('Location: '))
 location_point = met.Point(stations_df['latitude'][location_id - 1],
                            stations_df['longitude'][location_id - 1],
                            stations_df['elevation'][location_id - 1])
+
+# Ask about solar data
+solar_data = input('Do you want to get solar data from NSRDB? (y/n)')
+if solar_data.lower() == 'y':
+    if os.path.isfile('user_config.ini'):
+        user_config_file = 'user_config.ini'
+    else:
+        print('You need to request an API key from the following link:\n'
+              'https://developer.nrel.gov/signup/')
+        api_key = input('API key: ')
+        first_name = input('First name: ')
+        last_name = input('Last name: ')
+        affiliation = input('Affiliation: ')
+        email = input('Email address: ')
+        user_config_file = write_user_config_file(api_key, first_name, last_name, affiliation, email)
 
 # Query the hourly data for the specified location and time range
 data = met.Hourly(location_point, start, end)
@@ -113,10 +135,24 @@ if '/' in station_name:
     station_name = station_name.replace(' / ', '-')
 
 # Save final dataset
-final_df.to_csv(os.path.join(data_dir, '{}_to_{}_{}_{}.csv'.format(start.date(),
-                                                                   end.date(),
-                                                                   station_name,
-                                                                   state.upper())))
+final_df.to_csv(os.path.join(data_dir,
+                             '{start}_to_{end}_{station}_{state}.csv'.format(start=start.date(),
+                                                                             end=end.date(),
+                                                                             station=station_name,
+                                                                             state=state.upper())))
 
-print('\nYour data has been successfully downloaded!\n'
+print('\nYour weather data has been successfully downloaded!\n'
       'Check your directory {}'.format(data_dir))
+
+solar_df = query_solar(stations_df['latitude'][location_id - 1],
+                       stations_df['longitude'][location_id - 1],
+                       year,
+                       user_config_file)
+
+solar_df.to_csv(os.path.join(solar_dir,
+                             'solar_data_{year}_{station}_{state}.csv'.format(year=year,
+                                                                              station=station_name,
+                                                                              state=state.upper())))
+
+print('\nYour solar data has been successfully downloaded!\n'
+      'Check your directory {}'.format(solar_dir))
