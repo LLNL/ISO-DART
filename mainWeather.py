@@ -131,7 +131,7 @@ print('\nYour weather data has been successfully downloaded!\n'
       'Check your directory {}'.format(data_dir))
 
 # Ask about solar data
-solar_data = input('\nDo you want to get solar data from NSRDB? (y/n): ')
+solar_data = input('\nDo you want to get solar data from the National Solar Radiation Database (NSRDB)? (y/n): ')
 if solar_data.lower() == 'y':
     if os.path.isfile('user_config.ini'):
         user_config_file = 'user_config.ini'

@@ -71,5 +71,6 @@ def query_solar(lat, lon, year, user_config_file):
 
     except Exception as e:
         print(e)
+        solar_df = pd.DataFrame()
 
     return solar_df
