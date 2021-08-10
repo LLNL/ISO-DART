@@ -155,10 +155,11 @@ if solar_data.lower() == 'y':
                            year,
                            user_config_file)
 
-    solar_df.to_csv(os.path.join(solar_dir,
-                                 'solar_data_{year}_{station}_{state}.csv'.format(year=year,
-                                                                                  station=station_name,
-                                                                                  state=state.upper())))
+    if solar_df is not None:
+        solar_df.to_csv(os.path.join(solar_dir,
+                                     'solar_data_{year}_{station}_{state}.csv'.format(year=year,
+                                                                                      station=station_name,
+                                                                                      state=state.upper())))
 
-    print('\nYour solar data has been successfully downloaded!\n'
-          'Check your directory {}'.format(solar_dir))
+        print('\nYour solar data has been successfully downloaded!\n'
+              'Check your directory {}'.format(solar_dir))

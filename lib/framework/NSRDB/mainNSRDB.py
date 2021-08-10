@@ -69,8 +69,8 @@ def query_solar(lat, lon, year, user_config_file):
                                                     freq=interval + 'Min',
                                                     periods=min_in_year / int(interval)))
 
-    except Exception as e:
-        print(e)
-        solar_df = pd.DataFrame()
+        return solar_df
+    except:
+        print("There is no solar data available for the date requested.")
 
-    return solar_df
+
