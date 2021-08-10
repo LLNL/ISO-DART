@@ -39,7 +39,18 @@ start = datetime(year, month, day)
 end = datetime(year, month, day, 0, 0) + timedelta(days=duration)
 
 # Ask for desired location
-state = input('What state in the United States (use 2-letter code): ')
+while True:
+    state = str(input('What state in the United States (use 2-letter code): '))
+    if state.upper() not in ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
+                             "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+                             "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+                             "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+                             "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]:
+        print('Sorry, that was not a valid 2-letter code. Try again.')
+        continue
+    else:
+        break
+
 stations = met.Stations()
 stations = stations.region('US', state.upper())
 df = stations.fetch()
@@ -60,6 +71,8 @@ else:
 
 # Create geographical point with latitude, longitude and altitude
 location_id = int(input('Location: '))
+
+print("\nDownloading...")
 
 location_point = met.Point(stations_df['latitude'][location_id - 1],
                            stations_df['longitude'][location_id - 1],
@@ -150,6 +163,7 @@ if solar_data.lower() == 'y':
         else:
             print("\nSolar data will not be downloaded until you get an API key.")
 
+    print("\nDownloading...")
     solar_df = query_solar(stations_df['latitude'][location_id - 1],
                            stations_df['longitude'][location_id - 1],
                            year,
