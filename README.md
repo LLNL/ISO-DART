@@ -1,4 +1,4 @@
-# ISO-DART v1.0.0
+# ISO-DART v1.1.0
 ## Release:  LLNL-CODE-815334
 This code was developed by Pedro Sotorrio at Lawrence Livermore National Laboratory.
 
