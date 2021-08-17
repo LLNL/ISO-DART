@@ -65,7 +65,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 # ISO-DART: Independent System Operator Data Automated Request Tool
 
-### Introduction
+## Introduction
 Very early stages of a simple tool able to create multiple automated requests of different ISO data. 
 Currently supporting:
 * California Independent System Operator (CAISO).
@@ -125,3 +125,10 @@ be found online, below you can find a description of the columns you will get in
         NOTE: Keep in mind some of these columns will not show up in the final dataset because the program 
         will drop those columns where all values are null. 
 
+### National Solar Radiation Database ([NSRDB](https://nsrdb.nrel.gov/)) API
+Within the weather module, the user has the opportunity to download solar data for the same location they downloaded 
+weather data previously. 
+
+The first the user decides to use this capability, they will be guided on how to get an API token and provide it to the 
+program. ISO-DART will save that information in a configuration file, so the user doesn't have to go through the same 
+process ever again. 
