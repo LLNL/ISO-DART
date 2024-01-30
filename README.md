@@ -63,7 +63,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 
 
-# ISO-DART: Independent System Operator Data Automated Request Tool
+# ISO-DART: <ins>I</ins>ndependent <ins>S</ins>ystem <ins>O</ins>perator <ins>D</ins>ata <ins>A</ins>utomated <ins>R</ins>equest <ins>T</ins>ool
 
 ## Introduction
 Very early stages of a simple tool able to create multiple automated requests of different ISO data. 
@@ -72,7 +72,7 @@ Currently supporting:
 * Midcontinent Independent System Operator (MISO).
 * New York Independent System Operator (NYISO).
 
-## Authors
+## Contributors
 * Thomas Edmunds, Lawrence Livermore National Laboratory.
 * Amelia Musselman, Lawrence Livermore National Laboratory.
 * Pedro Sotorrio, Lawrence Livermore National Laboratory.
@@ -121,14 +121,17 @@ be found online, below you can find a description of the columns you will get in
 | sunshine               | The one hour sunshine total in *min*         | Float64    |
 | weather_condition      | The weather condition description            | String     |
 
+---
+**NOTE**
 
-        NOTE: Keep in mind some of these columns will not show up in the final dataset because the program 
-        will drop those columns where all values are null. 
+Keep in mind some of these columns will not show up in the final dataset because the program will drop those columns where all values are null. 
+
+---
 
 ### National Solar Radiation Database ([NSRDB](https://nsrdb.nrel.gov/)) API
 Within the weather module, the user has the opportunity to download solar data for the same location they downloaded 
 weather data previously. 
 
-The first the user decides to use this capability, they will be guided on how to get an API token and provide it to the 
+The first time the user decides to use this capability, they will be guided on how to get an API token and provide it to the 
 program. ISO-DART will save that information in a configuration file, so the user doesn't have to go through the same 
 process ever again. 
