@@ -4,6 +4,7 @@ NYISO Client for ISO-DART v2.0
 Modernized client for New York Independent System Operator data retrieval.
 File location: lib/iso/nyiso.py
 """
+
 from typing import Optional
 from datetime import date, timedelta
 from pathlib import Path
@@ -21,12 +22,14 @@ logger = logging.getLogger(__name__)
 
 class NYISOMarket(Enum):
     """NYISO market types."""
+
     DAM = "DAM"  # Day-Ahead Market
     RTM = "RTM"  # Real-Time Market
 
 
 class NYISODataType(Enum):
     """NYISO data categories."""
+
     PRICING = "pricing"
     POWER_GRID = "power_grid"
     LOAD = "load"
@@ -36,9 +39,10 @@ class NYISODataType(Enum):
 @dataclass
 class NYISOConfig:
     """Configuration for NYISO client."""
-    base_url: str = 'http://mis.nyiso.com/public/csv'
-    raw_dir: Path = Path('raw_data/NYISO')
-    data_dir: Path = Path('data/NYISO')
+
+    base_url: str = "http://mis.nyiso.com/public/csv"
+    raw_dir: Path = Path("raw_data/NYISO")
+    data_dir: Path = Path("data/NYISO")
     max_retries: int = 3
     retry_delay: int = 5
     timeout: int = 30
@@ -69,14 +73,10 @@ class NYISOClient:
         return month_starts
 
     def _build_url(
-            self,
-            dataid: str,
-            month_start: date,
-            file_dataid: str,
-            agg_type: Optional[str] = None
+        self, dataid: str, month_start: date, file_dataid: str, agg_type: Optional[str] = None
     ) -> str:
         """Build NYISO data URL."""
-        date_str = month_start.strftime('%Y%m%d')
+        date_str = month_start.strftime("%Y%m%d")
 
         if agg_type:
             return f"{self.config.base_url}/{dataid}/{date_str}{file_dataid}_{agg_type}_csv.zip"
@@ -107,21 +107,22 @@ class NYISOClient:
 
             if attempt < self.config.max_retries - 1:
                 import time
+
                 time.sleep(self.config.retry_delay)
 
         return False
 
     def _merge_csvs(
-            self,
-            raw_dir: Path,
-            dataid: str,
-            start_date: date,
-            duration: int,
-            agg_type: Optional[str] = None
+        self,
+        raw_dir: Path,
+        dataid: str,
+        start_date: date,
+        duration: int,
+        agg_type: Optional[str] = None,
     ) -> bool:
         """Merge downloaded CSV files into a single file."""
         try:
-            files = sorted(raw_dir.glob('*.csv'))
+            files = sorted(raw_dir.glob("*.csv"))
 
             if not files:
                 logger.warning("No CSV files found to merge")
@@ -129,8 +130,7 @@ class NYISOClient:
 
             # Generate date strings for filename
             date_list = [
-                (start_date + timedelta(days=i)).strftime('%Y%m%d')
-                for i in range(duration)
+                (start_date + timedelta(days=i)).strftime("%Y%m%d") for i in range(duration)
             ]
 
             # Filter files that match our date range
@@ -153,7 +153,9 @@ class NYISOClient:
             end_str = date_list[-1]
 
             if agg_type:
-                output_file = self.config.data_dir / f"{start_str}_to_{end_str}_{dataid}_{agg_type}.csv"
+                output_file = (
+                    self.config.data_dir / f"{start_str}_to_{end_str}_{dataid}_{agg_type}.csv"
+                )
             else:
                 output_file = self.config.data_dir / f"{start_str}_to_{end_str}_{dataid}.csv"
 
@@ -166,13 +168,7 @@ class NYISOClient:
             logger.error(f"Error merging CSVs: {e}")
             return False
 
-    def get_lbmp(
-            self,
-            market: NYISOMarket,
-            level: str,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def get_lbmp(self, market: NYISOMarket, level: str, start_date: date, duration: int) -> bool:
         """
         Get Locational Based Marginal Prices (LBMP).
 
@@ -182,18 +178,18 @@ class NYISOClient:
             start_date: Start date
             duration: Duration in days
         """
-        if level not in ['zonal', 'generator']:
+        if level not in ["zonal", "generator"]:
             logger.error(f"Invalid level: {level}. Must be 'zonal' or 'generator'")
             return False
 
-        agg_type = 'zone' if level == 'zonal' else 'gen'
+        agg_type = "zone" if level == "zonal" else "gen"
 
         if market == NYISOMarket.DAM:
-            dataid = 'damlbmp'
-            file_dataid = 'damlbmp'
+            dataid = "damlbmp"
+            file_dataid = "damlbmp"
         else:  # RTM
-            dataid = 'realtime'
-            file_dataid = 'realtime'
+            dataid = "realtime"
+            file_dataid = "realtime"
 
         end_date = start_date + timedelta(days=duration)
         month_starts = self._get_month_start_dates(start_date, end_date)
@@ -215,22 +211,20 @@ class NYISOClient:
 
         # Cleanup temp files
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
 
         return success
 
     def get_ancillary_services_prices(
-            self,
-            market: NYISOMarket,
-            start_date: date,
-            duration: int
+        self, market: NYISOMarket, start_date: date, duration: int
     ) -> bool:
         """Get ancillary services prices."""
         if market == NYISOMarket.DAM:
-            dataid = 'damasp'
+            dataid = "damasp"
         else:  # RTM
-            dataid = 'rtasp'
+            dataid = "rtasp"
 
         file_dataid = dataid
         end_date = start_date + timedelta(days=duration)
@@ -250,17 +244,13 @@ class NYISOClient:
 
         # Cleanup
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
 
         return success
 
-    def get_constraints(
-            self,
-            market: NYISOMarket,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def get_constraints(self, market: NYISOMarket, start_date: date, duration: int) -> bool:
         """
         Get transmission constraint data.
 
@@ -270,9 +260,9 @@ class NYISOClient:
             duration: Duration in days
         """
         if market == NYISOMarket.DAM:
-            dataid = 'DAMLimitingConstraints'
+            dataid = "DAMLimitingConstraints"
         else:  # RTM
-            dataid = 'LimitingConstraints'
+            dataid = "LimitingConstraints"
 
         file_dataid = dataid
         end_date = start_date + timedelta(days=duration)
@@ -292,17 +282,13 @@ class NYISOClient:
 
         # Cleanup
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
 
         return success
 
-    def get_bid_data(
-            self,
-            bid_type: str,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def get_bid_data(self, bid_type: str, start_date: date, duration: int) -> bool:
         """
         Get bid data.
 
@@ -312,19 +298,19 @@ class NYISOClient:
             duration: Duration in days
         """
         type_map = {
-            'generator': 'genbids',
-            'load': 'loadbids',
-            'transaction': 'tranbids',
-            'commitment': 'ucdata'
+            "generator": "genbids",
+            "load": "loadbids",
+            "transaction": "tranbids",
+            "commitment": "ucdata",
         }
 
         if bid_type not in type_map:
             logger.error(f"Invalid bid type: {bid_type}")
             return False
 
-        dataid = 'biddata'
+        dataid = "biddata"
         agg_type = type_map[bid_type]
-        file_dataid = 'biddata'
+        file_dataid = "biddata"
 
         end_date = start_date + timedelta(days=duration)
         month_starts = self._get_month_start_dates(start_date, end_date)
@@ -341,16 +327,18 @@ class NYISOClient:
             else:
                 # For bid data, copy individual files to data directory
                 # (don't merge, keep separate by date as in legacy version)
-                date_str = month_start.strftime('%Y%m%d')
+                date_str = month_start.strftime("%Y%m%d")
                 src_file = raw_path / f"{date_str}{dataid}_{agg_type}.csv"
                 if src_file.exists():
                     dst_file = self.config.data_dir / src_file.name
                     import shutil
+
                     shutil.copy(src_file, dst_file)
                     logger.info(f"Copied bid data: {dst_file}")
 
         # Cleanup
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
 
@@ -359,16 +347,12 @@ class NYISOClient:
     def cleanup(self):
         """Clean up temporary files."""
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
             logger.info("Cleaned up temporary files")
 
-    def get_load_data(
-            self,
-            load_type: str,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def get_load_data(self, load_type: str, start_date: date, duration: int) -> bool:
         """
         Get load data.
 
@@ -378,10 +362,10 @@ class NYISOClient:
             duration: Duration in days
         """
         type_map = {
-            'iso_forecast': 'isolf',
-            'zonal_bid': 'zonalBidLoad',
-            'weather_forecast': 'lfweather',
-            'actual': 'pal'
+            "iso_forecast": "isolf",
+            "zonal_bid": "zonalBidLoad",
+            "weather_forecast": "lfweather",
+            "actual": "pal",
         }
 
         if load_type not in type_map:
@@ -408,17 +392,18 @@ class NYISOClient:
 
         # Cleanup
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
 
         return success
 
     def get_outages(
-            self,
-            market: NYISOMarket,
-            outage_type: Optional[str] = None,
-            start_date: date = None,
-            duration: int = None
+        self,
+        market: NYISOMarket,
+        outage_type: Optional[str] = None,
+        start_date: date = None,
+        duration: int = None,
     ) -> bool:
         """
         Get transmission outage data.
@@ -430,15 +415,15 @@ class NYISOClient:
             duration: Duration in days
         """
         if market == NYISOMarket.DAM:
-            dataid = 'outSched'
-            file_dataid = 'outSched'
+            dataid = "outSched"
+            file_dataid = "outSched"
         else:  # RTM
-            if outage_type == 'scheduled':
-                dataid = 'schedlineoutages'
-                file_dataid = 'SCLineOutages'
-            elif outage_type == 'actual':
-                dataid = 'realtimelineoutages'
-                file_dataid = 'RTLineOutages'
+            if outage_type == "scheduled":
+                dataid = "schedlineoutages"
+                file_dataid = "SCLineOutages"
+            elif outage_type == "actual":
+                dataid = "realtimelineoutages"
+                file_dataid = "RTLineOutages"
             else:
                 logger.error("RTM outages require outage_type: 'scheduled' or 'actual'")
                 return False
@@ -460,6 +445,7 @@ class NYISOClient:
 
         # Cleanup
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
 

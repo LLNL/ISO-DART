@@ -4,6 +4,7 @@ MISO Client for ISO-DART v2.0
 Modernized client for Midcontinent Independent System Operator data retrieval.
 File location: lib/iso/miso.py
 """
+
 from typing import Optional, List
 from datetime import date, timedelta
 from pathlib import Path
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class MISODataType(Enum):
     """MISO data types."""
+
     # LMP Types
     DA_EPNODES = "DA_Load_EPNodes"
     DA_EXANTE_LMP = "da_exante_lmp"
@@ -43,8 +45,9 @@ class MISODataType(Enum):
 @dataclass
 class MISOConfig:
     """Configuration for MISO client."""
-    base_url: str = 'https://docs.misoenergy.org/marketreports/'
-    data_dir: Path = Path('data/MISO')
+
+    base_url: str = "https://docs.misoenergy.org/marketreports/"
+    data_dir: Path = Path("data/MISO")
     max_retries: int = 3
     retry_delay: int = 5
     timeout: int = 30
@@ -62,12 +65,7 @@ class MISOClient:
         """Ensure required directories exist."""
         self.config.data_dir.mkdir(parents=True, exist_ok=True)
 
-    def _build_filename(
-            self,
-            data_type: MISODataType,
-            date_str: str,
-            is_zip: bool = False
-    ) -> str:
+    def _build_filename(self, data_type: MISODataType, date_str: str, is_zip: bool = False) -> str:
         """Build filename based on MISO naming conventions."""
         query_name = data_type.value
 
@@ -81,7 +79,7 @@ class MISOClient:
                 MISODataType.RT_FINAL_LMP,
                 MISODataType.ASM_DA_EXANTE_MCP,
                 MISODataType.ASM_DA_EXPOST_MCP,
-                MISODataType.ASM_RT_FINAL_MCP
+                MISODataType.ASM_RT_FINAL_MCP,
             ]:
                 return f"{date_str}_{query_name}.csv"
             else:
@@ -97,7 +95,7 @@ class MISOClient:
 
                 if response.ok:
                     # Check if it's an error message from Azure Blob Storage
-                    if b'BlobNotFound' in response.content:
+                    if b"BlobNotFound" in response.content:
                         logger.error(f"Data not found at {url}")
                         return None
 
@@ -111,16 +109,12 @@ class MISOClient:
 
             if attempt < self.config.max_retries - 1:
                 import time
+
                 time.sleep(self.config.retry_delay)
 
         return None
 
-    def download_data(
-            self,
-            data_type: MISODataType,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def download_data(self, data_type: MISODataType, start_date: date, duration: int) -> bool:
         """
         Download MISO data for a date range.
 
@@ -139,13 +133,10 @@ class MISOClient:
 
         success_count = 0
         for current_date in date_list:
-            date_str = current_date.strftime('%Y%m%d')
+            date_str = current_date.strftime("%Y%m%d")
 
             # Determine if it's a ZIP file
-            is_zip = data_type in [
-                MISODataType.DA_EPNODES,
-                MISODataType.RT_EPNODES
-            ]
+            is_zip = data_type in [MISODataType.DA_EPNODES, MISODataType.RT_EPNODES]
 
             filename = self._build_filename(data_type, date_str, is_zip)
             url = f"{self.config.base_url}{filename}"
@@ -175,12 +166,7 @@ class MISOClient:
         logger.info(f"Downloaded {success_count}/{len(date_list)} files successfully")
         return success_count > 0
 
-    def get_lmp(
-            self,
-            lmp_type: str,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def get_lmp(self, lmp_type: str, start_date: date, duration: int) -> bool:
         """
         Get LMP data.
 
@@ -191,12 +177,12 @@ class MISOClient:
             duration: Duration in days
         """
         type_map = {
-            'da_epnodes': MISODataType.DA_EPNODES,
-            'da_exante': MISODataType.DA_EXANTE_LMP,
-            'da_expost': MISODataType.DA_EXPOST_LMP,
-            'rt_epnodes': MISODataType.RT_EPNODES,
-            'rt_5min_exante': MISODataType.RT_5MIN_EXANTE_LMP,
-            'rt_final': MISODataType.RT_FINAL_LMP
+            "da_epnodes": MISODataType.DA_EPNODES,
+            "da_exante": MISODataType.DA_EXANTE_LMP,
+            "da_expost": MISODataType.DA_EXPOST_LMP,
+            "rt_epnodes": MISODataType.RT_EPNODES,
+            "rt_5min_exante": MISODataType.RT_5MIN_EXANTE_LMP,
+            "rt_final": MISODataType.RT_FINAL_LMP,
         }
 
         if lmp_type not in type_map:
@@ -205,12 +191,7 @@ class MISOClient:
 
         return self.download_data(type_map[lmp_type], start_date, duration)
 
-    def get_mcp(
-            self,
-            mcp_type: str,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def get_mcp(self, mcp_type: str, start_date: date, duration: int) -> bool:
         """
         Get MCP (Marginal Clearing Price) data.
 
@@ -222,12 +203,12 @@ class MISOClient:
             duration: Duration in days
         """
         type_map = {
-            'asm_da_exante': MISODataType.ASM_DA_EXANTE_MCP,
-            'asm_da_expost': MISODataType.ASM_DA_EXPOST_MCP,
-            'asm_rt_5min_exante': MISODataType.ASM_RT_5MIN_EXANTE_MCP,
-            'asm_rt_final': MISODataType.ASM_RT_FINAL_MCP,
-            'da_exante_ramp': MISODataType.DA_EXANTE_RAMP_MCP,
-            'da_expost_ramp': MISODataType.DA_EXPOST_RAMP_MCP
+            "asm_da_exante": MISODataType.ASM_DA_EXANTE_MCP,
+            "asm_da_expost": MISODataType.ASM_DA_EXPOST_MCP,
+            "asm_rt_5min_exante": MISODataType.ASM_RT_5MIN_EXANTE_MCP,
+            "asm_rt_final": MISODataType.ASM_RT_FINAL_MCP,
+            "da_exante_ramp": MISODataType.DA_EXANTE_RAMP_MCP,
+            "da_expost_ramp": MISODataType.DA_EXPOST_RAMP_MCP,
         }
 
         if mcp_type not in type_map:
@@ -236,12 +217,7 @@ class MISOClient:
 
         return self.download_data(type_map[mcp_type], start_date, duration)
 
-    def get_load_summary(
-            self,
-            summary_type: str,
-            start_date: date,
-            duration: int
-    ) -> bool:
+    def get_load_summary(self, summary_type: str, start_date: date, duration: int) -> bool:
         """
         Get load summary data.
 
@@ -251,8 +227,8 @@ class MISOClient:
             duration: Duration in days
         """
         type_map = {
-            'daily_forecast_actual': MISODataType.DAILY_FORECAST_ACTUAL_LOAD,
-            'regional_forecast_actual': MISODataType.REGIONAL_FORECAST_ACTUAL_LOAD
+            "daily_forecast_actual": MISODataType.DAILY_FORECAST_ACTUAL_LOAD,
+            "regional_forecast_actual": MISODataType.REGIONAL_FORECAST_ACTUAL_LOAD,
         }
 
         if summary_type not in type_map:

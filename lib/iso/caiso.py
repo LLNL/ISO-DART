@@ -4,6 +4,7 @@ CAISO Client for ISO-DART v2.0
 Modernized client for California Independent System Operator data retrieval.
 File location: lib/iso/caiso.py
 """
+
 from typing import Optional, Dict, Any, List
 from datetime import datetime, date, timedelta
 from pathlib import Path
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class Market(Enum):
     """Energy market types."""
+
     DAM = "DAM"  # Day-Ahead Market
     HASP = "HASP"  # Hour-Ahead Scheduling Process
     RTM = "RTM"  # Real-Time Market
@@ -33,9 +35,10 @@ class Market(Enum):
 
 class ReportVersion(Enum):
     """OASIS report schema versions."""
-    V1 = (1, '{http://www.caiso.com/soa/OASISReport_v1.xsd}')
-    V4 = (4, '{http://www.caiso.com/soa/OASISReport_v4.xsd}')
-    V5 = (5, '{http://www.caiso.com/soa/OASISReport_v5.xsd}')
+
+    V1 = (1, "{http://www.caiso.com/soa/OASISReport_v1.xsd}")
+    V4 = (4, "{http://www.caiso.com/soa/OASISReport_v4.xsd}")
+    V5 = (5, "{http://www.caiso.com/soa/OASISReport_v5.xsd}")
 
     def __init__(self, version: int, namespace: str):
         self.version = version
@@ -45,12 +48,13 @@ class ReportVersion(Enum):
 @dataclass
 class CAISOConfig:
     """Configuration for CAISO client."""
-    base_url: str = 'http://oasis.caiso.com/oasisapi/SingleZip'
-    query_date_format: str = '%Y%m%dT%H:%M-0000'
-    data_date_format: str = '%Y-%m-%dT%H:%M:%S-00:00'
-    raw_dir: Path = Path('raw_data')
-    xml_dir: Path = Path('raw_data/xml_files')
-    data_dir: Path = Path('data/CAISO')
+
+    base_url: str = "http://oasis.caiso.com/oasisapi/SingleZip"
+    query_date_format: str = "%Y%m%dT%H:%M-0000"
+    data_date_format: str = "%Y-%m-%dT%H:%M:%S-00:00"
+    raw_dir: Path = Path("raw_data")
+    xml_dir: Path = Path("raw_data/xml_files")
+    data_dir: Path = Path("data/CAISO")
     max_retries: int = 3
     retry_delay: int = 5
     timeout: int = 30
@@ -70,25 +74,25 @@ class CAISOClient:
             directory.mkdir(parents=True, exist_ok=True)
 
     def _build_params(
-            self,
-            query_name: str,
-            start_date: date,
-            end_date: date,
-            market: Optional[Market] = None,
-            **kwargs
+        self,
+        query_name: str,
+        start_date: date,
+        end_date: date,
+        market: Optional[Market] = None,
+        **kwargs,
     ) -> Dict[str, Any]:
         """Build request parameters for OASIS API."""
-        start_dt = pd.Timestamp(start_date).tz_localize('US/Pacific')
-        end_dt = pd.Timestamp(end_date).tz_localize('US/Pacific')
+        start_dt = pd.Timestamp(start_date).tz_localize("US/Pacific")
+        end_dt = pd.Timestamp(end_date).tz_localize("US/Pacific")
 
         params = {
-            'startdatetime': start_dt.tz_convert('UTC').strftime(self.config.query_date_format),
-            'enddatetime': end_dt.tz_convert('UTC').strftime(self.config.query_date_format),
-            'queryname': query_name,
+            "startdatetime": start_dt.tz_convert("UTC").strftime(self.config.query_date_format),
+            "enddatetime": end_dt.tz_convert("UTC").strftime(self.config.query_date_format),
+            "queryname": query_name,
         }
 
         if market:
-            params['market_run_id'] = market.value
+            params["market_run_id"] = market.value
 
         params.update(kwargs)
         return params
@@ -99,10 +103,7 @@ class CAISOClient:
             try:
                 logger.debug(f"Making request (attempt {attempt + 1}/{self.config.max_retries})")
                 response = self.session.get(
-                    self.config.base_url,
-                    params=params,
-                    timeout=self.config.timeout,
-                    verify=True
+                    self.config.base_url, params=params, timeout=self.config.timeout, verify=True
                 )
 
                 if response.ok:
@@ -116,6 +117,7 @@ class CAISOClient:
 
             if attempt < self.config.max_retries - 1:
                 import time
+
                 time.sleep(self.config.retry_delay)
 
         return None
@@ -132,14 +134,14 @@ class CAISOClient:
                 dst_path.write_bytes(z.read(src_file_name))
 
                 # Check for errors in response
-                xml_content = z.read(src_file_name).decode('utf-8')
-                if '<m:ERR_CODE>' in xml_content:
-                    err_start = xml_content.find('<m:ERR_CODE>') + 12
-                    err_end = xml_content.find('</m:ERR_CODE>')
+                xml_content = z.read(src_file_name).decode("utf-8")
+                if "<m:ERR_CODE>" in xml_content:
+                    err_start = xml_content.find("<m:ERR_CODE>") + 12
+                    err_end = xml_content.find("</m:ERR_CODE>")
                     error_code = xml_content[err_start:err_end]
 
-                    msg_start = xml_content.find('<m:ERR_DESC>') + 12
-                    msg_end = xml_content.find('</m:ERR_DESC>')
+                    msg_start = xml_content.find("<m:ERR_DESC>") + 12
+                    msg_end = xml_content.find("</m:ERR_DESC>")
                     error_msg = xml_content[msg_start:msg_end]
 
                     logger.error(f"API Error {error_code}: {error_msg}")
@@ -152,10 +154,7 @@ class CAISOClient:
             return None
 
     def _xml_to_csv(
-            self,
-            xml_path: Path,
-            csv_path: Path,
-            report_version: ReportVersion = ReportVersion.V1
+        self, xml_path: Path, csv_path: Path, report_version: ReportVersion = ReportVersion.V1
     ) -> bool:
         """Convert XML response to CSV."""
         try:
@@ -164,7 +163,7 @@ class CAISOClient:
 
             # Check for errors
             try:
-                if root[1][0][2][0].tag == report_version.namespace + 'ERR_CODE':
+                if root[1][0][2][0].tag == report_version.namespace + "ERR_CODE":
                     error_code = root[1][0][2][0].text
                     logger.error(f"Data error: {error_code}")
                     return False
@@ -173,13 +172,13 @@ class CAISOClient:
 
             # Determine if we need to write header
             write_header = not csv_path.exists()
-            mode = 'w' if write_header else 'a'
+            mode = "w" if write_header else "a"
 
-            with csv_path.open(mode, newline='') as csv_file:
+            with csv_path.open(mode, newline="") as csv_file:
                 writer = csv.writer(csv_file)
                 header = []
 
-                for report in root.iter(report_version.namespace + 'REPORT_DATA'):
+                for report in root.iter(report_version.namespace + "REPORT_DATA"):
                     if write_header:
                         for col in report:
                             header.append(col.tag.replace(report_version.namespace, ""))
@@ -195,47 +194,36 @@ class CAISOClient:
             logger.error(f"Error converting XML to CSV: {e}")
             return False
 
-    def _process_csv(
-            self,
-            csv_path: Path,
-            output_dir: Path,
-            separate_by_item: bool = True
-    ):
+    def _process_csv(self, csv_path: Path, output_dir: Path, separate_by_item: bool = True):
         """Process and organize CSV data."""
         df = pd.read_csv(csv_path)
 
-        if separate_by_item and 'DATA_ITEM' in df.columns:
+        if separate_by_item and "DATA_ITEM" in df.columns:
             # Sort data
-            if 'ENE_WIND_SOLAR_SUMMARY' in csv_path.name:
-                sorted_df = df.sort_values(['OPR_DATE'])
+            if "ENE_WIND_SOLAR_SUMMARY" in csv_path.name:
+                sorted_df = df.sort_values(["OPR_DATE"])
             else:
-                sorted_df = df.sort_values(['OPR_DATE', 'INTERVAL_NUM'])
+                sorted_df = df.sort_values(["OPR_DATE", "INTERVAL_NUM"])
 
             # Get date range
-            start = df['OPR_DATE'].min()
-            end = df['OPR_DATE'].max()
+            start = df["OPR_DATE"].min()
+            end = df["OPR_DATE"].max()
 
             # Separate by data item
-            for item in df['DATA_ITEM'].unique():
-                item_df = sorted_df[sorted_df['DATA_ITEM'] == item]
+            for item in df["DATA_ITEM"].unique():
+                item_df = sorted_df[sorted_df["DATA_ITEM"] == item]
                 output_path = output_dir / f"{start}_to_{end}_{csv_path.stem}_{item}.csv"
                 item_df.to_csv(output_path, index=False)
                 logger.info(f"Saved: {output_path}")
         else:
             # Just copy and rename
-            start = df['OPR_DATE'].min()
-            end = df['OPR_DATE'].max()
+            start = df["OPR_DATE"].min()
+            end = df["OPR_DATE"].max()
             output_path = output_dir / f"{start}_to_{end}_{csv_path.stem}.csv"
             df.to_csv(output_path, index=False)
             logger.info(f"Saved: {output_path}")
 
-    def get_lmp(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
-    ) -> bool:
+    def get_lmp(self, market: Market, start_date: date, end_date: date, step_size: int = 1) -> bool:
         """
         Get Locational Marginal Price data.
 
@@ -249,10 +237,10 @@ class CAISOClient:
             True if successful, False otherwise
         """
         query_map = {
-            Market.DAM: 'PRC_LMP',
-            Market.HASP: 'PRC_HASP_LMP',
-            Market.RTPD: 'PRC_RTPD_LMP',
-            Market.RTM: 'PRC_INTVL_LMP'
+            Market.DAM: "PRC_LMP",
+            Market.HASP: "PRC_HASP_LMP",
+            Market.RTPD: "PRC_RTPD_LMP",
+            Market.RTM: "PRC_INTVL_LMP",
         }
 
         if market not in query_map:
@@ -271,8 +259,8 @@ class CAISOClient:
                 start_date=current_date,
                 end_date=step_end,
                 market=market,
-                grp_type='ALL_APNODES',
-                version=1
+                grp_type="ALL_APNODES",
+                version=1,
             )
 
             content = self._make_request(params)
@@ -298,14 +286,10 @@ class CAISOClient:
         return True
 
     def get_load_forecast(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, market: Market, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """Get system load forecast data."""
-        query_name = 'SLD_FCST'
+        query_name = "SLD_FCST"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -317,12 +301,12 @@ class CAISOClient:
                 start_date=current_date,
                 end_date=step_end,
                 market=market,
-                version=1
+                version=1,
             )
 
             # Add execution_type for RTM
             if market == Market.RTM:
-                params['execution_type'] = 'RTD'
+                params["execution_type"] = "RTD"
 
             content = self._make_request(params)
             if not content:
@@ -343,17 +327,10 @@ class CAISOClient:
         return True
 
     def get_ancillary_services_prices(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, market: Market, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """Get ancillary services clearing prices."""
-        query_map = {
-            Market.DAM: 'PRC_AS',
-            Market.RTM: 'PRC_INTVL_AS'
-        }
+        query_map = {Market.DAM: "PRC_AS", Market.RTM: "PRC_INTVL_AS"}
 
         if market not in query_map:
             logger.error(f"Invalid market for AS prices: {market}")
@@ -371,7 +348,7 @@ class CAISOClient:
                 start_date=current_date,
                 end_date=step_end,
                 market=market,
-                version=1
+                version=1,
             )
 
             content = self._make_request(params)
@@ -393,14 +370,10 @@ class CAISOClient:
         return True
 
     def get_fuel_prices(
-            self,
-            start_date: date,
-            end_date: date,
-            region: str = 'ALL',
-            step_size: int = 1
+        self, start_date: date, end_date: date, region: str = "ALL", step_size: int = 1
     ) -> bool:
         """Get fuel prices."""
-        query_name = 'PRC_FUEL'
+        query_name = "PRC_FUEL"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -412,7 +385,7 @@ class CAISOClient:
                 start_date=current_date,
                 end_date=step_end,
                 fuel_region_id=region,
-                version=1
+                version=1,
             )
 
             content = self._make_request(params)
@@ -433,14 +406,9 @@ class CAISOClient:
 
         return True
 
-    def get_wind_solar_summary(
-            self,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
-    ) -> bool:
+    def get_wind_solar_summary(self, start_date: date, end_date: date, step_size: int = 1) -> bool:
         """Get wind and solar generation summary."""
-        query_name = 'ENE_WIND_SOLAR_SUMMARY'
+        query_name = "ENE_WIND_SOLAR_SUMMARY"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -448,10 +416,7 @@ class CAISOClient:
             step_end = min(current_date + timedelta(days=step_size), end_date)
 
             params = self._build_params(
-                query_name=query_name,
-                start_date=current_date,
-                end_date=step_end,
-                version=5
+                query_name=query_name, start_date=current_date, end_date=step_end, version=5
             )
 
             content = self._make_request(params)
@@ -473,13 +438,10 @@ class CAISOClient:
         return True
 
     def get_ghg_allowance_prices(
-            self,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """Get greenhouse gas allowance prices."""
-        query_name = 'PRC_GHG_ALLOWANCE'
+        query_name = "PRC_GHG_ALLOWANCE"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -487,10 +449,7 @@ class CAISOClient:
             step_end = min(current_date + timedelta(days=step_size), end_date)
 
             params = self._build_params(
-                query_name=query_name,
-                start_date=current_date,
-                end_date=step_end,
-                version=1
+                query_name=query_name, start_date=current_date, end_date=step_end, version=1
             )
 
             content = self._make_request(params)
@@ -512,13 +471,10 @@ class CAISOClient:
         return True
 
     def get_intertie_constraint_shadow_prices(
-            self,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """Get intertie constraint shadow prices."""
-        query_name = 'PRC_CNSTR'
+        query_name = "PRC_CNSTR"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -526,10 +482,7 @@ class CAISOClient:
             step_end = min(current_date + timedelta(days=step_size), end_date)
 
             params = self._build_params(
-                query_name=query_name,
-                start_date=current_date,
-                end_date=step_end,
-                version=1
+                query_name=query_name, start_date=current_date, end_date=step_end, version=1
             )
 
             content = self._make_request(params)
@@ -551,11 +504,7 @@ class CAISOClient:
         return True
 
     def get_system_load(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, market: Market, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """
         Get system load and resource schedules.
@@ -570,7 +519,7 @@ class CAISOClient:
             logger.error(f"Invalid market for system load: {market}")
             return False
 
-        query_name = 'ENE_SLRS'
+        query_name = "ENE_SLRS"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -582,7 +531,7 @@ class CAISOClient:
                 start_date=current_date,
                 end_date=step_end,
                 market=market,
-                version=1
+                version=1,
             )
 
             content = self._make_request(params)
@@ -604,11 +553,7 @@ class CAISOClient:
         return True
 
     def get_market_power_mitigation(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, market: Market, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """
         Get Market Power Mitigation (MPM) status.
@@ -619,7 +564,7 @@ class CAISOClient:
             end_date: End date
             step_size: Number of days per request
         """
-        query_name = 'ENE_MPM'
+        query_name = "ENE_MPM"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -632,17 +577,17 @@ class CAISOClient:
                     start_date=current_date,
                     end_date=step_end,
                     market=market,
-                    version=1
+                    version=1,
                 )
             else:  # HASP or RTPD
-                exec_type = 'HASP' if market == Market.HASP else 'RTPD'
+                exec_type = "HASP" if market == Market.HASP else "RTPD"
                 params = self._build_params(
                     query_name=query_name,
                     start_date=current_date,
                     end_date=step_end,
                     market=Market.RTM,
                     execution_type=exec_type,
-                    version=1
+                    version=1,
                 )
 
             content = self._make_request(params)
@@ -664,14 +609,10 @@ class CAISOClient:
         return True
 
     def get_flex_ramp_requirements(
-            self,
-            start_date: date,
-            end_date: date,
-            baa_group: str = 'ALL',
-            step_size: int = 1
+        self, start_date: date, end_date: date, baa_group: str = "ALL", step_size: int = 1
     ) -> bool:
         """Get flexible ramping requirements."""
-        query_name = 'ENE_FLEX_RAMP_REQT'
+        query_name = "ENE_FLEX_RAMP_REQT"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -684,7 +625,7 @@ class CAISOClient:
                 end_date=step_end,
                 market=Market.RTPD,
                 baa_grp_id=baa_group,
-                version=4
+                version=4,
             )
 
             content = self._make_request(params)
@@ -706,14 +647,10 @@ class CAISOClient:
         return True
 
     def get_flex_ramp_awards(
-            self,
-            start_date: date,
-            end_date: date,
-            baa_group: str = 'ALL',
-            step_size: int = 1
+        self, start_date: date, end_date: date, baa_group: str = "ALL", step_size: int = 1
     ) -> bool:
         """Get flexible ramping aggregated awards."""
-        query_name = 'ENE_AGGR_FLEX_RAMP'
+        query_name = "ENE_AGGR_FLEX_RAMP"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -726,7 +663,7 @@ class CAISOClient:
                 end_date=step_end,
                 market=Market.RTPD,
                 baa_grp_id=baa_group,
-                version=4
+                version=4,
             )
 
             content = self._make_request(params)
@@ -748,14 +685,10 @@ class CAISOClient:
         return True
 
     def get_flex_ramp_demand_curve(
-            self,
-            start_date: date,
-            end_date: date,
-            baa_group: str = 'ALL',
-            step_size: int = 1
+        self, start_date: date, end_date: date, baa_group: str = "ALL", step_size: int = 1
     ) -> bool:
         """Get flexible ramping demand curves."""
-        query_name = 'ENE_FLEX_RAMP_DC'
+        query_name = "ENE_FLEX_RAMP_DC"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -768,7 +701,7 @@ class CAISOClient:
                 end_date=step_end,
                 market=Market.RTPD,
                 baa_grp_id=baa_group,
-                version=4
+                version=4,
             )
 
             content = self._make_request(params)
@@ -790,14 +723,10 @@ class CAISOClient:
         return True
 
     def get_eim_transfer(
-            self,
-            start_date: date,
-            end_date: date,
-            baa_group: str = 'ALL',
-            step_size: int = 1
+        self, start_date: date, end_date: date, baa_group: str = "ALL", step_size: int = 1
     ) -> bool:
         """Get Energy Imbalance Market (EIM) transfer data."""
-        query_name = 'ENE_EIM_TRANSFER_TIE'
+        query_name = "ENE_EIM_TRANSFER_TIE"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -808,9 +737,9 @@ class CAISOClient:
                 query_name=query_name,
                 start_date=current_date,
                 end_date=step_end,
-                market_run_id='ALL',
+                market_run_id="ALL",
                 baa_grp_id=baa_group,
-                version=4
+                version=4,
             )
 
             content = self._make_request(params)
@@ -832,14 +761,10 @@ class CAISOClient:
         return True
 
     def get_eim_transfer_limits(
-            self,
-            start_date: date,
-            end_date: date,
-            baa_group: str = 'ALL',
-            step_size: int = 1
+        self, start_date: date, end_date: date, baa_group: str = "ALL", step_size: int = 1
     ) -> bool:
         """Get Energy Imbalance Market (EIM) transfer limits."""
-        query_name = 'ENE_EIM_TRANSFER_LIMITS_TIE'
+        query_name = "ENE_EIM_TRANSFER_LIMITS_TIE"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -852,7 +777,7 @@ class CAISOClient:
                 end_date=step_end,
                 market=Market.RTPD,
                 baa_grp_id=baa_group,
-                version=5
+                version=5,
             )
 
             content = self._make_request(params)
@@ -874,13 +799,13 @@ class CAISOClient:
         return True
 
     def get_ancillary_services_requirements(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            anc_type: str = 'ALL',
-            anc_region: str = 'ALL',
-            step_size: int = 1
+        self,
+        market: Market,
+        start_date: date,
+        end_date: date,
+        anc_type: str = "ALL",
+        anc_region: str = "ALL",
+        step_size: int = 1,
     ) -> bool:
         """
         Get ancillary services requirements.
@@ -893,7 +818,7 @@ class CAISOClient:
             anc_region: Region (ALL or specific region)
             step_size: Number of days per request
         """
-        query_name = 'AS_REQ'
+        query_name = "AS_REQ"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -907,7 +832,7 @@ class CAISOClient:
                 market=market,
                 anc_type=anc_type,
                 anc_region=anc_region,
-                version=1
+                version=1,
             )
 
             content = self._make_request(params)
@@ -929,13 +854,13 @@ class CAISOClient:
         return True
 
     def get_ancillary_services_results(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            anc_type: str = 'ALL',
-            anc_region: str = 'ALL',
-            step_size: int = 1
+        self,
+        market: Market,
+        start_date: date,
+        end_date: date,
+        anc_type: str = "ALL",
+        anc_region: str = "ALL",
+        step_size: int = 1,
     ) -> bool:
         """
         Get ancillary services results/awards.
@@ -948,7 +873,7 @@ class CAISOClient:
             anc_region: Region (ALL or specific region)
             step_size: Number of days per request
         """
-        query_name = 'AS_RESULTS'
+        query_name = "AS_RESULTS"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -962,7 +887,7 @@ class CAISOClient:
                 market=market,
                 anc_type=anc_type,
                 anc_region=anc_region,
-                version=1
+                version=1,
             )
 
             content = self._make_request(params)
@@ -983,14 +908,9 @@ class CAISOClient:
 
         return True
 
-    def get_operating_reserves(
-            self,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
-    ) -> bool:
+    def get_operating_reserves(self, start_date: date, end_date: date, step_size: int = 1) -> bool:
         """Get actual operating reserves."""
-        query_name = 'AS_OP_RSRV'
+        query_name = "AS_OP_RSRV"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -998,10 +918,7 @@ class CAISOClient:
             step_end = min(current_date + timedelta(days=step_size), end_date)
 
             params = self._build_params(
-                query_name=query_name,
-                start_date=current_date,
-                end_date=step_end,
-                version=1
+                query_name=query_name, start_date=current_date, end_date=step_end, version=1
             )
 
             content = self._make_request(params)
@@ -1023,11 +940,7 @@ class CAISOClient:
         return True
 
     def get_scheduling_point_tie_prices(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, market: Market, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """
         Get scheduling point tie prices.
@@ -1042,7 +955,7 @@ class CAISOClient:
             logger.error(f"Invalid market for scheduling point tie: {market}")
             return False
 
-        query_name = 'PRC_SPTIE_LMP'
+        query_name = "PRC_SPTIE_LMP"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -1054,8 +967,8 @@ class CAISOClient:
                 start_date=current_date,
                 end_date=step_end,
                 market=market,
-                grp_type='ALL_APNODES',
-                version=4
+                grp_type="ALL_APNODES",
+                version=4,
             )
 
             content = self._make_request(params)
@@ -1077,13 +990,10 @@ class CAISOClient:
         return True
 
     def get_advisory_demand_forecast(
-            self,
-            start_date: date,
-            end_date: date,
-            step_size: int = 1
+        self, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:
         """Get advisory CAISO demand forecast (RTPD)."""
-        query_name = 'SLD_ADV_FCST'
+        query_name = "SLD_ADV_FCST"
         csv_path = self.config.raw_dir / f"{query_name}.csv"
 
         current_date = start_date
@@ -1095,7 +1005,7 @@ class CAISOClient:
                 start_date=current_date,
                 end_date=step_end,
                 market=Market.RTPD,
-                version=4
+                version=4,
             )
 
             content = self._make_request(params)
@@ -1126,6 +1036,7 @@ class CAISOClient:
     def cleanup(self):
         """Clean up temporary files."""
         import shutil
+
         if self.config.raw_dir.exists():
             shutil.rmtree(self.config.raw_dir)
             logger.info("Cleaned up temporary files")

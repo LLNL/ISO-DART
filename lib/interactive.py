@@ -3,6 +3,7 @@ Interactive mode for ISO-DART v2.0
 
 User-friendly command-line interface for data downloads.
 """
+
 from datetime import date, datetime, timedelta
 from typing import Tuple
 import logging
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
+
 
 def get_date_input() -> Tuple[date, int]:
     """
@@ -54,7 +56,7 @@ def get_date_input() -> Tuple[date, int]:
                 continue
             if duration > 365:
                 confirm = input(f"You selected {duration} days (over a year). Continue? (y/n): ")
-                if confirm.lower() != 'y':
+                if confirm.lower() != "y":
                     continue
             break
         except ValueError:
@@ -70,6 +72,7 @@ def get_date_input() -> Tuple[date, int]:
 # ============================================================================
 # MAIN MENU
 # ============================================================================
+
 
 def run_interactive_mode():
     """Run the interactive command-line interface."""
@@ -101,6 +104,7 @@ def run_interactive_mode():
 # ============================================================================
 # ISO SELECTION
 # ============================================================================
+
 
 def run_iso_mode():
     """Interactive mode for ISO data."""
@@ -134,6 +138,7 @@ def run_iso_mode():
 # ============================================================================
 # CAISO MAIN MENU
 # ============================================================================
+
 
 def run_caiso_mode():
     """Interactive mode for CAISO data."""
@@ -170,6 +175,7 @@ def run_caiso_mode():
 # ============================================================================
 # CAISO - PRICING DATA
 # ============================================================================
+
 
 def run_caiso_pricing():
     """CAISO pricing data selection."""
@@ -213,12 +219,7 @@ def run_caiso_pricing():
                 pass
             print("Please enter a number between 1 and 4")
 
-        market_map = {
-            1: Market.DAM,
-            2: Market.HASP,
-            3: Market.RTM,
-            4: Market.RTPD
-        }
+        market_map = {1: Market.DAM, 2: Market.HASP, 3: Market.RTM, 4: Market.RTPD}
         market = market_map[market_choice]
 
         # Get date range
@@ -362,6 +363,7 @@ def run_caiso_pricing():
 # CAISO - SYSTEM DEMAND DATA
 # ============================================================================
 
+
 def run_caiso_demand():
     """CAISO demand forecast selection."""
     from lib.iso.caiso import CAISOClient, Market
@@ -399,12 +401,7 @@ def run_caiso_demand():
                 pass
             print("Please enter a number between 1 and 4")
 
-        market_map = {
-            1: Market.DAM,
-            2: Market.TWO_DA,
-            3: Market.SEVEN_DA,
-            4: Market.RTM
-        }
+        market_map = {1: Market.DAM, 2: Market.TWO_DA, 3: Market.SEVEN_DA, 4: Market.RTM}
         market = market_map[market_choice]
 
         start_date, duration = get_date_input()
@@ -444,6 +441,7 @@ def run_caiso_demand():
 # ============================================================================
 # CAISO - ENERGY DATA
 # ============================================================================
+
 
 def run_caiso_energy():
     """CAISO energy data selection."""
@@ -562,6 +560,7 @@ def run_caiso_energy():
 # CAISO - ANCILLARY SERVICES DATA
 # ============================================================================
 
+
 def run_caiso_ancillary():
     """CAISO ancillary services selection."""
     from lib.iso.caiso import CAISOClient, Market
@@ -634,6 +633,7 @@ def run_caiso_ancillary():
 # MISO MODE
 # ============================================================================
 
+
 def run_miso_mode():
     """Interactive mode for MISO data."""
     from lib.iso.miso import MISOClient
@@ -690,12 +690,12 @@ def run_miso_lmp():
         print("Please enter a number between 1 and 6")
 
     lmp_map = {
-        1: 'da_epnodes',
-        2: 'da_exante',
-        3: 'da_expost',
-        4: 'rt_epnodes',
-        5: 'rt_5min_exante',
-        6: 'rt_final'
+        1: "da_epnodes",
+        2: "da_exante",
+        3: "da_expost",
+        4: "rt_epnodes",
+        5: "rt_5min_exante",
+        6: "rt_final",
     }
 
     lmp_choice = lmp_map[lmp_type]
@@ -743,12 +743,12 @@ def run_miso_mcp():
         print("Please enter a number between 1 and 6")
 
     mcp_map = {
-        1: 'asm_da_exante',
-        2: 'asm_da_expost',
-        3: 'asm_rt_5min_exante',
-        4: 'asm_rt_final',
-        5: 'da_exante_ramp',
-        6: 'da_expost_ramp'
+        1: "asm_da_exante",
+        2: "asm_da_expost",
+        3: "asm_rt_5min_exante",
+        4: "asm_rt_final",
+        5: "da_exante_ramp",
+        6: "da_expost_ramp",
     }
 
     mcp_choice = mcp_map[mcp_type]
@@ -791,10 +791,7 @@ def run_miso_summary():
             pass
         print("Please enter 1 or 2")
 
-    summary_map = {
-        1: 'daily_forecast_actual',
-        2: 'regional_forecast_actual'
-    }
+    summary_map = {1: "daily_forecast_actual", 2: "regional_forecast_actual"}
 
     summary_choice = summary_map[summary_type]
 
@@ -818,6 +815,7 @@ def run_miso_summary():
 # ============================================================================
 # NYISO MODE
 # ============================================================================
+
 
 def run_nyiso_mode():
     """Interactive mode for NYISO data."""
@@ -901,7 +899,7 @@ def run_nyiso_pricing():
             except ValueError:
                 pass
 
-        level = 'zonal' if level_choice == 1 else 'generator'
+        level = "zonal" if level_choice == 1 else "generator"
 
         start_date, duration = get_date_input()
 
@@ -988,7 +986,7 @@ def run_nyiso_power_grid():
                 except ValueError:
                     pass
 
-            outage_type = 'scheduled' if outage_choice == 1 else 'actual'
+            outage_type = "scheduled" if outage_choice == 1 else "actual"
 
         start_date, duration = get_date_input()
 
@@ -1047,12 +1045,7 @@ def run_nyiso_load():
             pass
         print("Please enter a number between 1 and 4")
 
-    load_map = {
-        1: 'iso_forecast',
-        2: 'zonal_bid',
-        3: 'weather_forecast',
-        4: 'actual'
-    }
+    load_map = {1: "iso_forecast", 2: "zonal_bid", 3: "weather_forecast", 4: "actual"}
 
     load_choice = load_map[load_type]
 
@@ -1096,12 +1089,7 @@ def run_nyiso_bid():
             pass
         print("Please enter a number between 1 and 4")
 
-    bid_map = {
-        1: 'generator',
-        2: 'load',
-        3: 'transaction',
-        4: 'commitment'
-    }
+    bid_map = {1: "generator", 2: "load", 3: "transaction", 4: "commitment"}
 
     bid_choice = bid_map[bid_type]
 
@@ -1126,6 +1114,7 @@ def run_nyiso_bid():
 # WEATHER MODE
 # ============================================================================
 
+
 def run_weather_mode():
     """Interactive mode for weather data."""
     from lib.weather.client import WeatherClient
@@ -1143,11 +1132,57 @@ def run_weather_mode():
     print("=" * 60)
 
     us_states = [
-        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
-        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
-        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
-        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
-        "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+        "AL",
+        "AK",
+        "AZ",
+        "AR",
+        "CA",
+        "CO",
+        "CT",
+        "DC",
+        "DE",
+        "FL",
+        "GA",
+        "HI",
+        "ID",
+        "IL",
+        "IN",
+        "IA",
+        "KS",
+        "KY",
+        "LA",
+        "ME",
+        "MD",
+        "MA",
+        "MI",
+        "MN",
+        "MS",
+        "MO",
+        "MT",
+        "NE",
+        "NV",
+        "NH",
+        "NJ",
+        "NM",
+        "NY",
+        "NC",
+        "ND",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VT",
+        "VA",
+        "WA",
+        "WV",
+        "WI",
+        "WY",
     ]
 
     while True:
@@ -1161,9 +1196,7 @@ def run_weather_mode():
     client = WeatherClient()
     try:
         success = client.download_weather_data(
-            state=state,
-            start_date=start_date,
-            duration=duration
+            state=state, start_date=start_date, duration=duration
         )
 
         if success:
@@ -1172,7 +1205,7 @@ def run_weather_mode():
 
             # Ask about solar data
             solar = input("\n☀️  Download solar data from NSRDB? (y/n): ").lower()
-            if solar == 'y':
+            if solar == "y":
                 client.download_solar_data()
         else:
             print("\n❌ Weather data download failed.")
