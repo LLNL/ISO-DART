@@ -1,3 +1,25 @@
-requests
-pandas
-meteostat
+# Core dependencies
+requests>=2.31.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Weather data
+meteostat>=1.6.0
+
+# Data validation and parsing
+python-dateutil>=2.8.0
+
+# Configuration
+pyyaml>=6.0
+
+# Development dependencies (optional)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+types-requests>=2.31.0
+
+# Documentation (optional)
+sphinx>=7.0.0
+sphinx-rtd-theme>=1.3.0
