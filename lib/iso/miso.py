@@ -41,6 +41,17 @@ class MISODataType(Enum):
     DAILY_FORECAST_ACTUAL_LOAD = "df_al"
     REGIONAL_FORECAST_ACTUAL_LOAD = "rf_al"
 
+    # Fuel Mix Types
+    FUEL_MIX = "fuel_on_the_margin"
+    ACE = "ace"
+
+    # Generation Types
+    WIND_FORECAST = "wind_forecast"
+    WIND_ACTUAL = "wind_gen"
+
+    # Market Summary
+    MARKET_TOTALS = "ms_da"
+
 
 @dataclass
 class MISOConfig:
@@ -236,3 +247,53 @@ class MISOClient:
             return False
 
         return self.download_data(type_map[summary_type], start_date, duration)
+
+    def get_fuel_mix(self, start_date: date, duration: int) -> bool:
+        """
+        Get fuel on the margin data.
+
+        Args:
+            start_date: Start date
+            duration: Duration in days
+        """
+        return self.download_data(MISODataType.FUEL_MIX, start_date, duration)
+
+    def get_ace(self, start_date: date, duration: int) -> bool:
+        """
+        Get Area Control Error (ACE) data.
+
+        Args:
+            start_date: Start date
+            duration: Duration in days
+        """
+        return self.download_data(MISODataType.ACE, start_date, duration)
+
+    def get_wind_forecast(self, start_date: date, duration: int) -> bool:
+        """
+        Get wind generation forecast data.
+
+        Args:
+            start_date: Start date
+            duration: Duration in days
+        """
+        return self.download_data(MISODataType.WIND_FORECAST, start_date, duration)
+
+    def get_wind_actual(self, start_date: date, duration: int) -> bool:
+        """
+        Get actual wind generation data.
+
+        Args:
+            start_date: Start date
+            duration: Duration in days
+        """
+        return self.download_data(MISODataType.WIND_ACTUAL, start_date, duration)
+
+    def get_market_totals(self, start_date: date, duration: int) -> bool:
+        """
+        Get day-ahead market summary totals.
+
+        Args:
+            start_date: Start date
+            duration: Duration in days
+        """
+        return self.download_data(MISODataType.MARKET_TOTALS, start_date, duration)

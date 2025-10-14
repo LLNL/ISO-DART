@@ -279,6 +279,81 @@ class TestMISOLoadSummaryMethods:
         assert not success
 
 
+class TestMISOFuelMixMethods:
+    """Test MISO fuel mix and generation methods."""
+
+    @patch("lib.iso.miso.MISOClient.download_data")
+    def test_get_fuel_mix(self, mock_download, client):
+        """Test getting fuel mix data."""
+        mock_download.return_value = True
+
+        success = client.get_fuel_mix(date(2024, 1, 1), 1)
+
+        assert success
+        call_args = mock_download.call_args[0]
+        assert call_args[0] == MISODataType.FUEL_MIX
+        assert call_args[1] == date(2024, 1, 1)
+        assert call_args[2] == 1
+
+    @patch("lib.iso.miso.MISOClient.download_data")
+    def test_get_ace(self, mock_download, client):
+        """Test getting ACE data."""
+        mock_download.return_value = True
+
+        success = client.get_ace(date(2024, 1, 1), 7)
+
+        assert success
+        call_args = mock_download.call_args[0]
+        assert call_args[0] == MISODataType.ACE
+
+
+class TestMISOWindMethods:
+    """Test MISO wind generation methods."""
+
+    @patch("lib.iso.miso.MISOClient.download_data")
+    def test_get_wind_forecast(self, mock_download, client):
+        """Test getting wind forecast data."""
+        mock_download.return_value = True
+
+        success = client.get_wind_forecast(date(2024, 1, 1), 7)
+
+        assert success
+        call_args = mock_download.call_args[0]
+        assert call_args[0] == MISODataType.WIND_FORECAST
+        assert call_args[1] == date(2024, 1, 1)
+        assert call_args[2] == 7
+
+    @patch("lib.iso.miso.MISOClient.download_data")
+    def test_get_wind_actual(self, mock_download, client):
+        """Test getting actual wind generation."""
+        mock_download.return_value = True
+
+        success = client.get_wind_actual(date(2024, 1, 1), 30)
+
+        assert success
+        call_args = mock_download.call_args[0]
+        assert call_args[0] == MISODataType.WIND_ACTUAL
+        assert call_args[1] == date(2024, 1, 1)
+        assert call_args[2] == 30
+
+
+class TestMISOMarketMethods:
+    """Test MISO market summary methods."""
+
+    @patch("lib.iso.miso.MISOClient.download_data")
+    def test_get_market_totals(self, mock_download, client):
+        """Test getting market totals."""
+        mock_download.return_value = True
+
+        success = client.get_market_totals(date(2024, 1, 1), 7)
+
+        assert success
+        call_args = mock_download.call_args[0]
+        assert call_args[0] == MISODataType.MARKET_TOTALS
+        assert call_args[1] == date(2024, 1, 1)
+        assert call_args[2] == 7
+
+
 class TestMISOErrorHandling:
     """Test MISO error handling."""
 

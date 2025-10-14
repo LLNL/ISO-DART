@@ -530,6 +530,112 @@ class TestNYISOMultiMonthDownloads:
         assert mock_request.call_count == 1
 
 
+class TestNYISOFuelMixMethods:
+    """Test NYISO fuel mix methods."""
+
+    @patch("lib.iso.nyiso.NYISOClient._make_request")
+    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
+    def test_get_fuel_mix(self, mock_merge, mock_request, client):
+        """Test getting fuel mix data."""
+        mock_request.return_value = True
+        mock_merge.return_value = True
+
+        success = client.get_fuel_mix(date(2024, 1, 1), 7)
+
+        assert success
+        assert mock_request.called
+        assert mock_merge.called
+
+    @patch("lib.iso.nyiso.NYISOClient._make_request")
+    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
+    def test_get_fuel_mix_multiple_months(self, mock_merge, mock_request, client):
+        """Test getting fuel mix across multiple months."""
+        mock_request.return_value = True
+        mock_merge.return_value = True
+
+        success = client.get_fuel_mix(date(2024, 1, 15), 45)
+
+        assert success
+        # Should download for 2-3 months
+        assert mock_request.call_count >= 2
+
+
+class TestNYISOInterfaceFlowMethods:
+    """Test NYISO interface flow methods."""
+
+    @patch("lib.iso.nyiso.NYISOClient._make_request")
+    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
+    def test_get_interface_flows(self, mock_merge, mock_request, client):
+        """Test getting interface flow data."""
+        mock_request.return_value = True
+        mock_merge.return_value = True
+
+        success = client.get_interface_flows(date(2024, 1, 1), 30)
+
+        assert success
+        assert mock_request.called
+        assert mock_merge.called
+
+
+class TestNYISOWindMethods:
+    """Test NYISO wind generation methods."""
+
+    @patch("lib.iso.nyiso.NYISOClient._make_request")
+    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
+    def test_get_wind_generation(self, mock_merge, mock_request, client):
+        """Test getting wind generation data."""
+        mock_request.return_value = True
+        mock_merge.return_value = True
+
+        success = client.get_wind_generation(date(2024, 1, 1), 7)
+
+        assert success
+        assert mock_request.called
+        assert mock_merge.called
+
+    @patch("lib.iso.nyiso.NYISOClient._make_request")
+    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
+    def test_get_wind_generation_month_span(self, mock_merge, mock_request, client):
+        """Test getting wind data spanning multiple months."""
+        mock_request.return_value = True
+        mock_merge.return_value = True
+
+        success = client.get_wind_generation(date(2024, 1, 25), 15)
+
+        assert success
+        # Should call for 2 months
+        assert mock_request.call_count == 2
+
+
+class TestNYISOSolarMethods:
+    """Test NYISO BTM solar methods."""
+
+    @patch("lib.iso.nyiso.NYISOClient._make_request")
+    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
+    def test_get_btm_solar(self, mock_merge, mock_request, client):
+        """Test getting behind-the-meter solar data."""
+        mock_request.return_value = True
+        mock_merge.return_value = True
+
+        success = client.get_btm_solar(date(2024, 1, 1), 30)
+
+        assert success
+        assert mock_request.called
+        assert mock_merge.called
+
+    @patch("lib.iso.nyiso.NYISOClient._make_request")
+    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
+    def test_get_btm_solar_single_day(self, mock_merge, mock_request, client):
+        """Test getting BTM solar for single day."""
+        mock_request.return_value = True
+        mock_merge.return_value = True
+
+        success = client.get_btm_solar(date(2024, 6, 15), 1)
+
+        assert success
+        assert mock_request.call_count == 1
+
+
 @pytest.mark.integration
 class TestNYISOIntegration:
     """Integration tests - require actual API access."""
