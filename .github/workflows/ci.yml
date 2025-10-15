@@ -55,8 +55,14 @@ jobs:
         
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
 
   integration-test:
     name: Integration Tests
