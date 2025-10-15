@@ -3,7 +3,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![codecov](https://codecov.io/github/sotorrio1/ISO-DART/branch/dev/graph/badge.svg)](https://codecov.io/github/sotorrio1/ISO-DART)
+[![codecov](https://codecov.io/github/LLNL/ISO-DART/branch/dev/graph/badge.svg)](https://codecov.io/github/LLNL/ISO-DART)
 
 **Major revamp of the original ISO-DART tool with modernized architecture, improved error handling, and enhanced user experience.**
 
