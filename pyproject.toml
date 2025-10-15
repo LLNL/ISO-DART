@@ -157,7 +157,8 @@ source = ["lib"]
 omit = [
     "*/tests/*",
     "*/__pycache__/*",
-    "*/site-packages/*"
+    "*/site-packages/*",
+    "*/lib/interactive.py"
 ]
 
 [tool.coverage.report]
