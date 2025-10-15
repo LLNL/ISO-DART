@@ -54,15 +54,15 @@ jobs:
         pytest tests/ -v --cov=lib --cov-branch --cov-report=xml --cov-report=term-missing -m "not integration"
         
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        verbose: true
 
   integration-test:
     name: Integration Tests
