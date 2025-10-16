@@ -61,7 +61,9 @@ Examples:
     )
 
     parser.add_argument(
-        "--iso", choices=["bpa", "caiso", "miso", "nyiso", "spp"], help="Independent System Operator"
+        "--iso",
+        choices=["bpa", "caiso", "miso", "nyiso", "spp"],
+        help="Independent System Operator",
     )
 
     parser.add_argument("--data-type", help="Type of data to download (lmp, load, weather, etc.)")

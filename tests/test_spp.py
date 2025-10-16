@@ -25,9 +25,7 @@ from lib.iso.spp import (
 @pytest.fixture
 def temp_dir(tmp_path):
     """Create temporary directory structure for tests."""
-    config = SPPConfig(
-        data_dir=tmp_path / "data/SPP", raw_dir=tmp_path / "raw_data/SPP"
-    )
+    config = SPPConfig(data_dir=tmp_path / "data/SPP", raw_dir=tmp_path / "raw_data/SPP")
     config.data_dir.mkdir(parents=True, exist_ok=True)
     config.raw_dir.mkdir(parents=True, exist_ok=True)
     return config

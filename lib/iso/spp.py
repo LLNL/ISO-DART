@@ -97,9 +97,7 @@ class SPPClient:
         """Make API request with retry logic."""
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(
-                    f"Requesting: {url} (attempt {attempt + 1}/{self.config.max_retries})"
-                )
+                logger.debug(f"Requesting: {url} (attempt {attempt + 1}/{self.config.max_retries})")
                 response = self.session.get(
                     url, params=params, timeout=self.config.timeout, stream=stream
                 )
@@ -188,9 +186,7 @@ class SPPClient:
 
         # Filter by settlement location if specified
         if settlement_location != "ALL" and "Settlement Location" in combined_df.columns:
-            combined_df = combined_df[
-                combined_df["Settlement Location"] == settlement_location
-            ]
+            combined_df = combined_df[combined_df["Settlement Location"] == settlement_location]
 
         # Save data
         output_file = (
@@ -408,9 +404,7 @@ class SPPClient:
         Returns:
             True if successful, False otherwise
         """
-        logger.info(
-            f"Downloading SPP {market.value} AS prices from {start_date} to {end_date}"
-        )
+        logger.info(f"Downloading SPP {market.value} AS prices from {start_date} to {end_date}")
 
         # SPP provides MCP for regulation, spinning, and supplemental reserves
         date_list = pd.date_range(start_date, end_date, freq="D")

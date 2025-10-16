@@ -173,7 +173,10 @@ class BPAClient:
             # Filter by date range
             if "Date" in df.columns:
                 df["Date"] = pd.to_datetime(df["Date"])
-                df = df[(df["Date"] >= pd.Timestamp(start_date)) & (df["Date"] <= pd.Timestamp(end_date))]
+                df = df[
+                    (df["Date"] >= pd.Timestamp(start_date))
+                    & (df["Date"] <= pd.Timestamp(end_date))
+                ]
 
             # Save data
             output_file = (
@@ -221,7 +224,10 @@ class BPAClient:
             # Filter by date range
             if "Date" in df.columns:
                 df["Date"] = pd.to_datetime(df["Date"])
-                df = df[(df["Date"] >= pd.Timestamp(start_date)) & (df["Date"] <= pd.Timestamp(end_date))]
+                df = df[
+                    (df["Date"] >= pd.Timestamp(start_date))
+                    & (df["Date"] <= pd.Timestamp(end_date))
+                ]
 
             # Save data
             output_file = (
@@ -279,9 +285,7 @@ class BPAClient:
         logger.warning("BPA generation mix method needs specific API endpoint")
         return False
 
-    def get_interchange(
-        self, start_date: date, end_date: date, scheduled: bool = True
-    ) -> bool:
+    def get_interchange(self, start_date: date, end_date: date, scheduled: bool = True) -> bool:
         """
         Get interchange data (scheduled or actual).
 

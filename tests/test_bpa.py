@@ -274,7 +274,11 @@ class TestBPAWindMethods:
         mock_request.return_value = sample_bpa_wind_data
 
         df = pd.DataFrame(
-            {"Date": ["2024-01-15", "2024-01-15"], "Time": ["00:00", "01:00"], "Wind_MW": [1200, 1250]}
+            {
+                "Date": ["2024-01-15", "2024-01-15"],
+                "Time": ["00:00", "01:00"],
+                "Wind_MW": [1200, 1250],
+            }
         )
         df["Date"] = pd.to_datetime(df["Date"])
         mock_parse.return_value = df
@@ -306,9 +310,7 @@ class TestBPAWindMethods:
         # Create data with multiple dates
         df = pd.DataFrame(
             {
-                "Date": pd.to_datetime(
-                    ["2024-01-14", "2024-01-15", "2024-01-15", "2024-01-16"]
-                ),
+                "Date": pd.to_datetime(["2024-01-14", "2024-01-15", "2024-01-15", "2024-01-16"]),
                 "Wind_MW": [1000, 1200, 1250, 1100],
             }
         )
