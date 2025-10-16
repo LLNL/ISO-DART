@@ -20,9 +20,11 @@ logger = logging.getLogger(__name__)
 def setup_directories():
     """Create necessary directories if they don't exist."""
     dirs = [
+        Path("data/BPA"),
         Path("data/CAISO"),
         Path("data/MISO"),
         Path("data/NYISO"),
+        Path("data/SPP"),
         Path("data/weather"),
         Path("data/solar"),
         Path("raw_data/xml_files"),
@@ -59,7 +61,7 @@ Examples:
     )
 
     parser.add_argument(
-        "--iso", choices=["caiso", "miso", "nyiso"], help="Independent System Operator"
+        "--iso", choices=["bpa", "caiso", "miso", "nyiso", "spp"], help="Independent System Operator"
     )
 
     parser.add_argument("--data-type", help="Type of data to download (lmp, load, weather, etc.)")
@@ -100,22 +102,42 @@ Examples:
         run_interactive_mode()
     else:
         # Command-line mode
-        if args.iso == "caiso":
+        if args.iso == "bpa":
+            from lib.iso.bpa import BPAClient
+
+            # Handle BPA-specific logic
+            client = BPAClient()
+            # Handle BPA-specific logic
+            logger.info(f"Downloading BPA {args.data_type} data...")
+
+        elif args.iso == "caiso":
             from lib.iso.caiso import CAISOClient
 
             client = CAISOClient()
             # Handle CAISO-specific logic
             logger.info(f"Downloading CAISO {args.data_type} data...")
+
         elif args.iso == "miso":
             from lib.iso.miso import MISOClient
 
             client = MISOClient()
+            # Handle MISO-specific logic
             logger.info(f"Downloading MISO {args.data_type} data...")
+
         elif args.iso == "nyiso":
             from lib.iso.nyiso import NYISOClient
 
             client = NYISOClient()
+            # Handle NYISO-specific logic
             logger.info(f"Downloading NYISO {args.data_type} data...")
+
+        elif args.iso == "spp":
+            from lib.iso.spp import SPPClient
+
+            client = SPPClient()
+            # Handle SPP-specific logic
+            logger.info(f"Downloading SPP {args.data_type} data...")
+
         elif args.data_type == "weather":
             from lib.weather import WeatherClient
 

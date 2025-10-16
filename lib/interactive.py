@@ -2,6 +2,7 @@
 Interactive mode for ISO-DART v2.0
 
 User-friendly command-line interface for data downloads.
+Complete coverage of all CAISO, MISO, and NYISO client methods.
 """
 
 from datetime import date, datetime, timedelta
@@ -646,22 +647,34 @@ def run_miso_mode():
     print("  (1) Historical Locational Marginal Prices (LMP)")
     print("  (2) Historical Marginal Clearing Prices (MCP)")
     print("  (3) Summary Reports")
+    print("  (4) Fuel Mix")
+    print("  (5) Area Control Error (ACE)")
+    print("  (6) Wind Generation")
+    print("  (7) Market Totals")
 
     while True:
         try:
-            data_type = int(input("\nYour choice (1-3): "))
-            if data_type in [1, 2, 3]:
+            data_type = int(input("\nYour choice (1-7): "))
+            if data_type in range(1, 8):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 3")
+        print("Please enter a number between 1 and 7")
 
     if data_type == 1:
         run_miso_lmp()
     elif data_type == 2:
         run_miso_mcp()
-    else:
+    elif data_type == 3:
         run_miso_summary()
+    elif data_type == 4:
+        run_miso_fuel_mix()
+    elif data_type == 5:
+        run_miso_ace()
+    elif data_type == 6:
+        run_miso_wind()
+    else:
+        run_miso_market_totals()
 
 
 def run_miso_lmp():
@@ -812,6 +825,123 @@ def run_miso_summary():
         print(f"\n❌ Error: {e}")
 
 
+def run_miso_fuel_mix():
+    """MISO fuel mix data selection."""
+    from lib.iso.miso import MISOClient
+
+    print("\n" + "=" * 60)
+    print("MISO FUEL MIX DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+
+    client = MISOClient()
+    try:
+        print(f"\n📥 Downloading MISO Fuel Mix data...")
+        success = client.get_fuel_mix(start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/MISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_miso_ace():
+    """MISO ACE data selection."""
+    from lib.iso.miso import MISOClient
+
+    print("\n" + "=" * 60)
+    print("MISO AREA CONTROL ERROR (ACE) DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+
+    client = MISOClient()
+    try:
+        print(f"\n📥 Downloading MISO ACE data...")
+        success = client.get_ace(start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/MISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_miso_wind():
+    """MISO wind generation data selection."""
+    from lib.iso.miso import MISOClient
+
+    print("\n" + "=" * 60)
+    print("MISO WIND GENERATION DATA")
+    print("=" * 60)
+
+    print("\nWhat type of wind data?")
+    print("  (1) Wind Generation Forecast")
+    print("  (2) Actual Wind Generation")
+
+    while True:
+        try:
+            wind_type = int(input("\nYour choice (1-2): "))
+            if wind_type in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    start_date, duration = get_date_input()
+
+    client = MISOClient()
+    try:
+        if wind_type == 1:
+            print(f"\n📥 Downloading MISO Wind Forecast...")
+            success = client.get_wind_forecast(start_date, duration)
+        else:
+            print(f"\n📥 Downloading MISO Actual Wind Generation...")
+            success = client.get_wind_actual(start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/MISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_miso_market_totals():
+    """MISO market totals data selection."""
+    from lib.iso.miso import MISOClient
+
+    print("\n" + "=" * 60)
+    print("MISO MARKET TOTALS DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+
+    client = MISOClient()
+    try:
+        print(f"\n📥 Downloading MISO Day-Ahead Market Totals...")
+        success = client.get_market_totals(start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/MISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
 # ============================================================================
 # NYISO MODE
 # ============================================================================
@@ -830,15 +960,19 @@ def run_nyiso_mode():
     print("  (2) Power Grid Data")
     print("  (3) Load Data")
     print("  (4) Bid Data")
+    print("  (5) Fuel Mix")
+    print("  (6) Interface Flows")
+    print("  (7) Wind Generation")
+    print("  (8) BTM Solar Generation")
 
     while True:
         try:
-            data_type = int(input("\nYour choice (1-4): "))
-            if data_type in [1, 2, 3, 4]:
+            data_type = int(input("\nYour choice (1-8): "))
+            if data_type in range(1, 9):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 4")
+        print("Please enter a number between 1 and 8")
 
     if data_type == 1:
         run_nyiso_pricing()
@@ -846,8 +980,16 @@ def run_nyiso_mode():
         run_nyiso_power_grid()
     elif data_type == 3:
         run_nyiso_load()
-    else:
+    elif data_type == 4:
         run_nyiso_bid()
+    elif data_type == 5:
+        run_nyiso_fuel_mix()
+    elif data_type == 6:
+        run_nyiso_interface_flows()
+    elif data_type == 7:
+        run_nyiso_wind()
+    else:
+        run_nyiso_btm_solar()
 
 
 def run_nyiso_pricing():
@@ -1099,6 +1241,106 @@ def run_nyiso_bid():
     try:
         print(f"\n📥 Downloading NYISO Bid Data...")
         success = client.get_bid_data(bid_choice, start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/NYISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_nyiso_fuel_mix():
+    """NYISO fuel mix data selection."""
+    from lib.iso.nyiso import NYISOClient
+
+    print("\n" + "=" * 60)
+    print("NYISO FUEL MIX DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+
+    client = NYISOClient()
+    try:
+        print(f"\n📥 Downloading NYISO Real-Time Fuel Mix...")
+        success = client.get_fuel_mix(start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/NYISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_nyiso_interface_flows():
+    """NYISO interface flows data selection."""
+    from lib.iso.nyiso import NYISOClient
+
+    print("\n" + "=" * 60)
+    print("NYISO INTERFACE FLOWS DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+
+    client = NYISOClient()
+    try:
+        print(f"\n📥 Downloading NYISO Interface Flows...")
+        success = client.get_interface_flows(start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/NYISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_nyiso_wind():
+    """NYISO wind generation data selection."""
+    from lib.iso.nyiso import NYISOClient
+
+    print("\n" + "=" * 60)
+    print("NYISO WIND GENERATION DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+
+    client = NYISOClient()
+    try:
+        print(f"\n📥 Downloading NYISO Wind Generation...")
+        success = client.get_wind_generation(start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/NYISO/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_nyiso_btm_solar():
+    """NYISO BTM solar generation data selection."""
+    from lib.iso.nyiso import NYISOClient
+
+    print("\n" + "=" * 60)
+    print("NYISO BEHIND-THE-METER SOLAR DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+
+    client = NYISOClient()
+    try:
+        print(f"\n📥 Downloading NYISO BTM Solar Generation...")
+        success = client.get_btm_solar(start_date, duration)
 
         if success:
             print("\n✅ Download complete!")
