@@ -25,12 +25,14 @@ logger = logging.getLogger(__name__)
 
 class SPPMarket(Enum):
     """SPP market types."""
+
     DAM = "DA"  # Day-Ahead Market
     RTBM = "RTBM"  # Real-Time Balancing Market
 
 
 class SPPDataType(Enum):
     """SPP data types."""
+
     # LMP Types
     DA_LMP_BY_BUS = "da-lmp-by-bus"
     DA_LMP_BY_LOCATION = "da-lmp-by-location"
@@ -48,6 +50,7 @@ class SPPDataType(Enum):
 @dataclass
 class SPPConfig:
     """Configuration for SPP client."""
+
     # Corrected base URL from legacy code
     base_url: str = "https://marketplace.spp.org/file-api/download/"
 
@@ -138,15 +141,9 @@ class SPPClient:
         """
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(
-                    f"Requesting: {url} (attempt {attempt + 1}/{self.config.max_retries})"
-                )
+                logger.debug(f"Requesting: {url} (attempt {attempt + 1}/{self.config.max_retries})")
                 # Note: verify=False because SPP uses self-signed certs
-                response = self.session.get(
-                    url,
-                    timeout=self.config.timeout,
-                    verify=False
-                )
+                response = self.session.get(url, timeout=self.config.timeout, verify=False)
 
                 if response.ok:
                     logger.info(f"Request successful: {url}")
@@ -159,16 +156,13 @@ class SPPClient:
 
             if attempt < self.config.max_retries - 1:
                 import time
+
                 time.sleep(self.config.retry_delay)
 
         return None
 
     def get_lmp(
-            self,
-            market: SPPMarket,
-            start_date: date,
-            end_date: date,
-            by_location: bool = True
+        self, market: SPPMarket, start_date: date, end_date: date, by_location: bool = True
     ) -> bool:
         """
         Get Locational Marginal Price (LMP) data.
@@ -224,20 +218,15 @@ class SPPClient:
         # Save combined data
         location_type = "SL" if by_location else "BUS"
         output_file = (
-                self.config.data_dir
-                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_LMP_{location_type}.csv"
+            self.config.data_dir
+            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_LMP_{location_type}.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved LMP data to {output_file}")
 
         return True
 
-    def get_mcp(
-            self,
-            market: SPPMarket,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_mcp(self, market: SPPMarket, start_date: date, end_date: date) -> bool:
         """
         Get Market Clearing Price (MCP) data for ancillary services.
 
@@ -286,19 +275,15 @@ class SPPClient:
 
         # Save combined data
         output_file = (
-                self.config.data_dir
-                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_MCP.csv"
+            self.config.data_dir
+            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_MCP.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved MCP data to {output_file}")
 
         return True
 
-    def get_operating_reserves(
-            self,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_operating_reserves(self, start_date: date, end_date: date) -> bool:
         """
         Get operating reserves data (RTBM only).
 
@@ -346,8 +331,8 @@ class SPPClient:
 
         # Save combined data
         output_file = (
-                self.config.data_dir
-                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Operating_Reserves.csv"
+            self.config.data_dir
+            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Operating_Reserves.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved Operating Reserves to {output_file}")
