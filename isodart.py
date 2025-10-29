@@ -366,7 +366,7 @@ def handle_spp(args):
         # Map string market to enum
         market = None
         if args.market:
-            market_map = {"dam": SPPMarket.DAM, "rtm": SPPMarket.RTM}
+            market_map = {"dam": SPPMarket.DAM, "rtbm": SPPMarket.RTBM}
             market = market_map.get(args.market.lower())
 
         if args.data_type == "lmp":
@@ -374,58 +374,33 @@ def handle_spp(args):
                 logger.error("Market type required for LMP data")
                 return False
 
-            settlement_location = getattr(args, "settlement_location", "ALL")
+            # Check if user wants by-location (default) or by-bus
+            by_location = getattr(args, "by_location", True)
+
             logger.info(f"Downloading SPP {market.value} LMP data...")
-            success = client.get_lmp(market, args.start, end_date, settlement_location)
+            success = client.get_lmp(market, args.start, end_date, by_location=by_location)
 
-        elif args.data_type == "load":
-            logger.info("Downloading SPP actual load...")
-            success = client.get_actual_load(args.start, end_date)
-
-        elif args.data_type == "load-forecast":
-            logger.info("Downloading SPP load forecast...")
-            success = client.get_load_forecast(args.start, end_date)
-
-        elif args.data_type == "wind":
-            logger.info("Downloading SPP wind generation...")
-            success = client.get_wind_generation(args.start, end_date)
-
-        elif args.data_type == "solar":
-            logger.info("Downloading SPP solar generation...")
-            success = client.get_solar_generation(args.start, end_date)
-
-        elif args.data_type == "generation-mix":
-            logger.info("Downloading SPP generation mix...")
-            success = client.get_generation_mix(args.start, end_date)
-
-        elif args.data_type == "as-prices":
+        elif args.data_type == "mcp":
             if not market:
-                logger.error("Market type required for AS prices")
+                logger.error("Market type required for MCP data")
                 return False
 
-            logger.info(f"Downloading SPP {market.value} AS prices...")
-            success = client.get_ancillary_services_prices(market, args.start, end_date)
+            logger.info(f"Downloading SPP {market.value} MCP data...")
+            success = client.get_mcp(market, args.start, end_date)
 
-        elif args.data_type == "interface-flows":
-            logger.info("Downloading SPP interface flows...")
-            success = client.get_interface_flows(args.start, end_date)
-
-        elif args.data_type == "flowgate-limits":
-            logger.info("Downloading SPP flowgate limits...")
-            success = client.get_flowgate_limits(args.start, end_date)
+        elif args.data_type == "operating-reserves":
+            logger.info("Downloading SPP Operating Reserves...")
+            success = client.get_operating_reserves(args.start, end_date)
 
         else:
             logger.error(f"Unknown SPP data type: {args.data_type}")
-            logger.info(
-                "Available types: lmp, load, load-forecast, wind, solar, generation-mix, "
-                "as-prices, interface-flows, flowgate-limits"
-            )
+            logger.info("Available types: lmp, mcp, operating-reserves")
             return False
 
         if success:
             logger.info(f"✅ SPP data downloaded successfully to data/SPP/")
         else:
-            logger.warning("⚠️  SPP data download incomplete (some endpoints may need verification)")
+            logger.warning("⚠️  SPP data download incomplete")
 
         return success
 
@@ -492,8 +467,14 @@ Examples:
   # MISO Wind Generation
   python isodart.py --iso miso --data-type wind --start 2024-01-01 --duration 30
 
-  # SPP LMP Data
+  # SPP Day-Ahead LMP
   python isodart.py --iso spp --data-type lmp --market dam --start 2024-01-01 --duration 7
+
+  # SPP Market Clearing Prices
+  python isodart.py --iso spp --data-type mcp --market rtbm --start 2024-01-01 --duration 7
+
+  # SPP Operating Reserves
+  python isodart.py --iso spp --data-type operating-reserves --start 2024-01-01 --duration 7
 
   # BPA Load Data
   python isodart.py --iso bpa --data-type load --start 2024-01-01 --duration 7
@@ -516,8 +497,8 @@ Examples:
 
     parser.add_argument(
         "--market",
-        choices=["dam", "rtm", "hasp", "rtpd", "ruc"],
-        help="Energy market type",
+        choices=["dam", "rtm", "rtbm", "hasp", "rtpd", "ruc"],
+        help="Energy market type (rtbm = Real-Time Balancing Market for SPP)",
     )
 
     parser.add_argument(

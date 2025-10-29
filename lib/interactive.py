@@ -2,7 +2,7 @@
 Interactive mode for ISO-DART v2.0
 
 User-friendly command-line interface for data downloads.
-Complete coverage of all CAISO, MISO, and NYISO client methods.
+Complete coverage of all CAISO, MISO, NYISO, and SPP client methods.
 """
 
 from datetime import date, datetime, timedelta
@@ -84,7 +84,7 @@ def run_interactive_mode():
 
     # Main data type selection
     print("\nWhat type of data do you want to download?")
-    print("  (1) ISO Data (CAISO, MISO, NYISO)")
+    print("  (1) ISO Data (CAISO, MISO, NYISO, SPP)")
     print("  (2) Weather Data")
 
     while True:
@@ -118,13 +118,14 @@ def run_iso_mode():
     print("  (1) CAISO - California Independent System Operator")
     print("  (2) MISO - Midcontinent Independent System Operator")
     print("  (3) NYISO - New York Independent System Operator")
+    print("  (4) SPP - Southwest Power Pool")
 
     while True:
         try:
-            iso_choice = int(input("\nYour choice (1, 2, or 3): "))
-            if iso_choice in [1, 2, 3]:
+            iso_choice = int(input("\nYour choice (1-4): "))
+            if iso_choice in [1, 2, 3, 4]:
                 break
-            print("Please enter 1, 2, or 3")
+            print("Please enter 1, 2, 3, or 4")
         except ValueError:
             print("Please enter a valid number")
 
@@ -132,8 +133,10 @@ def run_iso_mode():
         run_caiso_mode()
     elif iso_choice == 2:
         run_miso_mode()
-    else:
+    elif iso_choice == 3:
         run_nyiso_mode()
+    else:
+        run_spp_mode()
 
 
 # ============================================================================
@@ -1350,6 +1353,98 @@ def run_nyiso_btm_solar():
     except Exception as e:
         logger.error(f"Error downloading data: {e}", exc_info=True)
         print(f"\n❌ Error: {e}")
+
+
+# ============================================================================
+# SPP MODE
+# ============================================================================
+
+
+def run_spp_mode():
+    """Interactive mode for SPP data."""
+    from lib.iso.spp import SPPClient, SPPMarket
+
+    print("\n" + "=" * 60)
+    print("SPP DATA SELECTION")
+    print("=" * 60)
+
+    print("\nWhat type of data?")
+    print("  (1) Locational Marginal Prices (LMP)")
+    print("  (2) Market Clearing Prices (MCP)")
+    print("  (3) Operating Reserves")
+
+    while True:
+        try:
+            data_type = int(input("\nYour choice (1-3): "))
+            if data_type in range(1, 4):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 3")
+
+    if data_type in [1, 2]:  # LMP or MCP need market selection
+        print("\nWhich market?")
+        print("  (1) Day-Ahead Market (DAM)")
+        print("  (2) Real-Time Balancing Market (RTBM)")
+
+        while True:
+            try:
+                market_choice = int(input("\nYour choice (1-2): "))
+                if market_choice in [1, 2]:
+                    break
+            except ValueError:
+                pass
+            print("Please enter 1 or 2")
+
+        market = SPPMarket.DAM if market_choice == 1 else SPPMarket.RTBM
+
+    # Get date range
+    start_date, duration = get_date_input()
+    end_date = start_date + timedelta(days=duration)
+
+    client = SPPClient()
+
+    try:
+        if data_type == 1:  # LMP
+            # Ask about location type
+            print("\nLMP by:")
+            print("  (1) Settlement Location (recommended)")
+            print("  (2) Bus")
+
+            while True:
+                try:
+                    loc_choice = int(input("\nYour choice (1-2): "))
+                    if loc_choice in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
+
+            by_location = loc_choice == 1
+            loc_type = "Settlement Location" if by_location else "Bus"
+
+            print(f"\n📥 Downloading {market.value} LMP by {loc_type}...")
+            success = client.get_lmp(market, start_date, end_date, by_location=by_location)
+
+        elif data_type == 2:  # MCP
+            print(f"\n📥 Downloading {market.value} Market Clearing Prices...")
+            success = client.get_mcp(market, start_date, end_date)
+
+        else:  # Operating Reserves
+            print(f"\n📥 Downloading Operating Reserves...")
+            success = client.get_operating_reserves(start_date, end_date)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/SPP/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading SPP data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+    finally:
+        client.cleanup()
 
 
 # ============================================================================
