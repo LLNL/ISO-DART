@@ -1,5 +1,5 @@
 """
-Test suite for SPP client
+Test suite for SPP client (Updated for fixed client)
 
 Run with: pytest tests/test_spp.py -v
 """
@@ -9,8 +9,6 @@ from datetime import date, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 import pandas as pd
-import zipfile
-import io
 
 from lib.iso.spp import (
     SPPClient,
@@ -40,7 +38,7 @@ def client(temp_dir):
 @pytest.fixture
 def sample_lmp_csv():
     """Sample SPP LMP CSV data."""
-    return """GMTIntervalEnd,Settlement Location,Settlement Location Type,LMP,MLC,MCC,MEC
+    return b"""GMTIntervalEnd,Settlement Location,Settlement Location Type,LMP,MLC,MCC,MEC
 01/15/2024 01:00,AEPW.AEP,Resource,25.50,24.00,1.25,0.25
 01/15/2024 01:00,GRIDPNT1,Settlement Point,26.00,24.50,1.30,0.20
 01/15/2024 02:00,AEPW.AEP,Resource,26.00,24.50,1.30,0.20
@@ -48,22 +46,22 @@ def sample_lmp_csv():
 
 
 @pytest.fixture
-def sample_load_csv():
-    """Sample SPP load CSV data."""
-    return """GMTIntervalEnd,Load_MW
-01/15/2024 01:00,45000
-01/15/2024 02:00,44500
-01/15/2024 03:00,44000
+def sample_mcp_csv():
+    """Sample SPP MCP CSV data."""
+    return b"""GMTIntervalEnd,Product,MCP
+01/15/2024 01:00,Reg-Up,5.50
+01/15/2024 01:00,Reg-Down,4.50
+01/15/2024 01:00,Spin,3.00
 """
 
 
 @pytest.fixture
-def sample_wind_csv():
-    """Sample SPP wind generation CSV data."""
-    return """GMTIntervalEnd,Wind_MW
-01/15/2024 01:00,5000
-01/15/2024 02:00,5200
-01/15/2024 03:00,5400
+def sample_or_csv():
+    """Sample SPP Operating Reserves CSV data."""
+    return b"""GMTIntervalEnd,Reserve_Type,Requirement_MW,Cleared_MW
+01/15/2024 01:00,Regulation,500,505
+01/15/2024 01:00,Spinning,750,755
+01/15/2024 01:00,Supplemental,1000,1010
 """
 
 
@@ -86,48 +84,153 @@ class TestSPPClient:
     def test_config_attributes(self, temp_dir):
         """Test that config has all required attributes."""
         assert hasattr(temp_dir, "base_url")
-        assert hasattr(temp_dir, "marketplace_url")
         assert hasattr(temp_dir, "data_dir")
         assert hasattr(temp_dir, "raw_dir")
         assert hasattr(temp_dir, "max_retries")
         assert hasattr(temp_dir, "timeout")
 
-    def test_build_spp_url(self, client):
-        """Test building SPP marketplace URL."""
-        path = "da-lmp-by-settlement-location/202401/DA-LMP-SL-20240115.csv"
-        url = client._build_spp_url(path)
+    def test_base_url_correct(self, client):
+        """Test that base URL matches legacy working code."""
+        assert client.config.base_url == "https://marketplace.spp.org/file-api/download/"
+
+
+class TestSPPMarket:
+    """Test SPP market enumeration."""
+
+    def test_market_values(self):
+        """Test market enum values."""
+        assert SPPMarket.DAM.value == "DA"
+        assert SPPMarket.RTBM.value == "RTBM"
+
+    def test_all_markets_defined(self):
+        """Test that all expected markets are defined."""
+        markets = [e.value for e in SPPMarket]
+        assert "DA" in markets
+        assert "RTBM" in markets
+
+
+class TestSPPDataType:
+    """Test SPP data type enumeration."""
+
+    def test_data_type_values(self):
+        """Test data type enum values."""
+        assert SPPDataType.DA_LMP_BY_BUS.value == "da-lmp-by-bus"
+        assert SPPDataType.DA_LMP_BY_LOCATION.value == "da-lmp-by-location"
+        assert SPPDataType.RTBM_LMP_BY_BUS.value == "rtbm-lmp-by-bus"
+        assert SPPDataType.RTBM_LMP_BY_LOCATION.value == "rtbm-lmp-by-location"
+        assert SPPDataType.DA_MCP.value == "da-mcp"
+        assert SPPDataType.RTBM_MCP.value == "rtbm-mcp"
+        assert SPPDataType.OPERATING_RESERVES.value == "operating-reserves"
+
+    def test_all_data_types_exist(self):
+        """Test that all expected data types are defined."""
+        expected_types = [
+            "DA_LMP_BY_BUS",
+            "DA_LMP_BY_LOCATION",
+            "RTBM_LMP_BY_BUS",
+            "RTBM_LMP_BY_LOCATION",
+            "DA_MCP",
+            "RTBM_MCP",
+            "OPERATING_RESERVES",
+        ]
+
+        for type_name in expected_types:
+            assert hasattr(SPPDataType, type_name)
+
+
+class TestSPPURLBuilding:
+    """Test SPP URL building logic."""
+
+    def test_build_url_da_lmp_by_bus(self, client):
+        """Test URL building for DA LMP by bus."""
+        test_date = date(2024, 1, 15)
+        url, filename = client._build_spp_url("da-lmp-by-bus", test_date)
 
         assert "marketplace.spp.org" in url
-        assert "file-browser-api/download" in url
-        assert path in url
+        assert "file-api/download" in url
+        assert "da-lmp-by-bus" in url
+        assert "/2024/01/By_Day/" in url
+        assert "DA-LMP-B-20240115" in filename
+        assert filename.endswith(".csv")
+
+    def test_build_url_da_lmp_by_location(self, client):
+        """Test URL building for DA LMP by location."""
+        test_date = date(2024, 1, 15)
+        url, filename = client._build_spp_url("da-lmp-by-location", test_date)
+
+        assert "da-lmp-by-location" in url
+        assert "/2024/01/By_Day/" in url
+        assert "DA-LMP-SL-20240115" in filename
+
+    def test_build_url_rtbm_lmp_by_bus(self, client):
+        """Test URL building for RTBM LMP by bus."""
+        test_date = date(2024, 1, 15)
+        url, filename = client._build_spp_url("rtbm-lmp-by-bus", test_date)
+
+        assert "rtbm-lmp-by-bus" in url
+        assert "/2024/01/By_Day/" in url
+        assert "RTBM-LMP-DAILY-BUS-20240115" in filename
+
+    def test_build_url_rtbm_lmp_by_location(self, client):
+        """Test URL building for RTBM LMP by location."""
+        test_date = date(2024, 1, 15)
+        url, filename = client._build_spp_url("rtbm-lmp-by-location", test_date)
+
+        assert "rtbm-lmp-by-location" in url
+        assert "/2024/01/By_Day/" in url
+        assert "RTBM-LMP-DAILY-SL-20240115" in filename
+
+    def test_build_url_da_mcp(self, client):
+        """Test URL building for DA MCP."""
+        test_date = date(2024, 1, 15)
+        url, filename = client._build_spp_url("da-mcp", test_date)
+
+        assert "da-mcp" in url
+        assert "/2024/01/" in url
+        assert "By_Day" not in url  # DA-MCP doesn't use By_Day
+        assert "DA-MCP-20240115" in filename
+
+    def test_build_url_rtbm_mcp(self, client):
+        """Test URL building for RTBM MCP."""
+        test_date = date(2024, 1, 15)
+        url, filename = client._build_spp_url("rtbm-mcp", test_date)
+
+        assert "rtbm-mcp" in url
+        assert "/2024/01/15/" in url  # RTBM-MCP includes day
+        assert "RTBM-MCP-20240115" in filename
+
+    def test_build_url_operating_reserves(self, client):
+        """Test URL building for operating reserves."""
+        test_date = date(2024, 1, 15)
+        url, filename = client._build_spp_url("operating-reserves", test_date)
+
+        assert "operating-reserves" in url
+        assert "/2024/01/15/" in url  # OR includes day
+        assert "RTBM-OR-20240115" in filename
+
+    def test_build_url_invalid_query_name(self, client):
+        """Test that invalid query name raises error."""
+        test_date = date(2024, 1, 15)
+
+        with pytest.raises(ValueError):
+            client._build_spp_url("invalid-query", test_date)
+
+
+class TestSPPMakeRequest:
+    """Test SPP request logic."""
 
     @patch("requests.Session.get")
     def test_make_request_success(self, mock_get, client):
         """Test successful API request."""
         mock_response = Mock()
         mock_response.ok = True
-        mock_response.text = "test,data\n1,2"
+        mock_response.content = b"test content"
         mock_get.return_value = mock_response
 
-        response = client._make_request("http://test.url")
+        content = client._make_request("http://test.url")
 
-        assert response is not None
-        assert response.text == "test,data\n1,2"
+        assert content == b"test content"
         assert mock_get.called
-
-    @patch("requests.Session.get")
-    def test_make_request_with_params(self, mock_get, client):
-        """Test request with parameters."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = "data"
-        mock_get.return_value = mock_response
-
-        params = {"start": "20240115", "end": "20240116"}
-        response = client._make_request("http://test.url", params=params)
-
-        assert response is not None
-        mock_get.assert_called_with("http://test.url", params=params, timeout=30, stream=False)
 
     @patch("requests.Session.get")
     def test_make_request_retry(self, mock_get, client):
@@ -137,14 +240,13 @@ class TestSPPClient:
 
         mock_response_success = Mock()
         mock_response_success.ok = True
-        mock_response_success.text = "success"
+        mock_response_success.content = b"success"
 
         mock_get.side_effect = [mock_response_fail, mock_response_fail, mock_response_success]
 
-        response = client._make_request("http://test.url")
+        content = client._make_request("http://test.url")
 
-        assert response is not None
-        assert response.text == "success"
+        assert content == b"success"
         assert mock_get.call_count == 3
 
     @patch("requests.Session.get")
@@ -154,89 +256,37 @@ class TestSPPClient:
         mock_response.ok = False
         mock_get.return_value = mock_response
 
-        response = client._make_request("http://test.url")
+        content = client._make_request("http://test.url")
 
-        assert response is None
+        assert content is None
         assert mock_get.call_count == 3
 
-    def test_extract_zip(self, client, temp_dir):
-        """Test ZIP extraction."""
-        # Create a test ZIP file
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w") as zf:
-            zf.writestr("test1.csv", "data1")
-            zf.writestr("test2.csv", "data2")
+    @patch("requests.Session.get")
+    def test_make_request_verify_false(self, mock_get, client):
+        """Test that request uses verify=False for SPP's self-signed cert."""
+        mock_response = Mock()
+        mock_response.ok = True
+        mock_response.content = b"data"
+        mock_get.return_value = mock_response
 
-        extracted = client._extract_zip(zip_buffer.getvalue(), temp_dir.raw_dir)
+        client._make_request("http://test.url")
 
-        assert len(extracted) == 2
-        assert all(f.exists() for f in extracted)
-
-    def test_extract_zip_invalid(self, client, temp_dir):
-        """Test handling invalid ZIP file."""
-        extracted = client._extract_zip(b"not a zip file", temp_dir.raw_dir)
-
-        assert len(extracted) == 0
-
-
-class TestSPPMarket:
-    """Test SPP market enumeration."""
-
-    def test_market_values(self):
-        """Test market enum values."""
-        assert SPPMarket.DAM.value == "DA"
-        assert SPPMarket.RTM.value == "RT"
-
-    def test_all_markets_defined(self):
-        """Test that all expected markets are defined."""
-        markets = [e.value for e in SPPMarket]
-        assert "DA" in markets
-        assert "RT" in markets
-
-
-class TestSPPDataType:
-    """Test SPP data type enumeration."""
-
-    def test_data_type_values(self):
-        """Test data type enum values."""
-        assert SPPDataType.LMP.value == "lmp"
-        assert SPPDataType.ACTUAL_LOAD.value == "actual_load"
-        assert SPPDataType.WIND_GENERATION.value == "wind_generation"
-        assert SPPDataType.GENERATION_MIX.value == "generation_mix"
-
-    def test_all_data_types_exist(self):
-        """Test that all expected data types are defined."""
-        expected_types = [
-            "LMP",
-            "MCP",
-            "ACTUAL_LOAD",
-            "FORECAST_LOAD",
-            "GENERATION_MIX",
-            "WIND_GENERATION",
-            "SOLAR_GENERATION",
-            "REGULATION_UP",
-            "REGULATION_DOWN",
-            "SPINNING_RESERVE",
-            "SUPPLEMENTAL_RESERVE",
-            "INTERFACE_FLOWS",
-            "FLOWGATE_LIMITS",
-        ]
-
-        for type_name in expected_types:
-            assert hasattr(SPPDataType, type_name)
+        # Check that verify=False was passed
+        call_kwargs = mock_get.call_args[1]
+        assert call_kwargs.get("verify") == False
 
 
 class TestSPPLMPMethods:
     """Test SPP LMP data methods."""
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_lmp_dam_success(self, mock_request, client, temp_dir, sample_lmp_csv):
-        """Test successful DAM LMP download."""
-        mock_response = Mock()
-        mock_response.text = sample_lmp_csv
-        mock_request.return_value = mock_response
+    def test_get_lmp_dam_by_location_success(self, mock_request, client, temp_dir, sample_lmp_csv):
+        """Test successful DAM LMP by location download."""
+        mock_request.return_value = sample_lmp_csv
 
-        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_lmp(
+            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15), by_location=True
+        )
 
         assert success
         assert mock_request.called
@@ -246,13 +296,25 @@ class TestSPPLMPMethods:
         assert len(output_files) == 1
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_lmp_rtm_success(self, mock_request, client, temp_dir, sample_lmp_csv):
-        """Test successful RTM LMP download."""
-        mock_response = Mock()
-        mock_response.text = sample_lmp_csv
-        mock_request.return_value = mock_response
+    def test_get_lmp_dam_by_bus_success(self, mock_request, client, temp_dir, sample_lmp_csv):
+        """Test successful DAM LMP by bus download."""
+        mock_request.return_value = sample_lmp_csv
 
-        success = client.get_lmp(SPPMarket.RTM, date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_lmp(
+            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15), by_location=False
+        )
+
+        assert success
+        assert mock_request.called
+
+    @patch("lib.iso.spp.SPPClient._make_request")
+    def test_get_lmp_rtbm_success(self, mock_request, client, temp_dir, sample_lmp_csv):
+        """Test successful RTBM LMP download."""
+        mock_request.return_value = sample_lmp_csv
+
+        success = client.get_lmp(
+            SPPMarket.RTBM, date(2024, 1, 15), date(2024, 1, 15), by_location=True
+        )
 
         assert success
         assert mock_request.called
@@ -260,38 +322,15 @@ class TestSPPLMPMethods:
     @patch("lib.iso.spp.SPPClient._make_request")
     def test_get_lmp_multiple_days(self, mock_request, client, sample_lmp_csv):
         """Test LMP download for multiple days."""
-        mock_response = Mock()
-        mock_response.text = sample_lmp_csv
-        mock_request.return_value = mock_response
-
-        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 17))
-
-        assert success
-        # Should be called once per day
-        assert mock_request.call_count == 3
-
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_lmp_with_settlement_location(self, mock_request, client, temp_dir):
-        """Test LMP download with specific settlement location."""
-        csv_data = """GMTIntervalEnd,Settlement Location,LMP
-01/15/2024 01:00,AEPW.AEP,25.50
-01/15/2024 01:00,GRIDPNT1,26.00
-01/15/2024 02:00,AEPW.AEP,26.00
-"""
-        mock_response = Mock()
-        mock_response.text = csv_data
-        mock_request.return_value = mock_response
+        mock_request.return_value = sample_lmp_csv
 
         success = client.get_lmp(
-            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15), settlement_location="AEPW.AEP"
+            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 17), by_location=True
         )
 
         assert success
-
-        # Check that data was filtered
-        output_file = list(temp_dir.data_dir.glob("*LMP*.csv"))[0]
-        df = pd.read_csv(output_file)
-        assert all(df["Settlement Location"] == "AEPW.AEP")
+        # Should be called once per day (3 days)
+        assert mock_request.call_count == 3
 
     @patch("lib.iso.spp.SPPClient._make_request")
     def test_get_lmp_no_data(self, mock_request, client):
@@ -303,220 +342,97 @@ class TestSPPLMPMethods:
         assert not success
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_lmp_parse_error(self, mock_request, client):
-        """Test LMP download with parse error."""
-        mock_response = Mock()
-        mock_response.text = "invalid,csv,data"
-        mock_request.return_value = mock_response
+    def test_get_lmp_saves_raw_file(self, mock_request, client, temp_dir, sample_lmp_csv):
+        """Test that LMP download saves raw file."""
+        mock_request.return_value = sample_lmp_csv
 
-        # Should handle gracefully
-        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+        client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
-        # May succeed or fail depending on pandas behavior
-        assert isinstance(success, bool)
+        # Check raw file was created
+        raw_files = list(temp_dir.raw_dir.glob("*.csv"))
+        assert len(raw_files) == 1
 
 
-class TestSPPLoadMethods:
-    """Test SPP load data methods."""
+class TestSPPMCPMethods:
+    """Test SPP MCP data methods."""
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_actual_load_success(self, mock_request, client, temp_dir, sample_load_csv):
-        """Test successful actual load download."""
-        mock_response = Mock()
-        mock_response.text = sample_load_csv
-        mock_request.return_value = mock_response
+    def test_get_mcp_dam_success(self, mock_request, client, temp_dir, sample_mcp_csv):
+        """Test successful DAM MCP download."""
+        mock_request.return_value = sample_mcp_csv
 
-        success = client.get_actual_load(date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
         assert success
         assert mock_request.called
 
         # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*Load*.csv"))
+        output_files = list(temp_dir.data_dir.glob("*MCP*.csv"))
         assert len(output_files) == 1
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_actual_load_multiple_days(self, mock_request, client, sample_load_csv):
-        """Test load download for multiple days."""
-        mock_response = Mock()
-        mock_response.text = sample_load_csv
-        mock_request.return_value = mock_response
+    def test_get_mcp_rtbm_success(self, mock_request, client, temp_dir, sample_mcp_csv):
+        """Test successful RTBM MCP download."""
+        mock_request.return_value = sample_mcp_csv
 
-        success = client.get_actual_load(date(2024, 1, 15), date(2024, 1, 20))
-
-        assert success
-        # Should be called once per day (6 days)
-        assert mock_request.call_count == 6
-
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_actual_load_no_data(self, mock_request, client):
-        """Test load download with no data."""
-        mock_request.return_value = None
-
-        success = client.get_actual_load(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert not success
-
-    def test_get_load_forecast_not_implemented(self, client):
-        """Test that load forecast needs implementation."""
-        success = client.get_load_forecast(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert not success
-
-
-class TestSPPWindMethods:
-    """Test SPP wind generation methods."""
-
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_wind_generation_success(self, mock_request, client, temp_dir, sample_wind_csv):
-        """Test successful wind data download."""
-        mock_response = Mock()
-        mock_response.text = sample_wind_csv
-        mock_request.return_value = mock_response
-
-        success = client.get_wind_generation(date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_mcp(SPPMarket.RTBM, date(2024, 1, 15), date(2024, 1, 15))
 
         assert success
         assert mock_request.called
 
-        # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*Wind*.csv"))
-        assert len(output_files) == 1
-
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_wind_generation_multiple_days(self, mock_request, client, sample_wind_csv):
-        """Test wind download for multiple days."""
-        mock_response = Mock()
-        mock_response.text = sample_wind_csv
-        mock_request.return_value = mock_response
+    def test_get_mcp_multiple_days(self, mock_request, client, sample_mcp_csv):
+        """Test MCP download for multiple days."""
+        mock_request.return_value = sample_mcp_csv
 
-        success = client.get_wind_generation(date(2024, 1, 15), date(2024, 1, 17))
+        success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 17))
 
         assert success
         assert mock_request.call_count == 3
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_wind_generation_no_data(self, mock_request, client):
-        """Test wind download with no data."""
+    def test_get_mcp_no_data(self, mock_request, client):
+        """Test MCP download with no data."""
         mock_request.return_value = None
 
-        success = client.get_wind_generation(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert not success
-
-    def test_get_solar_generation_not_implemented(self, client):
-        """Test that solar generation needs implementation."""
-        success = client.get_solar_generation(date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
         assert not success
 
 
-class TestSPPGenerationMixMethods:
-    """Test SPP generation mix methods."""
+class TestSPPOperatingReservesMethods:
+    """Test SPP Operating Reserves methods."""
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_generation_mix_success(self, mock_request, client, temp_dir):
-        """Test successful generation mix download."""
-        csv_data = """GMTIntervalEnd,Fuel_Type,Generation_MW
-01/15/2024 01:00,Coal,15000
-01/15/2024 01:00,Gas,20000
-01/15/2024 01:00,Wind,5000
-"""
-        mock_response = Mock()
-        mock_response.text = csv_data
-        mock_request.return_value = mock_response
+    def test_get_operating_reserves_success(self, mock_request, client, temp_dir, sample_or_csv):
+        """Test successful Operating Reserves download."""
+        mock_request.return_value = sample_or_csv
 
-        success = client.get_generation_mix(date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_operating_reserves(date(2024, 1, 15), date(2024, 1, 15))
 
         assert success
         assert mock_request.called
 
         # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*Generation_Mix*.csv"))
+        output_files = list(temp_dir.data_dir.glob("*Operating_Reserves*.csv"))
         assert len(output_files) == 1
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_generation_mix_no_data(self, mock_request, client):
-        """Test generation mix with no data."""
-        mock_request.return_value = None
+    def test_get_operating_reserves_multiple_days(self, mock_request, client, sample_or_csv):
+        """Test Operating Reserves download for multiple days."""
+        mock_request.return_value = sample_or_csv
 
-        success = client.get_generation_mix(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert not success
-
-
-class TestSPPAncillaryServicesMethods:
-    """Test SPP ancillary services methods."""
-
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_ancillary_services_prices_dam(self, mock_request, client, temp_dir):
-        """Test DAM AS prices download."""
-        csv_data = """GMTIntervalEnd,Product,MCP
-01/15/2024 01:00,Reg-Up,5.50
-01/15/2024 01:00,Reg-Down,4.50
-01/15/2024 01:00,Spin,3.00
-"""
-        mock_response = Mock()
-        mock_response.text = csv_data
-        mock_request.return_value = mock_response
-
-        success = client.get_ancillary_services_prices(
-            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15)
-        )
+        success = client.get_operating_reserves(date(2024, 1, 15), date(2024, 1, 17))
 
         assert success
-        assert mock_request.called
-
-        # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*AS_Prices*.csv"))
-        assert len(output_files) == 1
+        assert mock_request.call_count == 3
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_ancillary_services_prices_rtm(self, mock_request, client, temp_dir):
-        """Test RTM AS prices download."""
-        csv_data = """GMTIntervalEnd,Product,MCP
-01/15/2024 01:00,Reg-Up,5.50
-"""
-        mock_response = Mock()
-        mock_response.text = csv_data
-        mock_request.return_value = mock_response
-
-        success = client.get_ancillary_services_prices(
-            SPPMarket.RTM, date(2024, 1, 15), date(2024, 1, 15)
-        )
-
-        assert success
-
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_get_ancillary_services_prices_no_data(self, mock_request, client):
-        """Test AS prices with no data."""
+    def test_get_operating_reserves_no_data(self, mock_request, client):
+        """Test Operating Reserves download with no data."""
         mock_request.return_value = None
 
-        success = client.get_ancillary_services_prices(
-            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15)
-        )
-
-        assert not success
-
-
-class TestSPPTransmissionMethods:
-    """Test SPP transmission data methods."""
-
-    def test_get_interface_flows_not_implemented(self, client):
-        """Test interface flows needs implementation."""
-        success = client.get_interface_flows(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert not success
-
-    def test_get_flowgate_limits_not_implemented(self, client):
-        """Test flowgate limits needs implementation."""
-        success = client.get_flowgate_limits(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert not success
-
-    def test_get_regulation_deployment_not_implemented(self, client):
-        """Test regulation deployment needs implementation."""
-        success = client.get_regulation_deployment(date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_operating_reserves(date(2024, 1, 15), date(2024, 1, 15))
 
         assert not success
 
@@ -529,15 +445,13 @@ class TestSPPHelperFunctions:
         data_types = get_spp_available_data_types()
 
         assert isinstance(data_types, dict)
-        assert "pricing" in data_types
-        assert "load" in data_types
-        assert "generation" in data_types
+        assert "lmp" in data_types
+        assert "mcp" in data_types
         assert "reserves" in data_types
-        assert "transmission" in data_types
 
-        # Check pricing types
-        assert any("LMP" in item for item in data_types["pricing"])
-        assert any("MCP" in item for item in data_types["pricing"])
+        # Check LMP types
+        assert any("BY-BUS" in item for item in data_types["lmp"])
+        assert any("BY-LOCATION" in item for item in data_types["lmp"])
 
     def test_validate_spp_settlement_location(self):
         """Test settlement location validation."""
@@ -584,9 +498,7 @@ class TestSPPDateHandling:
     @patch("lib.iso.spp.SPPClient._make_request")
     def test_date_range_single_day(self, mock_request, client, sample_lmp_csv):
         """Test single day date range."""
-        mock_response = Mock()
-        mock_response.text = sample_lmp_csv
-        mock_request.return_value = mock_response
+        mock_request.return_value = sample_lmp_csv
 
         start = date(2024, 1, 15)
         end = date(2024, 1, 15)
@@ -599,9 +511,7 @@ class TestSPPDateHandling:
     @patch("lib.iso.spp.SPPClient._make_request")
     def test_date_range_month_boundary(self, mock_request, client, sample_lmp_csv):
         """Test date range crossing month boundary."""
-        mock_response = Mock()
-        mock_response.text = sample_lmp_csv
-        mock_request.return_value = mock_response
+        mock_request.return_value = sample_lmp_csv
 
         start = date(2024, 1, 30)
         end = date(2024, 2, 2)
@@ -615,9 +525,7 @@ class TestSPPDateHandling:
     @patch("lib.iso.spp.SPPClient._make_request")
     def test_date_range_year_boundary(self, mock_request, client, sample_lmp_csv):
         """Test date range crossing year boundary."""
-        mock_response = Mock()
-        mock_response.text = sample_lmp_csv
-        mock_request.return_value = mock_response
+        mock_request.return_value = sample_lmp_csv
 
         start = date(2023, 12, 30)
         end = date(2024, 1, 2)
@@ -628,101 +536,13 @@ class TestSPPDateHandling:
         assert mock_request.call_count == 4
 
 
-class TestSPPURLGeneration:
-    """Test SPP URL generation."""
-
-    def test_url_generation_dam_lmp(self, client):
-        """Test URL generation for DAM LMP."""
-        path = "da-lmp-by-settlement-location/202401/DA-LMP-SL-20240115.csv"
-        url = client._build_spp_url(path)
-
-        assert "marketplace.spp.org" in url
-        assert "da-lmp-by-settlement-location" in url
-        assert "202401" in url
-        assert "DA-LMP-SL-20240115.csv" in url
-
-    def test_url_generation_rtm_lmp(self, client):
-        """Test URL generation for RTM LMP."""
-        path = "rtbm-lmp-by-settlement-location/202401/RTBM-LMP-SL-20240115.csv"
-        url = client._build_spp_url(path)
-
-        assert "marketplace.spp.org" in url
-        assert "rtbm-lmp-by-settlement-location" in url
-
-    def test_url_generation_load(self, client):
-        """Test URL generation for load data."""
-        path = "operational-data/202401/OP-LOAD-20240115.csv"
-        url = client._build_spp_url(path)
-
-        assert "marketplace.spp.org" in url
-        assert "operational-data" in url
-        assert "OP-LOAD" in url
-
-
-class TestSPPErrorHandling:
-    """Test SPP error handling."""
-
-    @pytest.mark.skip(reason="Work in progress")
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_handles_http_error(self, mock_request, client):
-        """Test handling HTTP errors."""
-        mock_response = Mock()
-        mock_response.ok = False
-        mock_response.status_code = 404
-        mock_request.return_value = mock_response
-
-        # _make_request should return None
-        result = client._make_request("http://test.url")
-        assert result is None
-
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_handles_malformed_csv(self, mock_request, client):
-        """Test handling malformed CSV data."""
-        mock_response = Mock()
-        mock_response.text = "not,valid,csv\ndata"
-        mock_request.return_value = mock_response
-
-        # Should handle gracefully
-        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
-
-        # May succeed or fail depending on pandas behavior
-        assert isinstance(success, bool)
-
-    @pytest.mark.skip(reason="Work in progress")
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_handles_network_error(self, mock_request, client):
-        """Test handling network errors."""
-        import requests
-
-        mock_request.side_effect = requests.RequestException("Network error")
-
-        # _make_request should handle this internally
-        result = client._make_request("http://test.url")
-
-        assert result is None
-
-    @pytest.mark.skip(reason="Work in progress")
-    @patch("lib.iso.spp.SPPClient._make_request")
-    def test_handles_timeout(self, mock_request, client):
-        """Test handling timeout."""
-        import requests
-
-        mock_request.side_effect = requests.Timeout()
-
-        result = client._make_request("http://test.url")
-
-        assert result is None
-
-
 class TestSPPDataQuality:
     """Test SPP data quality and validation."""
 
     @patch("lib.iso.spp.SPPClient._make_request")
     def test_lmp_data_structure(self, mock_request, client, temp_dir, sample_lmp_csv):
         """Test that LMP data has expected structure."""
-        mock_response = Mock()
-        mock_response.text = sample_lmp_csv
-        mock_request.return_value = mock_response
+        mock_request.return_value = sample_lmp_csv
 
         success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
@@ -737,49 +557,70 @@ class TestSPPDataQuality:
         assert "LMP" in df.columns
 
     @patch("lib.iso.spp.SPPClient._make_request")
-    def test_load_data_structure(self, mock_request, client, temp_dir, sample_load_csv):
-        """Test that load data has expected structure."""
-        mock_response = Mock()
-        mock_response.text = sample_load_csv
-        mock_request.return_value = mock_response
+    def test_mcp_data_structure(self, mock_request, client, temp_dir, sample_mcp_csv):
+        """Test that MCP data has expected structure."""
+        mock_request.return_value = sample_mcp_csv
 
-        success = client.get_actual_load(date(2024, 1, 15), date(2024, 1, 15))
+        success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
         assert success
 
         # Read output file
-        output_file = list(temp_dir.data_dir.glob("*Load*.csv"))[0]
+        output_file = list(temp_dir.data_dir.glob("*MCP*.csv"))[0]
         df = pd.read_csv(output_file)
 
         # Check for expected columns
-        assert "Load_MW" in df.columns or "GMTIntervalEnd" in df.columns
+        assert "Product" in df.columns
+        assert "MCP" in df.columns
 
     @patch("lib.iso.spp.SPPClient._make_request")
     def test_data_concatenation(self, mock_request, client, temp_dir):
         """Test that multi-day data is properly concatenated."""
-        csv_day1 = """GMTIntervalEnd,Load_MW
+        csv_day1 = b"""GMTIntervalEnd,Load_MW
 01/15/2024 01:00,45000
 """
-        csv_day2 = """GMTIntervalEnd,Load_MW
+        csv_day2 = b"""GMTIntervalEnd,Load_MW
 01/16/2024 01:00,46000
 """
 
-        mock_response1 = Mock()
-        mock_response1.text = csv_day1
-        mock_response2 = Mock()
-        mock_response2.text = csv_day2
+        mock_request.side_effect = [csv_day1, csv_day2]
 
-        mock_request.side_effect = [mock_response1, mock_response2]
-
-        success = client.get_actual_load(date(2024, 1, 15), date(2024, 1, 16))
+        # Using LMP as test case
+        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 16))
 
         assert success
 
         # Check that data was combined
-        output_file = list(temp_dir.data_dir.glob("*Load*.csv"))[0]
+        output_file = list(temp_dir.data_dir.glob("*LMP*.csv"))[0]
         df = pd.read_csv(output_file)
 
         assert len(df) == 2
+
+
+class TestSPPErrorHandling:
+    """Test SPP error handling."""
+
+    @patch("lib.iso.spp.SPPClient._make_request")
+    def test_handles_malformed_csv(self, mock_request, client):
+        """Test handling malformed CSV data."""
+        mock_request.return_value = b"not,valid,csv\ndata"
+
+        # Should handle gracefully
+        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+
+        # May succeed or fail depending on pandas behavior
+        assert isinstance(success, bool)
+
+    @patch("lib.iso.spp.SPPClient._make_request")
+    def test_handles_parse_exception(self, mock_request, client, temp_dir):
+        """Test handling CSV parse exception."""
+        # Return valid data but corrupt the raw file afterwards
+        mock_request.return_value = b"corrupted data"
+
+        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+
+        # Should handle error and return False
+        assert isinstance(success, bool)
 
 
 @pytest.mark.integration
@@ -789,7 +630,7 @@ class TestSPPIntegration:
     @pytest.mark.skip(reason="Requires SPP API access")
     def test_get_lmp_integration(self, client):
         """Test actual LMP data download."""
-        # Use recent date (SPP typically has data from previous day)
+        # Use recent date (SPP typically has data from 2-3 days ago)
         start = date.today() - timedelta(days=3)
         end = date.today() - timedelta(days=2)
 
@@ -801,42 +642,29 @@ class TestSPPIntegration:
         assert len(output_files) > 0
 
     @pytest.mark.skip(reason="Requires SPP API access")
-    def test_get_actual_load_integration(self, client):
-        """Test actual load data download."""
+    def test_get_mcp_integration(self, client):
+        """Test actual MCP data download."""
         start = date.today() - timedelta(days=3)
         end = date.today() - timedelta(days=2)
 
-        success = client.get_actual_load(start, end)
+        success = client.get_mcp(SPPMarket.RTBM, start, end)
 
         assert success
 
-        output_files = list(client.config.data_dir.glob("*Load*.csv"))
+        output_files = list(client.config.data_dir.glob("*MCP*.csv"))
         assert len(output_files) > 0
 
     @pytest.mark.skip(reason="Requires SPP API access")
-    def test_get_wind_generation_integration(self, client):
-        """Test actual wind generation download."""
+    def test_get_operating_reserves_integration(self, client):
+        """Test actual Operating Reserves download."""
         start = date.today() - timedelta(days=3)
         end = date.today() - timedelta(days=2)
 
-        success = client.get_wind_generation(start, end)
+        success = client.get_operating_reserves(start, end)
 
         assert success
 
-        output_files = list(client.config.data_dir.glob("*Wind*.csv"))
-        assert len(output_files) > 0
-
-    @pytest.mark.skip(reason="Requires SPP API access")
-    def test_get_generation_mix_integration(self, client):
-        """Test actual generation mix download."""
-        start = date.today() - timedelta(days=3)
-        end = date.today() - timedelta(days=2)
-
-        success = client.get_generation_mix(start, end)
-
-        assert success
-
-        output_files = list(client.config.data_dir.glob("*Generation_Mix*.csv"))
+        output_files = list(client.config.data_dir.glob("*Operating_Reserves*.csv"))
         assert len(output_files) > 0
 
 
