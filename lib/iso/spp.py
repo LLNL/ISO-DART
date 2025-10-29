@@ -59,9 +59,20 @@ class SPPDataType(Enum):
 class SPPConfig:
     """Configuration for SPP client."""
 
-    # SPP Marketplace data portal
-    base_url: str = "https://marketplace.spp.org/file-browser-api/download"
-    marketplace_url: str = "https://marketplace.spp.org"
+    # SPP Portal URLs (corrected endpoints)
+    marketplace_url: str = "https://portal.spp.org"
+    file_browser_api_url: str = "https://portal.spp.org/file-browser-api/"
+    file_browser_download_url: str = "https://portal.spp.org/file-browser-api/download"
+
+    # Specific data endpoints
+    rtbm_lmp_url: str = "rtbm-lmp-by-location"
+    dam_lmp_url: str = "da-lmp-by-location"
+    rtbm_mcp_url: str = "rtbm-mcp"
+    operating_reserves_url: str = "operating-reserves"
+    short_term_forecast_url: str = "shortterm-resource-forecast"
+    mid_term_forecast_url: str = "midterm-resource-forecast"
+    stlf_url: str = "stlf-vs-actual"  # Short-term load forecast
+    mtlf_url: str = "mtlf-vs-actual"  # Mid-term load forecast
 
     data_dir: Path = Path("data/SPP")
     raw_dir: Path = Path("raw_data/SPP")
@@ -87,17 +98,31 @@ class SPPClient:
         self.config.data_dir.mkdir(parents=True, exist_ok=True)
         self.config.raw_dir.mkdir(parents=True, exist_ok=True)
 
-    def _build_spp_url(self, path: str) -> str:
-        """Build SPP marketplace URL."""
-        return f"{self.config.base_url}/{path}"
+    def _build_spp_url(self, endpoint: str, path: str = None) -> str:
+        """
+        Build SPP portal URL.
+
+        Args:
+            endpoint: API endpoint (e.g., 'da-lmp-by-location')
+            path: Optional path parameter for the endpoint
+
+        Returns:
+            Complete URL string
+        """
+        if path:
+            return f"{self.config.file_browser_download_url}/{endpoint}?path={path}"
+        else:
+            return f"{self.config.file_browser_download_url}/{endpoint}"
 
     def _make_request(
-        self, url: str, params: Optional[Dict] = None, stream: bool = False
+            self, url: str, params: Optional[Dict] = None, stream: bool = False
     ) -> Optional[requests.Response]:
         """Make API request with retry logic."""
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(f"Requesting: {url} (attempt {attempt + 1}/{self.config.max_retries})")
+                logger.debug(
+                    f"Requesting: {url} (attempt {attempt + 1}/{self.config.max_retries})"
+                )
                 response = self.session.get(
                     url, params=params, timeout=self.config.timeout, stream=stream
                 )
@@ -134,7 +159,7 @@ class SPPClient:
             return []
 
     def get_lmp(
-        self, market: SPPMarket, start_date: date, end_date: date, settlement_location: str = "ALL"
+            self, market: SPPMarket, start_date: date, end_date: date, settlement_location: str = "ALL"
     ) -> bool:
         """
         Get Locational Marginal Price (LMP) data.
@@ -150,23 +175,29 @@ class SPPClient:
         """
         logger.info(f"Downloading SPP {market.value} LMP from {start_date} to {end_date}")
 
-        # SPP provides LMP data via their marketplace
-        # File naming: DA-LMP-SL-YYYYMMDD.csv or RTBM-LMP-SL-YYYYMMDD.csv
+        # SPP portal structure:
+        # DAM: /da-lmp-by-location?path=/YYYYMM/By_Day/DA-LMP-SL-YYYYMMDD.csv
+        # RTM: /rtbm-lmp-by-location?path=/YYYYMM/By_Day/RTBM-LMP-SL-YYYYMMDD.csv
 
         date_list = pd.date_range(start_date, end_date, freq="D")
         all_data = []
 
         for current_date in date_list:
             date_str = current_date.strftime("%Y%m%d")
+            year_month = current_date.strftime("%Y%m")
 
             if market == SPPMarket.DAM:
                 filename = f"DA-LMP-SL-{date_str}.csv"
-                path = f"da-lmp-by-settlement-location/{date_str[:6]}/{filename}"
+                path = f"/{year_month}/By_Day/{filename}"
+                endpoint = self.config.dam_lmp_url
             else:
                 filename = f"RTBM-LMP-SL-{date_str}.csv"
-                path = f"rtbm-lmp-by-settlement-location/{date_str[:6]}/{filename}"
+                path = f"/{year_month}/By_Day/{filename}"
+                endpoint = self.config.rtbm_lmp_url
 
-            url = self._build_spp_url(path)
+            url = self._build_spp_url(endpoint, path)
+            logger.debug(f"Requesting URL: {url}")
+
             response = self._make_request(url)
 
             if response:
@@ -186,12 +217,14 @@ class SPPClient:
 
         # Filter by settlement location if specified
         if settlement_location != "ALL" and "Settlement Location" in combined_df.columns:
-            combined_df = combined_df[combined_df["Settlement Location"] == settlement_location]
+            combined_df = combined_df[
+                combined_df["Settlement Location"] == settlement_location
+                ]
 
         # Save data
         output_file = (
-            self.config.data_dir
-            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_LMP.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_LMP.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved LMP data to {output_file}")
@@ -242,30 +275,75 @@ class SPPClient:
 
         # Save data
         output_file = (
-            self.config.data_dir
-            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Actual_Load.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Actual_Load.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved load data to {output_file}")
 
         return True
 
-    def get_load_forecast(self, start_date: date, end_date: date) -> bool:
+    def get_load_forecast(self, start_date: date, end_date: date, forecast_type: str = "short") -> bool:
         """
-        Get load forecast data.
+        Get load forecast data (short-term or mid-term).
 
         Args:
             start_date: Start date for data
             end_date: End date for data
+            forecast_type: "short" for STLF or "mid" for MTLF
 
         Returns:
             True if successful, False otherwise
         """
-        logger.info(f"Downloading SPP load forecast from {start_date} to {end_date}")
+        logger.info(f"Downloading SPP {forecast_type}-term load forecast from {start_date} to {end_date}")
 
-        # SPP provides load forecasts
-        logger.warning("SPP load forecast method needs specific API endpoint verification")
-        return False
+        # SPP structure:
+        # STLF: /stlf-vs-actual?path=/YYYYMM/STLF_vs_Actual_YYYYMMDD.csv
+        # MTLF: /mtlf-vs-actual?path=/YYYYMM/MTLF_vs_Actual_YYYYMMDD.csv
+
+        date_list = pd.date_range(start_date, end_date, freq="D")
+        all_data = []
+
+        for current_date in date_list:
+            date_str = current_date.strftime("%Y%m%d")
+            year_month = current_date.strftime("%Y%m")
+
+            if forecast_type == "short":
+                filename = f"STLF_vs_Actual_{date_str}.csv"
+                endpoint = self.config.stlf_url
+            else:
+                filename = f"MTLF_vs_Actual_{date_str}.csv"
+                endpoint = self.config.mtlf_url
+
+            path = f"/{year_month}/{filename}"
+            url = self._build_spp_url(endpoint, path)
+
+            response = self._make_request(url)
+
+            if response:
+                try:
+                    df = pd.read_csv(io.StringIO(response.text))
+                    all_data.append(df)
+                    logger.info(f"Downloaded load forecast for {current_date.date()}")
+                except Exception as e:
+                    logger.warning(f"Error parsing load forecast for {current_date.date()}: {e}")
+
+        if not all_data:
+            logger.warning("No load forecast data retrieved")
+            return False
+
+        # Combine all data
+        combined_df = pd.concat(all_data, ignore_index=True)
+
+        # Save data
+        output_file = (
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Load_Forecast_{forecast_type.upper()}.csv"
+        )
+        combined_df.to_csv(output_file, index=False)
+        logger.info(f"Saved load forecast to {output_file}")
+
+        return True
 
     def get_wind_generation(self, start_date: date, end_date: date) -> bool:
         """
@@ -313,30 +391,86 @@ class SPPClient:
 
         # Save data
         output_file = (
-            self.config.data_dir
-            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Wind_Generation.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Wind_Generation.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved wind data to {output_file}")
 
         return True
 
-    def get_solar_generation(self, start_date: date, end_date: date) -> bool:
+    def get_wind_solar_forecast(
+            self, start_date: date, end_date: date, forecast_type: str = "short", resource_type: str = "wind"
+    ) -> bool:
         """
-        Get solar generation data.
+        Get wind or solar generation forecast.
 
         Args:
             start_date: Start date for data
             end_date: End date for data
+            forecast_type: "short" for short-term or "mid" for mid-term
+            resource_type: "wind" or "solar"
 
         Returns:
             True if successful, False otherwise
         """
-        logger.info(f"Downloading SPP solar generation from {start_date} to {end_date}")
+        logger.info(
+            f"Downloading SPP {forecast_type}-term {resource_type} forecast from {start_date} to {end_date}"
+        )
 
-        # SPP solar data (if available)
-        logger.warning("SPP solar generation method needs specific API endpoint verification")
-        return False
+        # SPP structure:
+        # Short-term: /shortterm-resource-forecast?path=/YYYYMM/Shortterm_Resource_Forecast_YYYYMMDD.csv
+        # Mid-term: /midterm-resource-forecast?path=/YYYYMM/Midterm_Resource_Forecast_YYYYMMDD.csv
+
+        date_list = pd.date_range(start_date, end_date, freq="D")
+        all_data = []
+
+        for current_date in date_list:
+            date_str = current_date.strftime("%Y%m%d")
+            year_month = current_date.strftime("%Y%m")
+
+            if forecast_type == "short":
+                filename = f"Shortterm_Resource_Forecast_{date_str}.csv"
+                endpoint = self.config.short_term_forecast_url
+            else:
+                filename = f"Midterm_Resource_Forecast_{date_str}.csv"
+                endpoint = self.config.mid_term_forecast_url
+
+            path = f"/{year_month}/{filename}"
+            url = self._build_spp_url(endpoint, path)
+
+            response = self._make_request(url)
+
+            if response:
+                try:
+                    df = pd.read_csv(io.StringIO(response.text))
+
+                    # Filter by resource type if column exists
+                    if "Resource Type" in df.columns or "Fuel" in df.columns:
+                        resource_col = "Resource Type" if "Resource Type" in df.columns else "Fuel"
+                        df = df[df[resource_col].str.contains(resource_type, case=False, na=False)]
+
+                    all_data.append(df)
+                    logger.info(f"Downloaded {resource_type} forecast for {current_date.date()}")
+                except Exception as e:
+                    logger.warning(f"Error parsing {resource_type} forecast for {current_date.date()}: {e}")
+
+        if not all_data:
+            logger.warning(f"No {resource_type} forecast data retrieved")
+            return False
+
+        # Combine all data
+        combined_df = pd.concat(all_data, ignore_index=True)
+
+        # Save data
+        output_file = (
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{resource_type.capitalize()}_Forecast_{forecast_type.upper()}.csv"
+        )
+        combined_df.to_csv(output_file, index=False)
+        logger.info(f"Saved {resource_type} forecast to {output_file}")
+
+        return True
 
     def get_generation_mix(self, start_date: date, end_date: date) -> bool:
         """
@@ -382,8 +516,8 @@ class SPPClient:
 
         # Save data
         output_file = (
-            self.config.data_dir
-            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Generation_Mix.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Generation_Mix.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved generation mix to {output_file}")
@@ -391,7 +525,7 @@ class SPPClient:
         return True
 
     def get_ancillary_services_prices(
-        self, market: SPPMarket, start_date: date, end_date: date
+            self, market: SPPMarket, start_date: date, end_date: date
     ) -> bool:
         """
         Get ancillary services Market Clearing Prices (MCP).
@@ -404,7 +538,9 @@ class SPPClient:
         Returns:
             True if successful, False otherwise
         """
-        logger.info(f"Downloading SPP {market.value} AS prices from {start_date} to {end_date}")
+        logger.info(
+            f"Downloading SPP {market.value} AS prices from {start_date} to {end_date}"
+        )
 
         # SPP provides MCP for regulation, spinning, and supplemental reserves
         date_list = pd.date_range(start_date, end_date, freq="D")
@@ -440,8 +576,8 @@ class SPPClient:
 
         # Save data
         output_file = (
-            self.config.data_dir
-            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_AS_Prices.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_AS_Prices.csv"
         )
         combined_df.to_csv(output_file, index=False)
         logger.info(f"Saved AS prices to {output_file}")
