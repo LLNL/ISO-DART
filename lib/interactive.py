@@ -1369,68 +1369,150 @@ def run_spp_mode():
     print("=" * 60)
 
     print("\nWhat type of data?")
-    print("  (1) Locational Marginal Prices (LMP)")
-    print("  (2) Market Clearing Prices (MCP)")
-    print("  (3) Operating Reserves")
+    print("  (1) Pricing Data")
+    print("  (2) Generation & Wind Forecasts")
+    print("  (3) Load Data")
+    print("  (4) Operating Reserves")
 
     while True:
         try:
-            data_type = int(input("\nYour choice (1-3): "))
-            if data_type in range(1, 4):
+            data_category = int(input("\nYour choice (1-4): "))
+            if data_category in range(1, 5):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 3")
-
-    if data_type in [1, 2]:  # LMP or MCP need market selection
-        print("\nWhich market?")
-        print("  (1) Day-Ahead Market (DAM)")
-        print("  (2) Real-Time Balancing Market (RTBM)")
-
-        while True:
-            try:
-                market_choice = int(input("\nYour choice (1-2): "))
-                if market_choice in [1, 2]:
-                    break
-            except ValueError:
-                pass
-            print("Please enter 1 or 2")
-
-        market = SPPMarket.DAM if market_choice == 1 else SPPMarket.RTBM
-
-    # Get date range
-    start_date, duration = get_date_input()
-    end_date = start_date + timedelta(days=duration)
+        print("Please enter a number between 1 and 4")
 
     client = SPPClient()
 
     try:
-        if data_type == 1:  # LMP
-            # Ask about location type
-            print("\nLMP by:")
-            print("  (1) Settlement Location (recommended)")
-            print("  (2) Bus")
+        if data_category == 1:  # Pricing Data
+            print("\n" + "=" * 60)
+            print("SPP PRICING DATA")
+            print("=" * 60)
+
+            print("\nWhat type of pricing data?")
+            print("  (1) Locational Marginal Prices (LMP)")
+            print("  (2) Market Clearing Prices (MCP)")
 
             while True:
                 try:
-                    loc_choice = int(input("\nYour choice (1-2): "))
-                    if loc_choice in [1, 2]:
+                    price_type = int(input("\nYour choice (1-2): "))
+                    if price_type in [1, 2]:
                         break
                 except ValueError:
                     pass
                 print("Please enter 1 or 2")
 
-            by_location = loc_choice == 1
-            loc_type = "Settlement Location" if by_location else "Bus"
+            print("\nWhich market?")
+            print("  (1) Day-Ahead Market (DAM)")
+            print("  (2) Real-Time Balancing Market (RTBM)")
 
-            print(f"\n📥 Downloading {market.value} LMP by {loc_type}...")
-            success = client.get_lmp(market, start_date, end_date, by_location=by_location)
+            while True:
+                try:
+                    market_choice = int(input("\nYour choice (1-2): "))
+                    if market_choice in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
 
-        elif data_type == 2:  # MCP
-            print(f"\n📥 Downloading {market.value} Market Clearing Prices...")
-            success = client.get_mcp(market, start_date, end_date)
+            market = SPPMarket.DAM if market_choice == 1 else SPPMarket.RTBM
+
+            if price_type == 1:  # LMP
+                print("\nLMP by:")
+                print("  (1) Settlement Location (recommended)")
+                print("  (2) Bus")
+
+                while True:
+                    try:
+                        loc_choice = int(input("\nYour choice (1-2): "))
+                        if loc_choice in [1, 2]:
+                            break
+                    except ValueError:
+                        pass
+                    print("Please enter 1 or 2")
+
+                by_location = loc_choice == 1
+                loc_type = "Settlement Location" if by_location else "Bus"
+
+                start_date, duration = get_date_input()
+                end_date = start_date + timedelta(days=duration)
+
+                print(f"\n📥 Downloading {market.value} LMP by {loc_type}...")
+                success = client.get_lmp(market, start_date, end_date, by_location=by_location)
+
+            else:  # MCP
+                start_date, duration = get_date_input()
+                end_date = start_date + timedelta(days=duration)
+
+                print(f"\n📥 Downloading {market.value} Market Clearing Prices...")
+                success = client.get_mcp(market, start_date, end_date)
+
+        elif data_category == 2:  # Generation & Wind Forecasts
+            print("\n" + "=" * 60)
+            print("SPP GENERATION & WIND FORECASTS")
+            print("=" * 60)
+
+            print("\nWhat type of forecast?")
+            print("  (1) Generation Forecast (Short-term Resource Forecast)")
+            print("  (2) Wind Forecast")
+
+            while True:
+                try:
+                    forecast_type = int(input("\nYour choice (1-2): "))
+                    if forecast_type in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
+            if forecast_type == 1:
+                print(f"\n📥 Downloading Generation Forecast...")
+                success = client.get_generation_forecast(start_date, end_date)
+            else:
+                print(f"\n📥 Downloading Wind Forecast...")
+                success = client.get_wind_forecast(start_date, end_date)
+
+        elif data_category == 3:  # Load Data
+            print("\n" + "=" * 60)
+            print("SPP LOAD DATA")
+            print("=" * 60)
+
+            print("\nWhat type of load data?")
+            print("  (1) Load Forecast (STLF vs Actual)")
+            print("  (2) Actual Load")
+
+            while True:
+                try:
+                    load_type = int(input("\nYour choice (1-2): "))
+                    if load_type in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
+            if load_type == 1:
+                print(f"\n📥 Downloading Load Forecast...")
+                success = client.get_load_forecast(start_date, end_date)
+            else:
+                print(f"\n📥 Downloading Actual Load...")
+                success = client.get_actual_load(start_date, end_date)
 
         else:  # Operating Reserves
+            print("\n" + "=" * 60)
+            print("SPP OPERATING RESERVES")
+            print("=" * 60)
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
             print(f"\n📥 Downloading Operating Reserves...")
             success = client.get_operating_reserves(start_date, end_date)
 
@@ -1445,7 +1527,6 @@ def run_spp_mode():
         print(f"\n❌ Error: {e}")
     finally:
         client.cleanup()
-
 
 # ============================================================================
 # WEATHER MODE

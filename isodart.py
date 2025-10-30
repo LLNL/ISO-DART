@@ -392,9 +392,28 @@ def handle_spp(args):
             logger.info("Downloading SPP Operating Reserves...")
             success = client.get_operating_reserves(args.start, end_date)
 
+        elif args.data_type == "gen-forecast":
+            logger.info("Downloading SPP Generation Forecast...")
+            success = client.get_generation_forecast(args.start, end_date)
+
+        elif args.data_type == "wind-forecast":
+            logger.info("Downloading SPP Wind Forecast...")
+            success = client.get_wind_forecast(args.start, end_date)
+
+        elif args.data_type == "load-forecast":
+            logger.info("Downloading SPP Load Forecast...")
+            success = client.get_load_forecast(args.start, end_date)
+
+        elif args.data_type == "load":
+            logger.info("Downloading SPP Actual Load...")
+            success = client.get_actual_load(args.start, end_date)
+
         else:
             logger.error(f"Unknown SPP data type: {args.data_type}")
-            logger.info("Available types: lmp, mcp, operating-reserves")
+            logger.info(
+                "Available types: lmp, mcp, operating-reserves, gen-forecast, "
+                "wind-forecast, load-forecast, load"
+            )
             return False
 
         if success:
