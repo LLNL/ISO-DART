@@ -45,14 +45,6 @@ class SPPDataType(Enum):
     # Operating Reserves
     OPERATING_RESERVES = "operating_reserves"
 
-    # Generation
-    GEN_FORECAST = "gen_forecast"
-    WIND_FORECAST = "wind_forecast"
-
-    # Load
-    LOAD_FORECAST = "load_forecast"
-    ACTUAL_LOAD = "actual_load"
-
 
 @dataclass
 class SPPConfig:
@@ -131,63 +123,58 @@ class SPPClient:
 
         # Day-Ahead LMP by Settlement Location
         if data_type == "da_lmp_by_settlement_location":
-            path = f"/DA-LMP-BY-LOCATION/{year}/{month}/By_Day"
+            path = f"Markets/DA/LMP_By_SETTLEMENT_LOC/{year}/{month}/By_Day"
             filename = f"DA-LMP-SL-{date_str}0100.csv"
 
         # Day-Ahead LMP by Bus
         elif data_type == "da_lmp_by_bus":
-            path = f"/DA-LMP-BY-BUS/{year}/{month}/By_Day"
+            path = f"Markets/DA/LMP_By_BUS/{year}/{month}/By_Day"
             filename = f"DA-LMP-B-{date_str}0100.csv"
 
         # RTBM LMP by Settlement Location
         elif data_type == "rtbm_lmp_by_settlement_location":
-            path = f"/RTBM-LMP-BY-LOCATION/{year}/{month}/By_Day"
+            path = f"Markets/RTBM/LMP_By_SETTLEMENT_LOC/{year}/{month}/By_Day"
             filename = f"RTBM-LMP-DAILY-SL-{date_str}.csv"
 
         # RTBM LMP by Bus
         elif data_type == "rtbm_lmp_by_bus":
-            path = f"/RTBM-LMP-BY-BUS/{year}/{month}/By_Day"
+            path = f"Markets/RTBM/LMP_By_BUS/{year}/{month}/By_Day"
             filename = f"RTBM-LMP-DAILY-BUS-{date_str}.csv"
 
         # Day-Ahead MCP
         elif data_type == "da_mcp":
-            path = f"/DA-MCP/{year}/{month}"
+            path = f"Markets/DA/MCP/{year}/{month}"
             filename = f"DA-MCP-{date_str}0100.csv"
 
         # RTBM MCP
         elif data_type == "rtbm_mcp":
-            path = f"/RTBM-MCP/{year}/{month}/{day}"
+            path = f"Markets/RTBM/MCP/{year}/{month}/{day}"
             filename = f"RTBM-MCP-{date_str}.csv"
 
         # Operating Reserves
         elif data_type == "operating_reserves":
-            path = f"/OPERATING-RESERVES/{year}/{month}/{day}"
+            path = f"Markets/RTBM/OR/{year}/{month}/{day}"
             filename = f"RTBM-OR-{date_str}.csv"
-
-        # Generation Forecast
-        elif data_type == "gen_forecast":
-            path = f"/SHORTTERM-RESOURCE-FORECAST/{year}/{month}"
-            filename = f"Shortterm_Resource_Forecast_{date_str}.csv"
-
-        # Wind Forecast
-        elif data_type == "wind_forecast":
-            path = f"/WIND-FORECAST/{year}/{month}"
-            filename = f"Wind_Forecast_{date_str}.csv"
-
-        # Load Forecast
-        elif data_type == "load_forecast":
-            path = f"/STLF-VS-ACTUAL/{year}/{month}"
-            filename = f"STLF_vs_Actual_{date_str}.csv"
-
-        # Actual Load
-        elif data_type == "actual_load":
-            path = f"/LOAD-ACTUAL/{year}/{month}"
-            filename = f"OP-LOAD-{date_str}.csv"
 
         else:
             raise ValueError(f"Unknown data type: {data_type}")
 
         return path, filename
+
+    def _verify_ftp_structure(self, ftp: ftplib.FTP) -> None:
+        """
+        Verify FTP directory structure (for debugging).
+
+        Args:
+            ftp: FTP connection
+        """
+        try:
+            ftp.cwd("/")
+            root_files = ftp.nlst()
+            logger.info(f"FTP root directory contains {len(root_files)} items")
+            logger.debug(f"Root contents (first 10): {root_files[:10]}")
+        except Exception as e:
+            logger.warning(f"Could not verify FTP structure: {e}")
 
     def _download_ftp_file(self, ftp: ftplib.FTP, ftp_path: str, filename: str) -> Optional[bytes]:
         """
@@ -202,9 +189,22 @@ class SPPClient:
             File content as bytes, or None if failed
         """
         try:
-            # Change to directory
+            # First, go to root directory
+            try:
+                ftp.cwd("/")
+            except:
+                pass  # Some FTP servers don't allow cwd to /
+
+            # Change to directory (path should start with /)
             ftp.cwd(ftp_path)
             logger.debug(f"Changed to directory: {ftp_path}")
+
+            # List files to verify we're in the right place (debug)
+            try:
+                files = ftp.nlst()
+                logger.debug(f"Files in directory: {files[:5] if len(files) > 5 else files}")
+            except:
+                pass
 
             # Download file to memory
             data = io.BytesIO()
@@ -214,11 +214,73 @@ class SPPClient:
             return data.getvalue()
 
         except ftplib.error_perm as e:
-            logger.error(f"FTP permission error for {ftp_path}/{filename}: {e}")
+            error_msg = str(e)
+            if "550" in error_msg:
+                logger.error(f"File not found or permission denied: {ftp_path}/{filename}")
+                logger.error(f"FTP Error: {error_msg}")
+                # Try to list directory contents for debugging
+                try:
+                    ftp.cwd("/")
+                    logger.debug(f"Root directory listing: {ftp.nlst()[:10]}")
+                except:
+                    pass
+            else:
+                logger.error(f"FTP permission error for {ftp_path}/{filename}: {e}")
             return None
         except Exception as e:
             logger.error(f"Error downloading {ftp_path}/{filename}: {e}")
             return None
+
+    def test_ftp_connection(self) -> bool:
+        """
+        Test FTP connection and display directory structure.
+
+        Useful for debugging FTP issues.
+
+        Returns:
+            True if connection successful, False otherwise
+        """
+        logger.info("Testing SPP FTP connection...")
+
+        ftp = self._connect_ftp()
+        if not ftp:
+            logger.error("Failed to connect to FTP server")
+            return False
+
+        try:
+            # Get and display root directory
+            ftp.cwd("/")
+            print("\n=== SPP FTP Root Directory ===")
+            root_contents = ftp.nlst()
+            for item in sorted(root_contents)[:20]:  # Show first 20 items
+                print(f"  {item}")
+            if len(root_contents) > 20:
+                print(f"  ... and {len(root_contents) - 20} more items")
+
+            # Try to navigate to a common directory
+            test_paths = [
+                "Markets/DA/LMP_By_SETTLEMENT_LOC",
+                "Markets/RTBM/LMP_By_SETTLEMENT_LOC",
+                "Markets/RTBM/OR",
+            ]
+
+            print("\n=== Testing Common Paths ===")
+            for path in test_paths:
+                try:
+                    ftp.cwd("/")  # Reset to root
+                    ftp.cwd(path)
+                    print(f"  ✓ {path} - accessible")
+                except Exception as e:
+                    print(f"  ✗ {path} - {e}")
+
+            print("\n=== Connection Test Complete ===\n")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error testing FTP: {e}")
+            return False
+        finally:
+            ftp.quit()
 
     def get_lmp(
         self, market: SPPMarket, start_date: date, end_date: date, by_location: bool = True
@@ -250,11 +312,17 @@ class SPPClient:
             return False
 
         try:
+            # Verify we can access the FTP server
+            self._verify_ftp_structure(ftp)
+
             date_list = pd.date_range(start_date, end_date, freq="D")
             all_data = []
+            success_count = 0
 
             for current_date in date_list:
                 ftp_path, filename = self._get_ftp_path(data_type, current_date.date(), market)
+
+                logger.info(f"Attempting to download: {ftp_path}/{filename}")
 
                 content = self._download_ftp_file(ftp, ftp_path, filename)
 
@@ -267,7 +335,8 @@ class SPPClient:
                         # Read CSV
                         df = pd.read_csv(raw_file)
                         all_data.append(df)
-                        logger.info(f"Processed LMP data for {current_date.date()}")
+                        success_count += 1
+                        logger.info(f"✓ Processed LMP data for {current_date.date()}")
 
                     except Exception as e:
                         logger.warning(f"Error parsing LMP data for {current_date.date()}: {e}")
@@ -277,6 +346,8 @@ class SPPClient:
             if not all_data:
                 logger.error("No LMP data retrieved")
                 return False
+
+            logger.info(f"Successfully downloaded {success_count}/{len(date_list)} files")
 
             # Combine all data
             combined_df = pd.concat(all_data, ignore_index=True)
@@ -292,6 +363,9 @@ class SPPClient:
 
             return True
 
+        except Exception as e:
+            logger.error(f"Error in get_lmp: {e}", exc_info=True)
+            return False
         finally:
             ftp.quit()
             logger.debug("Closed FTP connection")
@@ -411,234 +485,6 @@ class SPPClient:
         finally:
             ftp.quit()
 
-    def get_generation_forecast(self, start_date: date, end_date: date) -> bool:
-        """
-        Get short-term generation/resource forecast.
-
-        Args:
-            start_date: Start date for data
-            end_date: End date for data
-
-        Returns:
-            True if successful, False otherwise
-        """
-        logger.info(f"Downloading SPP Generation Forecast from {start_date} to {end_date}")
-
-        ftp = self._connect_ftp()
-        if not ftp:
-            return False
-
-        try:
-            date_list = pd.date_range(start_date, end_date, freq="D")
-            all_data = []
-
-            for current_date in date_list:
-                ftp_path, filename = self._get_ftp_path("gen_forecast", current_date.date())
-
-                content = self._download_ftp_file(ftp, ftp_path, filename)
-
-                if content:
-                    try:
-                        raw_file = self.config.raw_dir / filename
-                        raw_file.write_bytes(content)
-
-                        df = pd.read_csv(raw_file)
-                        all_data.append(df)
-                        logger.info(f"Processed Generation Forecast for {current_date.date()}")
-
-                    except Exception as e:
-                        logger.warning(f"Error parsing Gen Forecast for {current_date.date()}: {e}")
-
-            if not all_data:
-                logger.error("No Generation Forecast data retrieved")
-                return False
-
-            combined_df = pd.concat(all_data, ignore_index=True)
-
-            output_file = (
-                self.config.data_dir
-                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Generation_Forecast.csv"
-            )
-            combined_df.to_csv(output_file, index=False)
-            logger.info(f"Saved Generation Forecast to {output_file}")
-
-            return True
-
-        finally:
-            ftp.quit()
-
-    def get_wind_forecast(self, start_date: date, end_date: date) -> bool:
-        """
-        Get wind generation forecast.
-
-        Args:
-            start_date: Start date for data
-            end_date: End date for data
-
-        Returns:
-            True if successful, False otherwise
-        """
-        logger.info(f"Downloading SPP Wind Forecast from {start_date} to {end_date}")
-
-        ftp = self._connect_ftp()
-        if not ftp:
-            return False
-
-        try:
-            date_list = pd.date_range(start_date, end_date, freq="D")
-            all_data = []
-
-            for current_date in date_list:
-                ftp_path, filename = self._get_ftp_path("wind_forecast", current_date.date())
-
-                content = self._download_ftp_file(ftp, ftp_path, filename)
-
-                if content:
-                    try:
-                        raw_file = self.config.raw_dir / filename
-                        raw_file.write_bytes(content)
-
-                        df = pd.read_csv(raw_file)
-                        all_data.append(df)
-                        logger.info(f"Processed Wind Forecast for {current_date.date()}")
-
-                    except Exception as e:
-                        logger.warning(
-                            f"Error parsing Wind Forecast for {current_date.date()}: {e}"
-                        )
-
-            if not all_data:
-                logger.error("No Wind Forecast data retrieved")
-                return False
-
-            combined_df = pd.concat(all_data, ignore_index=True)
-
-            output_file = (
-                self.config.data_dir
-                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Wind_Forecast.csv"
-            )
-            combined_df.to_csv(output_file, index=False)
-            logger.info(f"Saved Wind Forecast to {output_file}")
-
-            return True
-
-        finally:
-            ftp.quit()
-
-    def get_load_forecast(self, start_date: date, end_date: date) -> bool:
-        """
-        Get short-term load forecast vs actual.
-
-        Args:
-            start_date: Start date for data
-            end_date: End date for data
-
-        Returns:
-            True if successful, False otherwise
-        """
-        logger.info(f"Downloading SPP Load Forecast from {start_date} to {end_date}")
-
-        ftp = self._connect_ftp()
-        if not ftp:
-            return False
-
-        try:
-            date_list = pd.date_range(start_date, end_date, freq="D")
-            all_data = []
-
-            for current_date in date_list:
-                ftp_path, filename = self._get_ftp_path("load_forecast", current_date.date())
-
-                content = self._download_ftp_file(ftp, ftp_path, filename)
-
-                if content:
-                    try:
-                        raw_file = self.config.raw_dir / filename
-                        raw_file.write_bytes(content)
-
-                        df = pd.read_csv(raw_file)
-                        all_data.append(df)
-                        logger.info(f"Processed Load Forecast for {current_date.date()}")
-
-                    except Exception as e:
-                        logger.warning(
-                            f"Error parsing Load Forecast for {current_date.date()}: {e}"
-                        )
-
-            if not all_data:
-                logger.error("No Load Forecast data retrieved")
-                return False
-
-            combined_df = pd.concat(all_data, ignore_index=True)
-
-            output_file = (
-                self.config.data_dir
-                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Load_Forecast.csv"
-            )
-            combined_df.to_csv(output_file, index=False)
-            logger.info(f"Saved Load Forecast to {output_file}")
-
-            return True
-
-        finally:
-            ftp.quit()
-
-    def get_actual_load(self, start_date: date, end_date: date) -> bool:
-        """
-        Get actual load data.
-
-        Args:
-            start_date: Start date for data
-            end_date: End date for data
-
-        Returns:
-            True if successful, False otherwise
-        """
-        logger.info(f"Downloading SPP Actual Load from {start_date} to {end_date}")
-
-        ftp = self._connect_ftp()
-        if not ftp:
-            return False
-
-        try:
-            date_list = pd.date_range(start_date, end_date, freq="D")
-            all_data = []
-
-            for current_date in date_list:
-                ftp_path, filename = self._get_ftp_path("actual_load", current_date.date())
-
-                content = self._download_ftp_file(ftp, ftp_path, filename)
-
-                if content:
-                    try:
-                        raw_file = self.config.raw_dir / filename
-                        raw_file.write_bytes(content)
-
-                        df = pd.read_csv(raw_file)
-                        all_data.append(df)
-                        logger.info(f"Processed Actual Load for {current_date.date()}")
-
-                    except Exception as e:
-                        logger.warning(f"Error parsing Actual Load for {current_date.date()}: {e}")
-
-            if not all_data:
-                logger.error("No Actual Load data retrieved")
-                return False
-
-            combined_df = pd.concat(all_data, ignore_index=True)
-
-            output_file = (
-                self.config.data_dir
-                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Actual_Load.csv"
-            )
-            combined_df.to_csv(output_file, index=False)
-            logger.info(f"Saved Actual Load to {output_file}")
-
-            return True
-
-        finally:
-            ftp.quit()
-
     def cleanup(self):
         """Clean up temporary files."""
         import shutil
@@ -673,14 +519,6 @@ def get_spp_available_data_types() -> Dict[str, List[str]]:
         ],
         "reserves": [
             "Operating Reserves (RTBM)",
-        ],
-        "generation": [
-            "Generation Forecast (Short-term Resource Forecast)",
-            "Wind Forecast",
-        ],
-        "load": [
-            "Load Forecast (STLF vs Actual)",
-            "Actual Load",
         ],
     }
 

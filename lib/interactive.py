@@ -1370,18 +1370,16 @@ def run_spp_mode():
 
     print("\nWhat type of data?")
     print("  (1) Pricing Data")
-    print("  (2) Generation & Wind Forecasts")
-    print("  (3) Load Data")
-    print("  (4) Operating Reserves")
+    print("  (2) Operating Reserves")
 
     while True:
         try:
-            data_category = int(input("\nYour choice (1-4): "))
-            if data_category in range(1, 5):
+            data_category = int(input("\nYour choice (1-2): "))
+            if data_category in range(1, 3):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 4")
+        print("Please enter a number between 1 and 2")
 
     client = SPPClient()
 
@@ -1421,7 +1419,7 @@ def run_spp_mode():
 
             if price_type == 1:  # LMP
                 print("\nLMP by:")
-                print("  (1) Settlement Location (recommended)")
+                print("  (1) Settlement Location")
                 print("  (2) Bus")
 
                 while True:

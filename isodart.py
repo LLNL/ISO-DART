@@ -375,7 +375,7 @@ def handle_spp(args):
                 return False
 
             # Check if user wants by-location (default) or by-bus
-            by_location = getattr(args, "by_location", True)
+            by_location = getattr(args, "settlement-location", True)
 
             logger.info(f"Downloading SPP {market.value} LMP data...")
             success = client.get_lmp(market, args.start, end_date, by_location=by_location)
@@ -392,28 +392,9 @@ def handle_spp(args):
             logger.info("Downloading SPP Operating Reserves...")
             success = client.get_operating_reserves(args.start, end_date)
 
-        elif args.data_type == "gen-forecast":
-            logger.info("Downloading SPP Generation Forecast...")
-            success = client.get_generation_forecast(args.start, end_date)
-
-        elif args.data_type == "wind-forecast":
-            logger.info("Downloading SPP Wind Forecast...")
-            success = client.get_wind_forecast(args.start, end_date)
-
-        elif args.data_type == "load-forecast":
-            logger.info("Downloading SPP Load Forecast...")
-            success = client.get_load_forecast(args.start, end_date)
-
-        elif args.data_type == "load":
-            logger.info("Downloading SPP Actual Load...")
-            success = client.get_actual_load(args.start, end_date)
-
         else:
             logger.error(f"Unknown SPP data type: {args.data_type}")
-            logger.info(
-                "Available types: lmp, mcp, operating-reserves, gen-forecast, "
-                "wind-forecast, load-forecast, load"
-            )
+            logger.info("Available types: lmp, mcp, operating-reserves")
             return False
 
         if success:
