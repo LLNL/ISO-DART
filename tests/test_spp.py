@@ -151,7 +151,9 @@ class TestSPPDataType:
         """Test data type enum values."""
         assert SPPDataType.DA_LMP_BY_SETTLEMENT_LOCATION.value == "da_lmp_by_settlement_location"
         assert SPPDataType.DA_LMP_BY_BUS.value == "da_lmp_by_bus"
-        assert SPPDataType.RTBM_LMP_BY_SETTLEMENT_LOCATION.value == "rtbm_lmp_by_settlement_location"
+        assert (
+            SPPDataType.RTBM_LMP_BY_SETTLEMENT_LOCATION.value == "rtbm_lmp_by_settlement_location"
+        )
         assert SPPDataType.RTBM_LMP_BY_BUS.value == "rtbm_lmp_by_bus"
         assert SPPDataType.DA_MCP.value == "da_mcp"
         assert SPPDataType.RTBM_MCP.value == "rtbm_mcp"
@@ -213,11 +215,7 @@ class TestSPPFTPConnection:
         mock_ftp_success = Mock()
         mock_ftp_success.login = Mock(return_value=None)
 
-        mock_ftp_class.side_effect = [
-            Exception("Fail 1"),
-            Exception("Fail 2"),
-            mock_ftp_success
-        ]
+        mock_ftp_class.side_effect = [Exception("Fail 1"), Exception("Fail 2"), mock_ftp_success]
 
         ftp = client._connect_ftp()
 
@@ -369,9 +367,11 @@ class TestSPPDownloadFTPFile:
 class TestSPPLMPMethods:
     """Test SPP LMP data methods."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
-    def test_mcp_data_structure(self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv):
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_mcp_data_structure(
+        self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv
+    ):
         """Test that MCP data has expected structure."""
         mock_ftp = Mock()
         mock_ftp.quit = Mock()
@@ -390,8 +390,8 @@ class TestSPPLMPMethods:
         assert "Product" in df.columns
         assert "MCP" in df.columns
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_data_concatenation(self, mock_download, mock_connect, client, temp_dir):
         """Test that multi-day data is properly concatenated."""
         csv_day1 = b"""GMTIntervalEnd,Load_MW
@@ -420,8 +420,8 @@ class TestSPPLMPMethods:
 class TestSPPDateHandling:
     """Test SPP date handling."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_date_range_single_day(self, mock_download, mock_connect, client, sample_lmp_csv):
         """Test single day date range."""
         mock_ftp = Mock()
@@ -437,8 +437,8 @@ class TestSPPDateHandling:
         assert success
         assert mock_download.call_count == 1
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_date_range_month_boundary(self, mock_download, mock_connect, client, sample_lmp_csv):
         """Test date range crossing month boundary."""
         mock_ftp = Mock()
@@ -455,8 +455,8 @@ class TestSPPDateHandling:
         # Should be called for 4 days
         assert mock_download.call_count == 4
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_date_range_year_boundary(self, mock_download, mock_connect, client, sample_lmp_csv):
         """Test date range crossing year boundary."""
         mock_ftp = Mock()
@@ -476,8 +476,8 @@ class TestSPPDateHandling:
 class TestSPPFTPQuit:
     """Test that FTP connections are properly closed."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_ftp_quit_called_on_success(self, mock_download, mock_connect, client, sample_lmp_csv):
         """Test that FTP quit is called on successful download."""
         mock_ftp = Mock()
@@ -489,8 +489,8 @@ class TestSPPFTPQuit:
 
         mock_ftp.quit.assert_called_once()
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_ftp_quit_called_on_failure(self, mock_download, mock_connect, client):
         """Test that FTP quit is called even on failure."""
         mock_ftp = Mock()
@@ -502,8 +502,8 @@ class TestSPPFTPQuit:
 
         mock_ftp.quit.assert_called_once()
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_ftp_quit_called_with_exception(self, mock_download, mock_connect, client):
         """Test that FTP quit is called even when exception occurs."""
         mock_ftp = Mock()
@@ -635,8 +635,8 @@ class TestSPPIntegration:
 class TestSPPRawFileStorage:
     """Test that raw files are properly stored."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_raw_file_saved(self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv):
         """Test that raw files are saved to raw_dir."""
         mock_ftp = Mock()
@@ -650,9 +650,11 @@ class TestSPPRawFileStorage:
         raw_files = list(temp_dir.raw_dir.glob("*.csv"))
         assert len(raw_files) == 1
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
-    def test_multiple_raw_files_saved(self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv):
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_multiple_raw_files_saved(
+        self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
+    ):
         """Test that multiple raw files are saved for multi-day downloads."""
         mock_ftp = Mock()
         mock_ftp.quit = Mock()
@@ -667,10 +669,10 @@ class TestSPPRawFileStorage:
 
 
 @pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, '_connect_ftp')
-@patch.object(SPPClient, '_download_ftp_file')
+@patch.object(SPPClient, "_connect_ftp")
+@patch.object(SPPClient, "_download_ftp_file")
 def test_get_lmp_dam_by_location_success(
-        self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
+    self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
 ):
     """Test successful DAM LMP by location download."""
     mock_ftp = Mock()
@@ -691,10 +693,10 @@ def test_get_lmp_dam_by_location_success(
 
 
 @pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, '_connect_ftp')
-@patch.object(SPPClient, '_download_ftp_file')
+@patch.object(SPPClient, "_connect_ftp")
+@patch.object(SPPClient, "_download_ftp_file")
 def test_get_lmp_rtbm_by_bus_success(
-        self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
+    self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
 ):
     """Test successful RTBM LMP by bus download."""
     mock_ftp = Mock()
@@ -702,14 +704,16 @@ def test_get_lmp_rtbm_by_bus_success(
     mock_connect.return_value = mock_ftp
     mock_download.return_value = sample_lmp_csv
 
-    success = client.get_lmp(SPPMarket.RTBM, date(2024, 1, 15), date(2024, 1, 15), by_location=False)
+    success = client.get_lmp(
+        SPPMarket.RTBM, date(2024, 1, 15), date(2024, 1, 15), by_location=False
+    )
 
     assert success
     assert mock_connect.called
 
 
 @pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, '_connect_ftp')
+@patch.object(SPPClient, "_connect_ftp")
 def test_get_lmp_connection_failure(self, mock_connect, client):
     """Test LMP download with FTP connection failure."""
     mock_connect.return_value = None
@@ -720,8 +724,8 @@ def test_get_lmp_connection_failure(self, mock_connect, client):
 
 
 @pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, '_connect_ftp')
-@patch.object(SPPClient, '_download_ftp_file')
+@patch.object(SPPClient, "_connect_ftp")
+@patch.object(SPPClient, "_download_ftp_file")
 def test_get_lmp_no_data(self, mock_download, mock_connect, client):
     """Test LMP download with no data returned."""
     mock_ftp = Mock()
@@ -735,8 +739,8 @@ def test_get_lmp_no_data(self, mock_download, mock_connect, client):
 
 
 @pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, '_connect_ftp')
-@patch.object(SPPClient, '_download_ftp_file')
+@patch.object(SPPClient, "_connect_ftp")
+@patch.object(SPPClient, "_download_ftp_file")
 def test_get_lmp_multiple_days(self, mock_download, mock_connect, client, sample_lmp_csv):
     """Test LMP download for multiple days."""
     mock_ftp = Mock()
@@ -754,9 +758,11 @@ def test_get_lmp_multiple_days(self, mock_download, mock_connect, client, sample
 class TestSPPMCPMethods:
     """Test SPP MCP data methods."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
-    def test_get_mcp_dam_success(self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv):
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_mcp_dam_success(
+        self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv
+    ):
         """Test successful DAM MCP download."""
         mock_ftp = Mock()
         mock_ftp.quit = Mock()
@@ -773,8 +779,8 @@ class TestSPPMCPMethods:
         output_files = list(temp_dir.data_dir.glob("*MCP*.csv"))
         assert len(output_files) == 1
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_get_mcp_rtbm_success(self, mock_download, mock_connect, client, sample_mcp_csv):
         """Test successful RTBM MCP download."""
         mock_ftp = Mock()
@@ -790,10 +796,10 @@ class TestSPPMCPMethods:
 class TestSPPOperatingReservesMethods:
     """Test SPP Operating Reserves methods."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_get_operating_reserves_success(
-            self, mock_download, mock_connect, client, temp_dir, sample_or_csv
+        self, mock_download, mock_connect, client, temp_dir, sample_or_csv
     ):
         """Test successful Operating Reserves download."""
         mock_ftp = Mock()
@@ -814,10 +820,10 @@ class TestSPPOperatingReservesMethods:
 class TestSPPGenerationMethods:
     """Test SPP Generation forecast methods."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_get_generation_forecast_success(
-            self, mock_download, mock_connect, client, temp_dir, sample_gen_forecast_csv
+        self, mock_download, mock_connect, client, temp_dir, sample_gen_forecast_csv
     ):
         """Test successful Generation Forecast download."""
         mock_ftp = Mock()
@@ -833,10 +839,10 @@ class TestSPPGenerationMethods:
         output_files = list(temp_dir.data_dir.glob("*Generation_Forecast*.csv"))
         assert len(output_files) == 1
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_get_wind_forecast_success(
-            self, mock_download, mock_connect, client, temp_dir, sample_gen_forecast_csv
+        self, mock_download, mock_connect, client, temp_dir, sample_gen_forecast_csv
     ):
         """Test successful Wind Forecast download."""
         mock_ftp = Mock()
@@ -856,10 +862,10 @@ class TestSPPGenerationMethods:
 class TestSPPLoadMethods:
     """Test SPP Load data methods."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_get_load_forecast_success(
-            self, mock_download, mock_connect, client, temp_dir, sample_load_csv
+        self, mock_download, mock_connect, client, temp_dir, sample_load_csv
     ):
         """Test successful Load Forecast download."""
         mock_ftp = Mock()
@@ -875,10 +881,10 @@ class TestSPPLoadMethods:
         output_files = list(temp_dir.data_dir.glob("*Load_Forecast*.csv"))
         assert len(output_files) == 1
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_get_actual_load_success(
-            self, mock_download, mock_connect, client, temp_dir, sample_load_csv
+        self, mock_download, mock_connect, client, temp_dir, sample_load_csv
     ):
         """Test successful Actual Load download."""
         mock_ftp = Mock()
@@ -948,8 +954,8 @@ class TestSPPCleanup:
 class TestSPPErrorHandling:
     """Test SPP error handling."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_handles_malformed_csv(self, mock_download, mock_connect, client):
         """Test handling malformed CSV data."""
         mock_ftp = Mock()
@@ -963,8 +969,8 @@ class TestSPPErrorHandling:
         # May succeed or fail depending on pandas behavior
         assert isinstance(success, bool)
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
     def test_ftp_connection_closed_on_exception(self, mock_download, mock_connect, client):
         """Test that FTP connection is closed even on exception."""
         mock_ftp = Mock()
@@ -984,9 +990,11 @@ class TestSPPErrorHandling:
 class TestSPPDataQuality:
     """Test SPP data quality and validation."""
 
-    @patch.object(SPPClient, '_connect_ftp')
-    @patch.object(SPPClient, '_download_ftp_file')
-    def test_lmp_data_structure(self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv):
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_lmp_data_structure(
+        self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
+    ):
         """Test that LMP data has expected structure."""
         mock_ftp = Mock()
         mock_ftp.quit = Mock()

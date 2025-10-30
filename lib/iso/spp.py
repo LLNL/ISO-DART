@@ -22,12 +22,14 @@ logger = logging.getLogger(__name__)
 
 class SPPMarket(Enum):
     """SPP market types."""
+
     DAM = "DA"  # Day-Ahead Market
     RTBM = "RTBM"  # Real-Time Balancing Market
 
 
 class SPPDataType(Enum):
     """SPP data types available via FTP."""
+
     # Day-Ahead Market LMP
     DA_LMP_BY_SETTLEMENT_LOCATION = "da_lmp_by_settlement_location"
     DA_LMP_BY_BUS = "da_lmp_by_bus"
@@ -55,6 +57,7 @@ class SPPDataType(Enum):
 @dataclass
 class SPPConfig:
     """Configuration for SPP FTP client."""
+
     ftp_host: str = "pubftp.spp.org"
     ftp_user: str = "anonymous"
     ftp_pass: str = "anonymous@"
@@ -91,7 +94,9 @@ class SPPClient:
         """
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(f"Connecting to {self.config.ftp_host} (attempt {attempt + 1}/{self.config.max_retries})")
+                logger.debug(
+                    f"Connecting to {self.config.ftp_host} (attempt {attempt + 1}/{self.config.max_retries})"
+                )
                 ftp = ftplib.FTP(self.config.ftp_host, timeout=self.config.timeout)
                 ftp.login(self.config.ftp_user, self.config.ftp_pass)
                 logger.info(f"Connected to {self.config.ftp_host}")
@@ -100,11 +105,14 @@ class SPPClient:
                 logger.error(f"FTP connection error: {e}")
                 if attempt < self.config.max_retries - 1:
                     import time
+
                     time.sleep(self.config.retry_delay)
 
         return None
 
-    def _get_ftp_path(self, data_type: str, date_obj: date, market: Optional[SPPMarket] = None) -> tuple[str, str]:
+    def _get_ftp_path(
+        self, data_type: str, date_obj: date, market: Optional[SPPMarket] = None
+    ) -> tuple[str, str]:
         """
         Get FTP path and filename for requested data.
 
@@ -194,8 +202,6 @@ class SPPClient:
             File content as bytes, or None if failed
         """
         try:
-            print("##### THIS IS THE FTP PATH #####")
-            print(ftp_path)
             # Change to directory
             ftp.cwd(ftp_path)
             logger.debug(f"Changed to directory: {ftp_path}")
@@ -215,11 +221,7 @@ class SPPClient:
             return None
 
     def get_lmp(
-            self,
-            market: SPPMarket,
-            start_date: date,
-            end_date: date,
-            by_location: bool = True
+        self, market: SPPMarket, start_date: date, end_date: date, by_location: bool = True
     ) -> bool:
         """
         Get Locational Marginal Price (LMP) data.
@@ -282,8 +284,8 @@ class SPPClient:
             # Save combined data
             location_type = "SL" if by_location else "BUS"
             output_file = (
-                    self.config.data_dir
-                    / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_LMP_{location_type}.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_LMP_{location_type}.csv"
             )
             combined_df.to_csv(output_file, index=False)
             logger.info(f"Saved LMP data to {output_file}")
@@ -294,12 +296,7 @@ class SPPClient:
             ftp.quit()
             logger.debug("Closed FTP connection")
 
-    def get_mcp(
-            self,
-            market: SPPMarket,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_mcp(self, market: SPPMarket, start_date: date, end_date: date) -> bool:
         """
         Get Market Clearing Price (MCP) data for ancillary services.
 
@@ -347,8 +344,8 @@ class SPPClient:
             combined_df = pd.concat(all_data, ignore_index=True)
 
             output_file = (
-                    self.config.data_dir
-                    / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_MCP.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_MCP.csv"
             )
             combined_df.to_csv(output_file, index=False)
             logger.info(f"Saved MCP data to {output_file}")
@@ -358,11 +355,7 @@ class SPPClient:
         finally:
             ftp.quit()
 
-    def get_operating_reserves(
-            self,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_operating_reserves(self, start_date: date, end_date: date) -> bool:
         """
         Get operating reserves data (RTBM only).
 
@@ -407,8 +400,8 @@ class SPPClient:
             combined_df = pd.concat(all_data, ignore_index=True)
 
             output_file = (
-                    self.config.data_dir
-                    / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Operating_Reserves.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Operating_Reserves.csv"
             )
             combined_df.to_csv(output_file, index=False)
             logger.info(f"Saved Operating Reserves to {output_file}")
@@ -418,11 +411,7 @@ class SPPClient:
         finally:
             ftp.quit()
 
-    def get_generation_forecast(
-            self,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_generation_forecast(self, start_date: date, end_date: date) -> bool:
         """
         Get short-term generation/resource forecast.
 
@@ -467,8 +456,8 @@ class SPPClient:
             combined_df = pd.concat(all_data, ignore_index=True)
 
             output_file = (
-                    self.config.data_dir
-                    / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Generation_Forecast.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Generation_Forecast.csv"
             )
             combined_df.to_csv(output_file, index=False)
             logger.info(f"Saved Generation Forecast to {output_file}")
@@ -478,11 +467,7 @@ class SPPClient:
         finally:
             ftp.quit()
 
-    def get_wind_forecast(
-            self,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_wind_forecast(self, start_date: date, end_date: date) -> bool:
         """
         Get wind generation forecast.
 
@@ -518,7 +503,9 @@ class SPPClient:
                         logger.info(f"Processed Wind Forecast for {current_date.date()}")
 
                     except Exception as e:
-                        logger.warning(f"Error parsing Wind Forecast for {current_date.date()}: {e}")
+                        logger.warning(
+                            f"Error parsing Wind Forecast for {current_date.date()}: {e}"
+                        )
 
             if not all_data:
                 logger.error("No Wind Forecast data retrieved")
@@ -527,8 +514,8 @@ class SPPClient:
             combined_df = pd.concat(all_data, ignore_index=True)
 
             output_file = (
-                    self.config.data_dir
-                    / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Wind_Forecast.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Wind_Forecast.csv"
             )
             combined_df.to_csv(output_file, index=False)
             logger.info(f"Saved Wind Forecast to {output_file}")
@@ -538,11 +525,7 @@ class SPPClient:
         finally:
             ftp.quit()
 
-    def get_load_forecast(
-            self,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_load_forecast(self, start_date: date, end_date: date) -> bool:
         """
         Get short-term load forecast vs actual.
 
@@ -578,7 +561,9 @@ class SPPClient:
                         logger.info(f"Processed Load Forecast for {current_date.date()}")
 
                     except Exception as e:
-                        logger.warning(f"Error parsing Load Forecast for {current_date.date()}: {e}")
+                        logger.warning(
+                            f"Error parsing Load Forecast for {current_date.date()}: {e}"
+                        )
 
             if not all_data:
                 logger.error("No Load Forecast data retrieved")
@@ -587,8 +572,8 @@ class SPPClient:
             combined_df = pd.concat(all_data, ignore_index=True)
 
             output_file = (
-                    self.config.data_dir
-                    / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Load_Forecast.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Load_Forecast.csv"
             )
             combined_df.to_csv(output_file, index=False)
             logger.info(f"Saved Load Forecast to {output_file}")
@@ -598,11 +583,7 @@ class SPPClient:
         finally:
             ftp.quit()
 
-    def get_actual_load(
-            self,
-            start_date: date,
-            end_date: date
-    ) -> bool:
+    def get_actual_load(self, start_date: date, end_date: date) -> bool:
         """
         Get actual load data.
 
@@ -647,8 +628,8 @@ class SPPClient:
             combined_df = pd.concat(all_data, ignore_index=True)
 
             output_file = (
-                    self.config.data_dir
-                    / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Actual_Load.csv"
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Actual_Load.csv"
             )
             combined_df.to_csv(output_file, index=False)
             logger.info(f"Saved Actual Load to {output_file}")
