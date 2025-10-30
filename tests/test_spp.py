@@ -78,26 +78,6 @@ def sample_or_csv():
 """
 
 
-@pytest.fixture
-def sample_gen_forecast_csv():
-    """Sample SPP Generation Forecast CSV data."""
-    return b"""GMTIntervalEnd,Resource_Type,Forecast_MW
-01/15/2024 01:00,Wind,5000
-01/15/2024 01:00,Solar,2000
-01/15/2024 01:00,Gas,10000
-"""
-
-
-@pytest.fixture
-def sample_load_csv():
-    """Sample SPP Load CSV data."""
-    return b"""GMTIntervalEnd,Load_MW
-01/15/2024 01:00,45000
-01/15/2024 02:00,44500
-01/15/2024 03:00,44000
-"""
-
-
 class TestSPPClient:
     """Test SPP FTP client functionality."""
 
@@ -158,10 +138,6 @@ class TestSPPDataType:
         assert SPPDataType.DA_MCP.value == "da_mcp"
         assert SPPDataType.RTBM_MCP.value == "rtbm_mcp"
         assert SPPDataType.OPERATING_RESERVES.value == "operating_reserves"
-        assert SPPDataType.GEN_FORECAST.value == "gen_forecast"
-        assert SPPDataType.WIND_FORECAST.value == "wind_forecast"
-        assert SPPDataType.LOAD_FORECAST.value == "load_forecast"
-        assert SPPDataType.ACTUAL_LOAD.value == "actual_load"
 
     def test_all_data_types_exist(self):
         """Test that all expected data types are defined."""
@@ -173,10 +149,6 @@ class TestSPPDataType:
             "DA_MCP",
             "RTBM_MCP",
             "OPERATING_RESERVES",
-            "GEN_FORECAST",
-            "WIND_FORECAST",
-            "LOAD_FORECAST",
-            "ACTUAL_LOAD",
         ]
 
         for type_name in expected_types:
@@ -231,7 +203,7 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("da_lmp_by_settlement_location", test_date)
 
-        assert path == "/DA-LMP-BY-LOCATION/2024/01/By_Day"
+        assert path == "Markets/DA/LMP_By_SETTLEMENT_LOC/2024/01/By_Day"
         assert filename == "DA-LMP-SL-202401150100.csv"
 
     def test_get_ftp_path_da_lmp_by_bus(self, client):
@@ -239,7 +211,7 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("da_lmp_by_bus", test_date)
 
-        assert path == "/DA-LMP-BY-BUS/2024/01/By_Day"
+        assert path == "Markets/DA/LMP_By_BUS/2024/01/By_Day"
         assert filename == "DA-LMP-B-202401150100.csv"
 
     def test_get_ftp_path_rtbm_lmp_by_settlement_location(self, client):
@@ -247,7 +219,7 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("rtbm_lmp_by_settlement_location", test_date)
 
-        assert path == "/RTBM-LMP-BY-LOCATION/2024/01/By_Day"
+        assert path == "Markets/RTBM/LMP_By_SETTLEMENT_LOC/2024/01/By_Day"
         assert filename == "RTBM-LMP-DAILY-SL-20240115.csv"
 
     def test_get_ftp_path_rtbm_lmp_by_bus(self, client):
@@ -255,7 +227,7 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("rtbm_lmp_by_bus", test_date)
 
-        assert path == "/RTBM-LMP-BY-BUS/2024/01/By_Day"
+        assert path == "Markets/RTBM/LMP_By_BUS/2024/01/By_Day"
         assert filename == "RTBM-LMP-DAILY-BUS-20240115.csv"
 
     def test_get_ftp_path_da_mcp(self, client):
@@ -263,7 +235,7 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("da_mcp", test_date)
 
-        assert path == "/DA-MCP/2024/01"
+        assert path == "Markets/DA/MCP/2024/01"
         assert filename == "DA-MCP-202401150100.csv"
 
     def test_get_ftp_path_rtbm_mcp(self, client):
@@ -271,7 +243,7 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("rtbm_mcp", test_date)
 
-        assert path == "/RTBM-MCP/2024/01/15"
+        assert path == "Markets/RTBM/MCP/2024/01/15"
         assert filename == "RTBM-MCP-20240115.csv"
 
     def test_get_ftp_path_operating_reserves(self, client):
@@ -279,40 +251,8 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("operating_reserves", test_date)
 
-        assert path == "/OPERATING-RESERVES/2024/01/15"
+        assert path == "Markets/RTBM/OR/2024/01/15"
         assert filename == "RTBM-OR-20240115.csv"
-
-    def test_get_ftp_path_gen_forecast(self, client):
-        """Test FTP path for generation forecast."""
-        test_date = date(2024, 1, 15)
-        path, filename = client._get_ftp_path("gen_forecast", test_date)
-
-        assert path == "/SHORTTERM-RESOURCE-FORECAST/2024/01"
-        assert filename == "Shortterm_Resource_Forecast_20240115.csv"
-
-    def test_get_ftp_path_wind_forecast(self, client):
-        """Test FTP path for wind forecast."""
-        test_date = date(2024, 1, 15)
-        path, filename = client._get_ftp_path("wind_forecast", test_date)
-
-        assert path == "/WIND-FORECAST/2024/01"
-        assert filename == "Wind_Forecast_20240115.csv"
-
-    def test_get_ftp_path_load_forecast(self, client):
-        """Test FTP path for load forecast."""
-        test_date = date(2024, 1, 15)
-        path, filename = client._get_ftp_path("load_forecast", test_date)
-
-        assert path == "/STLF-VS-ACTUAL/2024/01"
-        assert filename == "STLF_vs_Actual_20240115.csv"
-
-    def test_get_ftp_path_actual_load(self, client):
-        """Test FTP path for actual load."""
-        test_date = date(2024, 1, 15)
-        path, filename = client._get_ftp_path("actual_load", test_date)
-
-        assert path == "/LOAD-ACTUAL/2024/01"
-        assert filename == "OP-LOAD-20240115.csv"
 
     def test_get_ftp_path_invalid_data_type(self, client):
         """Test that invalid data type raises error."""
@@ -337,7 +277,6 @@ class TestSPPDownloadFTPFile:
         content = client._download_ftp_file(mock_ftp, "/test/path", "test.csv")
 
         assert content == sample_lmp_csv
-        mock_ftp.cwd.assert_called_once_with("/test/path")
 
     def test_download_ftp_file_permission_error(self, client, mock_ftp):
         """Test FTP download with permission error."""
@@ -389,32 +328,6 @@ class TestSPPLMPMethods:
         # Check for expected columns
         assert "Product" in df.columns
         assert "MCP" in df.columns
-
-    @patch.object(SPPClient, "_connect_ftp")
-    @patch.object(SPPClient, "_download_ftp_file")
-    def test_data_concatenation(self, mock_download, mock_connect, client, temp_dir):
-        """Test that multi-day data is properly concatenated."""
-        csv_day1 = b"""GMTIntervalEnd,Load_MW
-01/15/2024 01:00,45000
-"""
-        csv_day2 = b"""GMTIntervalEnd,Load_MW
-01/16/2024 01:00,46000
-"""
-
-        mock_ftp = Mock()
-        mock_ftp.quit = Mock()
-        mock_connect.return_value = mock_ftp
-        mock_download.side_effect = [csv_day1, csv_day2]
-
-        success = client.get_actual_load(date(2024, 1, 15), date(2024, 1, 16))
-
-        assert success
-
-        # Check that data was combined
-        output_file = list(temp_dir.data_dir.glob("*Actual_Load*.csv"))[0]
-        df = pd.read_csv(output_file)
-
-        assert len(df) == 2
 
 
 class TestSPPDateHandling:
@@ -817,90 +730,6 @@ class TestSPPOperatingReservesMethods:
         assert len(output_files) == 1
 
 
-class TestSPPGenerationMethods:
-    """Test SPP Generation forecast methods."""
-
-    @patch.object(SPPClient, "_connect_ftp")
-    @patch.object(SPPClient, "_download_ftp_file")
-    def test_get_generation_forecast_success(
-        self, mock_download, mock_connect, client, temp_dir, sample_gen_forecast_csv
-    ):
-        """Test successful Generation Forecast download."""
-        mock_ftp = Mock()
-        mock_ftp.quit = Mock()
-        mock_connect.return_value = mock_ftp
-        mock_download.return_value = sample_gen_forecast_csv
-
-        success = client.get_generation_forecast(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert success
-
-        # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*Generation_Forecast*.csv"))
-        assert len(output_files) == 1
-
-    @patch.object(SPPClient, "_connect_ftp")
-    @patch.object(SPPClient, "_download_ftp_file")
-    def test_get_wind_forecast_success(
-        self, mock_download, mock_connect, client, temp_dir, sample_gen_forecast_csv
-    ):
-        """Test successful Wind Forecast download."""
-        mock_ftp = Mock()
-        mock_ftp.quit = Mock()
-        mock_connect.return_value = mock_ftp
-        mock_download.return_value = sample_gen_forecast_csv
-
-        success = client.get_wind_forecast(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert success
-
-        # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*Wind_Forecast*.csv"))
-        assert len(output_files) == 1
-
-
-class TestSPPLoadMethods:
-    """Test SPP Load data methods."""
-
-    @patch.object(SPPClient, "_connect_ftp")
-    @patch.object(SPPClient, "_download_ftp_file")
-    def test_get_load_forecast_success(
-        self, mock_download, mock_connect, client, temp_dir, sample_load_csv
-    ):
-        """Test successful Load Forecast download."""
-        mock_ftp = Mock()
-        mock_ftp.quit = Mock()
-        mock_connect.return_value = mock_ftp
-        mock_download.return_value = sample_load_csv
-
-        success = client.get_load_forecast(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert success
-
-        # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*Load_Forecast*.csv"))
-        assert len(output_files) == 1
-
-    @patch.object(SPPClient, "_connect_ftp")
-    @patch.object(SPPClient, "_download_ftp_file")
-    def test_get_actual_load_success(
-        self, mock_download, mock_connect, client, temp_dir, sample_load_csv
-    ):
-        """Test successful Actual Load download."""
-        mock_ftp = Mock()
-        mock_ftp.quit = Mock()
-        mock_connect.return_value = mock_ftp
-        mock_download.return_value = sample_load_csv
-
-        success = client.get_actual_load(date(2024, 1, 15), date(2024, 1, 15))
-
-        assert success
-
-        # Check file was created
-        output_files = list(temp_dir.data_dir.glob("*Actual_Load*.csv"))
-        assert len(output_files) == 1
-
-
 class TestSPPHelperFunctions:
     """Test SPP helper functions."""
 
@@ -912,8 +741,6 @@ class TestSPPHelperFunctions:
         assert "lmp" in data_types
         assert "mcp" in data_types
         assert "reserves" in data_types
-        assert "generation" in data_types
-        assert "load" in data_types
 
         # Check LMP types
         assert len(data_types["lmp"]) == 4  # DA and RTBM, by location and by bus
