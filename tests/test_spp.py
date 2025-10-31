@@ -243,8 +243,8 @@ class TestSPPFTPPathBuilding:
         test_date = date(2024, 1, 15)
         path, filename = client._get_ftp_path("rtbm_mcp", test_date)
 
-        assert path == "Markets/RTBM/MCP/2024/01/15"
-        assert filename == "RTBM-MCP-20240115.csv"
+        assert path == "Markets/RTBM/MCP/2024/01/By_Day"
+        assert filename == "RTBM-MCP-DAILY-20240115.csv"
 
     def test_get_ftp_path_operating_reserves(self, client):
         """Test FTP path for operating reserves."""
@@ -581,91 +581,110 @@ class TestSPPRawFileStorage:
         assert len(raw_files) == 3
 
 
-@pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, "_connect_ftp")
-@patch.object(SPPClient, "_download_ftp_file")
-def test_get_lmp_dam_by_location_success(
-    self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
-):
-    """Test successful DAM LMP by location download."""
-    mock_ftp = Mock()
-    mock_ftp.quit = Mock()
-    mock_connect.return_value = mock_ftp
-    mock_download.return_value = sample_lmp_csv
+class TestSPPLMPMethods:
+    """Test SPP LMP data methods."""
 
-    success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15), by_location=True)
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_lmp_dam_by_location_success(
+        self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
+    ):
+        """Test successful DAM LMP by location download."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_lmp_csv
 
-    assert success
-    assert mock_connect.called
-    assert mock_download.called
-    mock_ftp.quit.assert_called_once()
+        success = client.get_lmp(
+            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15), by_location=True
+        )
 
-    # Check file was created
-    output_files = list(temp_dir.data_dir.glob("*LMP*.csv"))
-    assert len(output_files) == 1
+        assert success
+        assert mock_connect.called
+        assert mock_download.called
+        mock_ftp.quit.assert_called_once()
 
+        # Check file was created
+        output_files = list(temp_dir.data_dir.glob("*LMP*.csv"))
+        assert len(output_files) == 1
 
-@pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, "_connect_ftp")
-@patch.object(SPPClient, "_download_ftp_file")
-def test_get_lmp_rtbm_by_bus_success(
-    self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
-):
-    """Test successful RTBM LMP by bus download."""
-    mock_ftp = Mock()
-    mock_ftp.quit = Mock()
-    mock_connect.return_value = mock_ftp
-    mock_download.return_value = sample_lmp_csv
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_lmp_rtbm_by_bus_success(
+        self, mock_download, mock_connect, client, temp_dir, sample_lmp_csv
+    ):
+        """Test successful RTBM LMP by bus download."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_lmp_csv
 
-    success = client.get_lmp(
-        SPPMarket.RTBM, date(2024, 1, 15), date(2024, 1, 15), by_location=False
-    )
+        success = client.get_lmp(
+            SPPMarket.RTBM, date(2024, 1, 15), date(2024, 1, 15), by_location=False
+        )
 
-    assert success
-    assert mock_connect.called
+        assert success
+        assert mock_connect.called
 
+    @patch.object(SPPClient, "_connect_ftp")
+    def test_get_lmp_connection_failure(self, mock_connect, client):
+        """Test LMP download with FTP connection failure."""
+        mock_connect.return_value = None
 
-@pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, "_connect_ftp")
-def test_get_lmp_connection_failure(self, mock_connect, client):
-    """Test LMP download with FTP connection failure."""
-    mock_connect.return_value = None
+        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
-    success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+        assert not success
 
-    assert not success
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_lmp_no_data(self, mock_download, mock_connect, client):
+        """Test LMP download with no data returned."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = None
 
+        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
-@pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, "_connect_ftp")
-@patch.object(SPPClient, "_download_ftp_file")
-def test_get_lmp_no_data(self, mock_download, mock_connect, client):
-    """Test LMP download with no data returned."""
-    mock_ftp = Mock()
-    mock_ftp.quit = Mock()
-    mock_connect.return_value = mock_ftp
-    mock_download.return_value = None
+        assert not success
 
-    success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_lmp_multiple_days(self, mock_download, mock_connect, client, sample_lmp_csv):
+        """Test LMP download for multiple days."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_lmp_csv
 
-    assert not success
+        success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 17))
 
+        assert success
+        # Should download 3 files (one per day)
+        assert mock_download.call_count == 3
 
-@pytest.mark.skip(reason="WIP")
-@patch.object(SPPClient, "_connect_ftp")
-@patch.object(SPPClient, "_download_ftp_file")
-def test_get_lmp_multiple_days(self, mock_download, mock_connect, client, sample_lmp_csv):
-    """Test LMP download for multiple days."""
-    mock_ftp = Mock()
-    mock_ftp.quit = Mock()
-    mock_connect.return_value = mock_ftp
-    mock_download.return_value = sample_lmp_csv
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_mcp_data_structure(
+        self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv
+    ):
+        """Test that MCP data has expected structure."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_mcp_csv
 
-    success = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 17))
+        success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
 
-    assert success
-    # Should download 3 files (one per day)
-    assert mock_download.call_count == 3
+        assert success
+
+        # Read output file
+        output_file = list(temp_dir.data_dir.glob("*MCP*.csv"))[0]
+        df = pd.read_csv(output_file)
+
+        # Check for expected columns
+        assert "Product" in df.columns
+        assert "MCP" in df.columns
 
 
 class TestSPPMCPMethods:

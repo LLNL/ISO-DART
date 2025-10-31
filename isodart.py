@@ -374,10 +374,11 @@ def handle_spp(args):
                 logger.error("Market type required for LMP data")
                 return False
 
-            # Check if user wants by-location (default) or by-bus
-            by_location = getattr(args, "settlement-location", True)
+            # Default is by settlement location unless --by-bus is specified
+            by_location = not getattr(args, "by_bus", False)
 
-            logger.info(f"Downloading SPP {market.value} LMP data...")
+            location_type = "by bus" if args.by_bus else "by settlement location"
+            logger.info(f"Downloading SPP {market.value} LMP data {location_type}...")
             success = client.get_lmp(market, args.start, end_date, by_location=by_location)
 
         elif args.data_type == "mcp":
@@ -519,8 +520,9 @@ Examples:
     )
 
     parser.add_argument(
-        "--settlement-location",
-        help="SPP settlement location (default: ALL)",
+        "--by-bus",
+        action="store_true",
+        help="For SPP LMP: Get data by bus instead of by settlement location (default: settlement location)",
     )
 
     parser.add_argument(

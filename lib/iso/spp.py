@@ -148,8 +148,8 @@ class SPPClient:
 
         # RTBM MCP
         elif data_type == "rtbm_mcp":
-            path = f"Markets/RTBM/MCP/{year}/{month}/{day}"
-            filename = f"RTBM-MCP-{date_str}.csv"
+            path = f"Markets/RTBM/MCP/{year}/{month}/By_Day"
+            filename = f"RTBM-MCP-DAILY-{date_str}.csv"
 
         # Operating Reserves
         elif data_type == "operating_reserves":
@@ -433,6 +433,11 @@ class SPPClient:
         """
         Get operating reserves data (RTBM only).
 
+        Note: OR files are published every 5 minutes. Each day's data starts at 00:05
+        of the current day and ends at 00:00 of the next day, but the 00:00 file is
+        stored in the current day's directory (e.g., 2024/10/28 directory contains
+        files from RTBM-OR-202410280005.csv through RTBM-OR-202410290000.csv).
+
         Args:
             start_date: Start date for data
             end_date: End date for data
@@ -449,10 +454,59 @@ class SPPClient:
         try:
             date_list = pd.date_range(start_date, end_date, freq="D")
             all_data = []
+            total_files = 0
+            successful_files = 0
 
             for current_date in date_list:
-                ftp_path, filename = self._get_ftp_path("operating_reserves", current_date.date())
+                logger.info(f"Processing Operating Reserves for {current_date.date()}")
+                date_str = current_date.strftime("%Y%m%d")
+                year = current_date.strftime("%Y")
+                month = current_date.strftime("%m")
+                day = current_date.strftime("%d")
 
+                # Path for operating reserves (no By_Day subdirectory)
+                ftp_path = f"Markets/RTBM/OR/{year}/{month}/{day}"
+
+                day_data = []
+
+                # Generate all 5-minute intervals from 00:05 to 23:55 for the current day
+                # Note: We start at 00:05 (skip 00:00 of current day)
+                for hour in range(24):
+                    for minute in [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]:
+                        # Skip ONLY 00:00 of the current day (we'll add next day's 00:00 at the end)
+                        if hour == 0 and minute == 0:
+                            continue
+
+                        time_str = f"{hour:02d}{minute:02d}"
+                        filename = f"RTBM-OR-{date_str}{time_str}.csv"
+                        total_files += 1
+
+                        content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                        if content:
+                            try:
+                                # Save raw file
+                                raw_file = self.config.raw_dir / filename
+                                raw_file.write_bytes(content)
+
+                                # Read CSV
+                                df = pd.read_csv(raw_file)
+                                day_data.append(df)
+                                successful_files += 1
+
+                            except Exception as e:
+                                logger.debug(f"Error parsing {filename}: {e}")
+                        else:
+                            logger.debug(f"File not found: {filename}")
+
+                # Now get the 00:00 interval from the NEXT day, but in the SAME directory
+                next_date = current_date + timedelta(days=1)
+                next_date_str = next_date.strftime("%Y%m%d")
+
+                filename = f"RTBM-OR-{next_date_str}0000.csv"
+                total_files += 1
+
+                # Note: This file is in the current day's directory, not the next day's
                 content = self._download_ftp_file(ftp, ftp_path, filename)
 
                 if content:
@@ -461,18 +515,34 @@ class SPPClient:
                         raw_file.write_bytes(content)
 
                         df = pd.read_csv(raw_file)
-                        all_data.append(df)
-                        logger.info(f"Processed Operating Reserves for {current_date.date()}")
+                        day_data.append(df)
+                        successful_files += 1
 
                     except Exception as e:
-                        logger.warning(f"Error parsing OR data for {current_date.date()}: {e}")
+                        logger.debug(f"Error parsing {filename}: {e}")
+                else:
+                    logger.debug(f"File not found: {filename}")
+
+                if day_data:
+                    # Combine all intervals for this day
+                    day_combined = pd.concat(day_data, ignore_index=True)
+                    all_data.append(day_combined)
+                    logger.info(
+                        f"✓ Processed {len(day_data)}/288 OR files for {current_date.date()}"
+                    )
+                else:
+                    logger.warning(f"No OR data found for {current_date.date()}")
 
             if not all_data:
                 logger.error("No Operating Reserves data retrieved")
                 return False
 
+            logger.info(f"Successfully downloaded {successful_files}/{total_files} OR files")
+
+            # Combine all data
             combined_df = pd.concat(all_data, ignore_index=True)
 
+            # Save combined data
             output_file = (
                 self.config.data_dir
                 / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Operating_Reserves.csv"
@@ -482,6 +552,9 @@ class SPPClient:
 
             return True
 
+        except Exception as e:
+            logger.error(f"Error in get_operating_reserves: {e}", exc_info=True)
+            return False
         finally:
             ftp.quit()
 
