@@ -792,9 +792,11 @@ class TestSPPHelperFunctions:
         assert "market_clearing" in data_types
 
         # Check pricing types
-        assert len(data_types["pricing"]) == 6  # LMP DA and RTBM, by location and by bus, MCP DA and RTBM
+        assert (
+            len(data_types["pricing"]) == 6
+        )  # LMP DA and RTBM, by location and by bus, MCP DA and RTBM
 
-        #Check constraints types
+        # Check constraints types
         assert len(data_types["constraints"]) == 2
 
         # Check load forecasts types
