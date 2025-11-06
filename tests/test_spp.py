@@ -137,7 +137,16 @@ class TestSPPDataType:
         assert SPPDataType.RTBM_LMP_BY_BUS.value == "rtbm_lmp_by_bus"
         assert SPPDataType.DA_MCP.value == "da_mcp"
         assert SPPDataType.RTBM_MCP.value == "rtbm_mcp"
-        assert SPPDataType.OPERATING_RESERVES.value == "operating_reserves"
+        assert SPPDataType.RTBM_OR.value == "rtbm_or"
+        assert SPPDataType.DA_BINDING_CONSTRAINTS.value == "da_binding_constraints"
+        assert SPPDataType.RTBM_BINDING_CONSTRAINTS.value == "rtbm_binding_constraints"
+        assert SPPDataType.FUEL_ON_MARGIN.value == "fuel_on_margin"
+        assert SPPDataType.STLF.value == "stlf"
+        assert SPPDataType.MTLF.value == "mtlf"
+        assert SPPDataType.MTRF.value == "mtrf"
+        assert SPPDataType.STRF.value == "strf"
+        assert SPPDataType.DA_MARKET_CLEARING.value == "da_market_clearing"
+        assert SPPDataType.DA_VIRTUAL_CLEARING.value == "da_virtual_clearing"
 
     def test_all_data_types_exist(self):
         """Test that all expected data types are defined."""
@@ -148,7 +157,16 @@ class TestSPPDataType:
             "RTBM_LMP_BY_BUS",
             "DA_MCP",
             "RTBM_MCP",
-            "OPERATING_RESERVES",
+            "RTBM_OR",
+            "DA_BINDING_CONSTRAINTS",
+            "RTBM_BINDING_CONSTRAINTS",
+            "FUEL_ON_MARGIN",
+            "STLF",
+            "MTLF",
+            "MTRF",
+            "STRF",
+            "DA_MARKET_CLEARING",
+            "DA_VIRTUAL_CLEARING",
         ]
 
         for type_name in expected_types:
@@ -249,10 +267,18 @@ class TestSPPFTPPathBuilding:
     def test_get_ftp_path_operating_reserves(self, client):
         """Test FTP path for operating reserves."""
         test_date = date(2024, 1, 15)
-        path, filename = client._get_ftp_path("operating_reserves", test_date)
+        path, filename = client._get_ftp_path("rtbm_or", test_date)
 
         assert path == "Markets/RTBM/OR/2024/01/15"
         assert filename == "RTBM-OR-20240115.csv"
+
+    def test_get_ftp_path_da_binding_constraints(self, client):
+        """Test FTP path for DA Binding Contraints"""
+        test_date = date(2024, 1, 15)
+        path, filename = client._get_ftp_path("da_binding_constraints", test_date)
+
+        assert path == "Markets/DA/BINDING_CONSTRAINTS/2024/01/By_Day"
+        assert filename == "DA-BC-202401150100.csv"
 
     def test_get_ftp_path_invalid_data_type(self, client):
         """Test that invalid data type raises error."""
@@ -757,12 +783,28 @@ class TestSPPHelperFunctions:
         data_types = get_spp_available_data_types()
 
         assert isinstance(data_types, dict)
-        assert "lmp" in data_types
-        assert "mcp" in data_types
+        assert "pricing" in data_types
+        assert "constraints" in data_types
         assert "reserves" in data_types
+        assert "fuel" in data_types
+        assert "load_forecasts" in data_types
+        assert "resource_forecasts" in data_types
+        assert "market_clearing" in data_types
 
-        # Check LMP types
-        assert len(data_types["lmp"]) == 4  # DA and RTBM, by location and by bus
+        # Check pricing types
+        assert len(data_types["pricing"]) == 6  # LMP DA and RTBM, by location and by bus, MCP DA and RTBM
+
+        #Check constraints types
+        assert len(data_types["constraints"]) == 2
+
+        # Check load forecasts types
+        assert len(data_types["load_forecasts"]) == 2
+
+        # Check resource forecasts types
+        assert len(data_types["resource_forecasts"]) == 2
+
+        # Check market clearing types
+        assert len(data_types["market_clearing"]) == 2
 
     def test_validate_spp_settlement_location(self):
         """Test settlement location validation."""
