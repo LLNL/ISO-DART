@@ -1237,9 +1237,9 @@ def get_spp_available_data_types() -> Dict[str, List[str]]:
             "Short-term Load Forecast (STLF)",
             "Medium-term Load Forecast (MTLF)",
         ],
-        "wind_forecasts": [
-            "Day-Ahead Wind Forecast (DAWF)",
-            "Short-term Wind Forecast (STWF)",
+        "resource_forecasts": [
+            "Short-term Wind Forecast (STRF)",
+            "Medium-term Resource Forecast (MTRF)",
         ],
         "market_clearing": [
             "DA Market Clearing",
