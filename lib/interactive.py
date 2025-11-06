@@ -1371,15 +1371,20 @@ def run_spp_mode():
     print("\nWhat type of data?")
     print("  (1) Pricing Data")
     print("  (2) Operating Reserves")
+    print("  (3) Binding Constraints")
+    print("  (4) Fuel On Margin")
+    print("  (5) Load Forecast")
+    print("  (6) Resource Forecast")
+    print("  (7) Clearing Data")
 
     while True:
         try:
-            data_category = int(input("\nYour choice (1-2): "))
-            if data_category in range(1, 3):
+            data_category = int(input("\nYour choice (1-7): "))
+            if data_category in range(1, 8):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 2")
+        print("Please enter a number between 1 and 7")
 
     client = SPPClient()
 
@@ -1447,63 +1452,7 @@ def run_spp_mode():
                 print(f"\n📥 Downloading {market.value} Market Clearing Prices...")
                 success = client.get_mcp(market, start_date, end_date)
 
-        elif data_category == 2:  # Generation & Wind Forecasts
-            print("\n" + "=" * 60)
-            print("SPP GENERATION & WIND FORECASTS")
-            print("=" * 60)
-
-            print("\nWhat type of forecast?")
-            print("  (1) Generation Forecast (Short-term Resource Forecast)")
-            print("  (2) Wind Forecast")
-
-            while True:
-                try:
-                    forecast_type = int(input("\nYour choice (1-2): "))
-                    if forecast_type in [1, 2]:
-                        break
-                except ValueError:
-                    pass
-                print("Please enter 1 or 2")
-
-            start_date, duration = get_date_input()
-            end_date = start_date + timedelta(days=duration)
-
-            if forecast_type == 1:
-                print(f"\n📥 Downloading Generation Forecast...")
-                success = client.get_generation_forecast(start_date, end_date)
-            else:
-                print(f"\n📥 Downloading Wind Forecast...")
-                success = client.get_wind_forecast(start_date, end_date)
-
-        elif data_category == 3:  # Load Data
-            print("\n" + "=" * 60)
-            print("SPP LOAD DATA")
-            print("=" * 60)
-
-            print("\nWhat type of load data?")
-            print("  (1) Load Forecast (STLF vs Actual)")
-            print("  (2) Actual Load")
-
-            while True:
-                try:
-                    load_type = int(input("\nYour choice (1-2): "))
-                    if load_type in [1, 2]:
-                        break
-                except ValueError:
-                    pass
-                print("Please enter 1 or 2")
-
-            start_date, duration = get_date_input()
-            end_date = start_date + timedelta(days=duration)
-
-            if load_type == 1:
-                print(f"\n📥 Downloading Load Forecast...")
-                success = client.get_load_forecast(start_date, end_date)
-            else:
-                print(f"\n📥 Downloading Actual Load...")
-                success = client.get_actual_load(start_date, end_date)
-
-        else:  # Operating Reserves
+        elif data_category == 2:  # Operating Reserves
             print("\n" + "=" * 60)
             print("SPP OPERATING RESERVES")
             print("=" * 60)
@@ -1513,6 +1462,126 @@ def run_spp_mode():
 
             print(f"\n📥 Downloading Operating Reserves...")
             success = client.get_operating_reserves(start_date, end_date)
+
+        elif data_category == 3:  # Binding Constraints
+            print("\n" + "=" * 60)
+            print("SPP BINDING CONSTRAINTS")
+            print("=" * 60)
+
+            print("\nWhich market?")
+            print("  (1) Day-Ahead Market (DAM)")
+            print("  (2) Real-Time Balancing Market (RTBM)")
+
+            while True:
+                try:
+                    market_choice = int(input("\nYour choice (1-2): "))
+                    if market_choice in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
+
+            market = SPPMarket.DAM if market_choice == 1 else SPPMarket.RTBM
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
+            print(f"\n📥 Downloading {market.value} Binding Constraints...")
+            success = client.get_binding_constraints(market, start_date, end_date)
+
+        elif data_category == 4:  # Fuel On Margin
+            print("\n" + "=" * 60)
+            print("SPP FUEL ON MARGIN")
+            print("=" * 60)
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
+            print(f"\n📥 Downloading Fuel On Margin...")
+            success = client.get_fuel_on_margin(start_date, end_date)
+
+        elif data_category == 5:  # Load Forecast
+            print("\n" + "=" * 60)
+            print("SPP LOAD FORECAST")
+            print("=" * 60)
+
+            print("\nForecast Type?")
+            print("  (1) Short-Term")
+            print("  (2) Medium-Term")
+
+            while True:
+                try:
+                    forecast_choice = int(input("\nYour choice (1-2): "))
+                    if forecast_choice in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
+
+            forecast_type = "stlf" if forecast_choice == 1 else "mtlf"
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
+            print(f"\n📥 Downloading {forecast_type} Load Forecast...")
+            success = client.get_load_forecast(start_date, end_date, forecast_type=forecast_type)
+
+        elif data_category == 6:  # Resource Forecast
+            print("\n" + "=" * 60)
+            print("SPP RESOURCE (SOLAR + WIND) FORECAST")
+            print("=" * 60)
+
+            print("\nForecast Type?")
+            print("  (1) Short-Term")
+            print("  (2) Medium-Term")
+
+            while True:
+                try:
+                    forecast_choice = int(input("\nYour choice (1-2): "))
+                    if forecast_choice in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
+
+            forecast_type = "strf" if forecast_choice == 1 else "mtrf"
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
+            print(f"\n📥 Downloading {forecast_type} Resource (solar + wind) Forecast...")
+            success = client.get_resource_forecast(
+                start_date, end_date, forecast_type=forecast_type
+            )
+
+        elif data_category == 7:  # Clearing Data
+            print("\n" + "=" * 60)
+            print("SPP CLEARING DATA")
+            print("=" * 60)
+
+            print("\nClearing Type?")
+            print("  (1) Market Clearing Data")
+            print("  (2) Virtual Clearing Data")
+
+            while True:
+                try:
+                    clearing_choice = int(input("\nYour choice (1-2): "))
+                    if clearing_choice in [1, 2]:
+                        break
+                except ValueError:
+                    pass
+                print("Please enter 1 or 2")
+
+            clearing_type = "market" if clearing_choice == 1 else "virtual"
+
+            start_date, duration = get_date_input()
+            end_date = start_date + timedelta(days=duration)
+
+            print(f"\n📥 Downloading {clearing_type} Clearing Data...")
+            if clearing_type == "market":
+                success = client.get_market_clearing(start_date, end_date)
+            else:
+                success = client.get_virtual_clearing(start_date, end_date)
 
         if success:
             print("\n✅ Download complete!")

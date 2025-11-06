@@ -41,6 +41,15 @@
 - **Bid Data**: Generator/AS Bids, Load Bids, Transaction Bids, Commitment Parameters
 - **Generation Data**: Fuel Mix, Interface Flows, Wind Generation, BTM Solar
 
+**SPP (Southwest Power Pool)** - ✅ Fully supported
+- **Pricing Data**: LMP (DA, RTBM) by Settlement Location and by Bus, MCP (DA, RTBM)
+- **Constraint Data**: Binding Constraints (DA, RTBM)
+- **Ancillary Services**: Operating Reserves (RTBM)
+- **Fuel Data**: Fuel On Margin
+- **Load Data**: Load Forecasts (short-term, medium-term)
+- **Resource Data**: Resource (solar + wind) Forecasts (day-ahead, short-term)
+- **Clearing Data**: Day-Ahead Market Clearing data, Day-Ahead Virtual Clearing data 
+
 #### Weather & Solar Data
 - **Meteostat**: Historical weather data for any US location (temperature, humidity, wind, precipitation, etc.)
 - **NSRDB** (National Solar Radiation Database): Solar irradiance data (GHI, DHI, DNI)

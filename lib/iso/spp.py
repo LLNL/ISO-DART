@@ -30,11 +30,9 @@ class SPPMarket(Enum):
 class SPPDataType(Enum):
     """SPP data types available via FTP."""
 
-    # Day-Ahead Market LMP
+    # LMP Data
     DA_LMP_BY_SETTLEMENT_LOCATION = "da_lmp_by_settlement_location"
     DA_LMP_BY_BUS = "da_lmp_by_bus"
-
-    # Real-Time Balancing Market LMP
     RTBM_LMP_BY_SETTLEMENT_LOCATION = "rtbm_lmp_by_settlement_location"
     RTBM_LMP_BY_BUS = "rtbm_lmp_by_bus"
 
@@ -43,7 +41,28 @@ class SPPDataType(Enum):
     RTBM_MCP = "rtbm_mcp"
 
     # Operating Reserves
-    OPERATING_RESERVES = "operating_reserves"
+    RTBM_OR = "rtbm_or"
+
+    # Binding Constraints
+    DA_BINDING_CONSTRAINTS = "da_binding_constraints"
+    RTBM_BINDING_CONSTRAINTS = "rtbm_binding_constraints"
+
+    # Fuel On Margin
+    FUEL_ON_MARGIN = "fuel_on_margin"
+
+    # Load Forecasts
+    STLF = "stlf"  # Short-term Load Forecast vs Actual
+    MTLF = "mtlf"  # Hourly Load Forecast vs Actual
+
+    # Resource Forecasts (Wind + Solar)
+    MTRF = "mtrf"  # Mid-Term Resource Forecast (replaces DAWF)
+    STRF = "strf"  # Short-Term Resource Forecast (replaces STWF)
+
+    # Market Clearing
+    DA_MARKET_CLEARING = "da_market_clearing"
+
+    # Virtual Clearing
+    DA_VIRTUAL_CLEARING = "da_virtual_clearing"
 
 
 @dataclass
@@ -152,9 +171,34 @@ class SPPClient:
             filename = f"RTBM-MCP-DAILY-{date_str}.csv"
 
         # Operating Reserves
-        elif data_type == "operating_reserves":
+        elif data_type == "rtbm_or":
             path = f"Markets/RTBM/OR/{year}/{month}/{day}"
             filename = f"RTBM-OR-{date_str}.csv"
+
+        # Day-Ahead Binding Constraints
+        elif data_type == "da_binding_constraints":
+            path = f"Markets/DA/BINDING_CONSTRAINTS/{year}/{month}/By_Day"
+            filename = f"DA-BC-{date_str}0100.csv"
+
+        # RTBM Binding Constraints
+        elif data_type == "rtbm_binding_constraints":
+            path = f"Markets/RTBM/BINDING_CONSTRAINTS/{year}/{month}/By_Day"
+            filename = f"RTBM-DAILY-BC-{date_str}.csv"
+
+        # Fuel On Margin
+        elif data_type == "fuel_on_margin":
+            path = f"Markets/RTBM/FuelOnMargin/{year}/{month}"
+            filename = f"FUEL-ON-MARGIN-{date_str}0005.csv"
+
+        # Day-Ahead Market Clearing
+        elif data_type == "da_market_clearing":
+            path = f"Markets/DA/MARKET_CLEARING/{year}/{month}"
+            filename = f"DA-MC-{date_str}0100.csv"
+
+        # Day-Ahead Virtual Clearing by MOA
+        elif data_type == "da_virtual_clearing":
+            path = f"Markets/DA/VirtualClearingByMOA/{year}/{month}"
+            filename = f"DA-VC-{date_str}0100.csv"
 
         else:
             raise ValueError(f"Unknown data type: {data_type}")
@@ -558,6 +602,597 @@ class SPPClient:
         finally:
             ftp.quit()
 
+    def get_binding_constraints(self, market: SPPMarket, start_date: date, end_date: date) -> bool:
+        """
+        Get binding constraints data.
+
+        Includes constraint names, types, shadow prices, and facility information.
+        """
+        data_type = (
+            "da_binding_constraints" if market == SPPMarket.DAM else "rtbm_binding_constraints"
+        )
+
+        logger.info(f"Downloading SPP {market.value} Binding Constraints")
+
+        ftp = self._connect_ftp()
+        if not ftp:
+            return False
+
+        try:
+            date_list = pd.date_range(start_date, end_date, freq="D")
+            all_data = []
+
+            for current_date in date_list:
+                ftp_path, filename = self._get_ftp_path(data_type, current_date.date())
+                content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                if content:
+                    try:
+                        raw_file = self.config.raw_dir / filename
+                        raw_file.write_bytes(content)
+                        df = pd.read_csv(raw_file)
+                        all_data.append(df)
+                    except Exception as e:
+                        logger.warning(f"Error parsing constraints: {e}")
+
+            if not all_data:
+                logger.warning("No binding constraints data retrieved")
+                return False
+
+            combined_df = pd.concat(all_data, ignore_index=True)
+            output_file = (
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_{market.value}_Binding_Constraints.csv"
+            )
+            combined_df.to_csv(output_file, index=False)
+            logger.info(f"Saved binding constraints to {output_file}")
+
+            return True
+
+        finally:
+            ftp.quit()
+
+    def get_fuel_on_margin(self, start_date: date, end_date: date) -> bool:
+        """
+        Get fuel on margin data.
+
+        Shows which fuel types were on the margin for each 5-minute interval.
+        """
+        logger.info(f"Downloading SPP Fuel On Margin")
+
+        ftp = self._connect_ftp()
+        if not ftp:
+            return False
+
+        try:
+            date_list = pd.date_range(start_date, end_date, freq="D")
+            all_data = []
+
+            for current_date in date_list:
+                ftp_path, filename = self._get_ftp_path("fuel_on_margin", current_date.date())
+                content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                if content:
+                    try:
+                        raw_file = self.config.raw_dir / filename
+                        raw_file.write_bytes(content)
+                        df = pd.read_csv(raw_file)
+                        all_data.append(df)
+                    except Exception as e:
+                        logger.warning(f"Error parsing fuel data: {e}")
+
+            if not all_data:
+                logger.warning("No fuel on margin data retrieved")
+                return False
+
+            combined_df = pd.concat(all_data, ignore_index=True)
+            output_file = (
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_Fuel_On_Margin.csv"
+            )
+            combined_df.to_csv(output_file, index=False)
+            logger.info(f"Saved fuel on margin to {output_file}")
+
+            return True
+
+        finally:
+            ftp.quit()
+
+    def get_load_forecast(
+        self, start_date: date, end_date: date, forecast_type: str = "stlf"
+    ) -> bool:
+        """
+        Get load forecast data.
+
+        Args:
+            start_date: Start date
+            end_date: End date
+            forecast_type: "stlf" (short-term) or "mtlf" (medium-term)
+
+        Notes:
+            MTLF: One file per hour (24 files per day) in Operational_Data/MTLF/year/month/day/
+            STLF: One file per 5-min interval in Operational_Data/STLF/year/month/day/hour/
+                  Files in hour directory are for intervals leading TO that hour
+                  (e.g., hour 19 contains 1800, 1805, ..., 1855)
+        """
+        if forecast_type not in ["stlf", "mtlf"]:
+            logger.error("forecast_type must be 'stlf' or 'mtlf'")
+            return False
+
+        logger.info(f"Downloading SPP {forecast_type.upper()} Load Forecast")
+
+        ftp = self._connect_ftp()
+        if not ftp:
+            return False
+
+        try:
+            if forecast_type == "mtlf":
+                return self._get_mtlf(ftp, start_date, end_date)
+            else:
+                return self._get_stlf(ftp, start_date, end_date)
+
+        finally:
+            ftp.quit()
+
+    def _get_mtlf(self, ftp: ftplib.FTP, start_date: date, end_date: date) -> bool:
+        """
+        Get Medium-Term Load Forecast (MTLF).
+
+        Downloads hourly files (24 per day) from structure:
+        Operational_Data/MTLF/year/month/day/OP-MTLF-YYYYMMDDhh00.csv
+        """
+        logger.info("Downloading MTLF (24 hourly files per day)")
+
+        date_list = pd.date_range(start_date, end_date, freq="D")
+        all_data = []
+        total_files = 0
+        successful_files = 0
+
+        for current_date in date_list:
+            year = current_date.strftime("%Y")
+            month = current_date.strftime("%m")
+            day = current_date.strftime("%d")
+            date_str = current_date.strftime("%Y%m%d")
+
+            # Path: Operational_Data/MTLF/year/month/day/
+            ftp_path = f"Operational_Data/MTLF/{year}/{month}/{day}"
+
+            day_data = []
+
+            # Download all 24 hours (00, 01, 02, ..., 23)
+            for hour in range(24):
+                filename = f"OP-MTLF-{date_str}{hour:02d}00.csv"
+                total_files += 1
+
+                content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                if content:
+                    try:
+                        raw_file = self.config.raw_dir / filename
+                        raw_file.write_bytes(content)
+                        df = pd.read_csv(raw_file)
+                        day_data.append(df)
+                        successful_files += 1
+                    except Exception as e:
+                        logger.debug(f"Error parsing {filename}: {e}")
+                else:
+                    logger.debug(f"File not found: {filename}")
+
+            if day_data:
+                day_combined = pd.concat(day_data, ignore_index=True)
+                all_data.append(day_combined)
+                logger.info(f"✓ Processed {len(day_data)}/24 MTLF files for {current_date.date()}")
+
+        if not all_data:
+            logger.error("No MTLF data retrieved")
+            return False
+
+        logger.info(f"Downloaded {successful_files}/{total_files} MTLF files")
+
+        combined_df = pd.concat(all_data, ignore_index=True)
+        combined_df["Interval"] = pd.to_datetime(combined_df["Interval"])
+        combined_df = combined_df.sort_values(by="Interval").reset_index(drop=True)
+
+        # Remove only *fully identical* duplicate rows
+        combined_df = combined_df.drop_duplicates(keep="first")
+
+        output_file = (
+            self.config.data_dir
+            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_MTLF.csv"
+        )
+        combined_df.to_csv(output_file, index=False)
+        logger.info(f"Saved MTLF data to {output_file}")
+
+        return True
+
+    def _get_stlf(self, ftp: ftplib.FTP, start_date: date, end_date: date) -> bool:
+        """
+        Get Short-Term Load Forecast (STLF).
+
+        Downloads 5-minute interval files from structure:
+        Operational_Data/STLF/year/month/day/hour/OP-STLF-YYYYMMDDhhmm.csv
+
+        Note: Files in hour directory XX contain intervals leading TO hour XX.
+        Example: Directory "19" contains files for 1800, 1805, 1810, ..., 1855
+        """
+        logger.info("Downloading STLF (5-minute intervals, organized by hour)")
+
+        date_list = pd.date_range(start_date, end_date, freq="D")
+        all_data = []
+        total_files = 0
+        successful_files = 0
+
+        for current_date in date_list:
+            year = current_date.strftime("%Y")
+            month = current_date.strftime("%m")
+            day = current_date.strftime("%d")
+            date_str = current_date.strftime("%Y%m%d")
+
+            day_data = []
+
+            # For each hour directory (00 through 23)
+            for hour_dir in range(24):
+                # Path: Operational_Data/STLF/year/month/day/hour/
+                ftp_path = f"Operational_Data/STLF/{year}/{month}/{day}/{hour_dir:02d}"
+
+                # Files in this directory are for the PREVIOUS hour leading TO hour_dir
+                # E.g., directory "19" has files 1800, 1805, ..., 1855
+
+                # Determine which hour's files are in this directory
+                if hour_dir == 0:
+                    # Directory "00" contains files 2300, 2305, ..., 2355 from same day
+                    file_hour = 23
+                    file_date_str = date_str
+                else:
+                    # Directory "XX" contains files (XX-1):00 through (XX-1):55
+                    file_hour = hour_dir - 1
+                    file_date_str = date_str
+
+                # Download all 12 five-minute intervals (00, 05, 10, ..., 55)
+                for minute in [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]:
+                    filename = f"OP-STLF-{file_date_str}{file_hour:02d}{minute:02d}.csv"
+                    total_files += 1
+
+                    content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                    if content:
+                        try:
+                            raw_file = self.config.raw_dir / filename
+                            raw_file.write_bytes(content)
+                            df = pd.read_csv(raw_file)
+                            day_data.append(df)
+                            successful_files += 1
+                        except Exception as e:
+                            logger.debug(f"Error parsing {filename}: {e}")
+                    else:
+                        logger.debug(f"File not found: {filename}")
+
+            if day_data:
+                day_combined = pd.concat(day_data, ignore_index=True)
+                all_data.append(day_combined)
+                logger.info(f"✓ Processed {len(day_data)}/288 STLF files for {current_date.date()}")
+
+        if not all_data:
+            logger.error("No STLF data retrieved")
+            return False
+
+        logger.info(f"Downloaded {successful_files}/{total_files} STLF files")
+
+        combined_df = pd.concat(all_data, ignore_index=True)
+        combined_df["Interval"] = pd.to_datetime(combined_df["Interval"])
+        combined_df = combined_df.sort_values(by="Interval").reset_index(drop=True)
+
+        # Remove only *fully identical* duplicate rows
+        combined_df = combined_df.drop_duplicates(keep="first")
+
+        output_file = (
+            self.config.data_dir
+            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_STLF.csv"
+        )
+        combined_df.to_csv(output_file, index=False)
+        logger.info(f"Saved STLF data to {output_file}")
+
+        return True
+
+    def get_resource_forecast(
+        self, start_date: date, end_date: date, forecast_type: str = "strf"
+    ) -> bool:
+        """
+        Get resource forecast data (wind + solar).
+
+        Args:
+            start_date: Start date
+            end_date: End date
+            forecast_type: "strf" (short-term) or "mtrf" (mid-term)
+
+        Notes:
+            STRF: Short-Term Resource Forecast
+                - 5-minute intervals
+                - Includes: WindForecastMW, ActualWindMW, SolarForecastMW, ActualSolarMW
+                - By Reserve Zone
+                - Directory: Operational_Data/STRF/year/month/day/hour/
+                - Format: OP-STRF-YYYYMMDDhhmm.csv
+                - Same structure as STLF (hour directory contains previous hour's data)
+
+            MTRF: Mid-Term Resource Forecast
+                - Hourly intervals
+                - Includes: Wind Forecast MW, Solar Forecast MW
+                - Directory: Operational_Data/MTRF/year/month/day/
+                - Format: OP-MTRF-YYYYMMDDhh00.csv
+                - Same structure as MTLF (24 hourly files per day)
+        """
+        if forecast_type not in ["strf", "mtrf"]:
+            logger.error("forecast_type must be 'strf' or 'mtrf'")
+            return False
+
+        logger.info(f"Downloading SPP {forecast_type.upper()} Resource Forecast (Wind + Solar)")
+
+        ftp = self._connect_ftp()
+        if not ftp:
+            return False
+
+        try:
+            if forecast_type == "mtrf":
+                return self._get_mtrf(ftp, start_date, end_date)
+            else:
+                return self._get_strf(ftp, start_date, end_date)
+
+        finally:
+            ftp.quit()
+
+    def _get_mtrf(self, ftp: ftplib.FTP, start_date: date, end_date: date) -> bool:
+        """
+        Get Mid-Term Resource Forecast (MTRF).
+
+        Downloads hourly files (24 per day) from structure:
+        Operational_Data/MTRF/year/month/day/OP-MTRF-YYYYMMDDhh00.csv
+        """
+        logger.info("Downloading MTRF (24 hourly files per day)")
+
+        date_list = pd.date_range(start_date, end_date, freq="D")
+        all_data = []
+        total_files = 0
+        successful_files = 0
+
+        for current_date in date_list:
+            year = current_date.strftime("%Y")
+            month = current_date.strftime("%m")
+            day = current_date.strftime("%d")
+            date_str = current_date.strftime("%Y%m%d")
+
+            # Path: Operational_Data/MTRF/year/month/day/
+            ftp_path = f"Operational_Data/MTRF/{year}/{month}/{day}"
+
+            day_data = []
+
+            # Download all 24 hours (00, 01, 02, ..., 23)
+            for hour in range(24):
+                filename = f"OP-MTRF-{date_str}{hour:02d}00.csv"
+                total_files += 1
+
+                content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                if content:
+                    try:
+                        raw_file = self.config.raw_dir / filename
+                        raw_file.write_bytes(content)
+                        df = pd.read_csv(raw_file)
+                        day_data.append(df)
+                        successful_files += 1
+                    except Exception as e:
+                        logger.debug(f"Error parsing {filename}: {e}")
+                else:
+                    logger.debug(f"File not found: {filename}")
+
+            if day_data:
+                day_combined = pd.concat(day_data, ignore_index=True)
+                all_data.append(day_combined)
+                logger.info(f"✓ Processed {len(day_data)}/24 MTRF files for {current_date.date()}")
+
+        if not all_data:
+            logger.error("No MTRF data retrieved")
+            return False
+
+        logger.info(f"Downloaded {successful_files}/{total_files} MTRF files")
+
+        combined_df = pd.concat(all_data, ignore_index=True)
+        combined_df["Interval"] = pd.to_datetime(combined_df["Interval"])
+        combined_df = combined_df.sort_values(by="Interval").reset_index(drop=True)
+
+        # Remove only *fully identical* duplicate rows
+        combined_df = combined_df.drop_duplicates(keep="first")
+
+        output_file = (
+            self.config.data_dir
+            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_MTRF.csv"
+        )
+        combined_df.to_csv(output_file, index=False)
+        logger.info(f"Saved MTRF data to {output_file}")
+
+        return True
+
+    def _get_strf(self, ftp: ftplib.FTP, start_date: date, end_date: date) -> bool:
+        """
+        Get Short-Term Resource Forecast (STRF).
+
+        Downloads 5-minute interval files from structure:
+        Operational_Data/STRF/year/month/day/hour/OP-STRF-YYYYMMDDhhmm.csv
+
+        Note: Files in hour directory XX contain intervals leading TO hour XX.
+        Example: Directory "19" contains files for 1800, 1805, 1810, ..., 1855
+        """
+        logger.info("Downloading STRF (5-minute intervals, organized by hour)")
+
+        date_list = pd.date_range(start_date, end_date, freq="D")
+        all_data = []
+        total_files = 0
+        successful_files = 0
+
+        for current_date in date_list:
+            year = current_date.strftime("%Y")
+            month = current_date.strftime("%m")
+            day = current_date.strftime("%d")
+            date_str = current_date.strftime("%Y%m%d")
+
+            day_data = []
+
+            # For each hour directory (00 through 23)
+            for hour_dir in range(24):
+                # Path: Operational_Data/STRF/year/month/day/hour/
+                ftp_path = f"Operational_Data/STRF/{year}/{month}/{day}/{hour_dir:02d}"
+
+                # Files in this directory are for the PREVIOUS hour leading TO hour_dir
+                # E.g., directory "19" has files 1800, 1805, ..., 1855
+
+                # Determine which hour's files are in this directory
+                if hour_dir == 0:
+                    # Directory "00" contains files 2300, 2305, ..., 2355 from same day
+                    file_hour = 23
+                    file_date_str = date_str
+                else:
+                    # Directory "XX" contains files (XX-1):00 through (XX-1):55
+                    file_hour = hour_dir - 1
+                    file_date_str = date_str
+
+                # Download all 12 five-minute intervals (00, 05, 10, ..., 55)
+                for minute in [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]:
+                    filename = f"OP-STRF-{file_date_str}{file_hour:02d}{minute:02d}.csv"
+                    total_files += 1
+
+                    content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                    if content:
+                        try:
+                            raw_file = self.config.raw_dir / filename
+                            raw_file.write_bytes(content)
+                            df = pd.read_csv(raw_file)
+                            day_data.append(df)
+                            successful_files += 1
+                        except Exception as e:
+                            logger.debug(f"Error parsing {filename}: {e}")
+                    else:
+                        logger.debug(f"File not found: {filename}")
+
+            if day_data:
+                day_combined = pd.concat(day_data, ignore_index=True)
+                all_data.append(day_combined)
+                logger.info(f"✓ Processed {len(day_data)}/288 STRF files for {current_date.date()}")
+
+        if not all_data:
+            logger.error("No STRF data retrieved")
+            return False
+
+        logger.info(f"Downloaded {successful_files}/{total_files} STRF files")
+
+        combined_df = pd.concat(all_data, ignore_index=True)
+        combined_df["Interval"] = pd.to_datetime(combined_df["Interval"])
+        combined_df = combined_df.sort_values(by="Interval").reset_index(drop=True)
+
+        # Remove only *fully identical* duplicate rows
+        combined_df = combined_df.drop_duplicates(keep="first")
+
+        output_file = (
+            self.config.data_dir
+            / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_STRF.csv"
+        )
+        combined_df.to_csv(output_file, index=False)
+        logger.info(f"Saved STRF data to {output_file}")
+
+        return True
+
+    def get_market_clearing(self, start_date: date, end_date: date) -> bool:
+        """
+        Get Day-Ahead market clearing data.
+
+        Includes generation cleared, demand bids, virtual bids/offers,
+        total demand, and ancillary services.
+        """
+        logger.info(f"Downloading SPP DA Market Clearing")
+
+        ftp = self._connect_ftp()
+        if not ftp:
+            return False
+
+        try:
+            date_list = pd.date_range(start_date, end_date, freq="D")
+            all_data = []
+
+            for current_date in date_list:
+                ftp_path, filename = self._get_ftp_path("da_market_clearing", current_date.date())
+                content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                if content:
+                    try:
+                        raw_file = self.config.raw_dir / filename
+                        raw_file.write_bytes(content)
+                        df = pd.read_csv(raw_file)
+                        all_data.append(df)
+                    except Exception as e:
+                        logger.warning(f"Error parsing market clearing: {e}")
+
+            if not all_data:
+                logger.warning("No market clearing data retrieved")
+                return False
+
+            combined_df = pd.concat(all_data, ignore_index=True)
+            output_file = (
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_DA_Market_Clearing.csv"
+            )
+            combined_df.to_csv(output_file, index=False)
+            logger.info(f"Saved market clearing to {output_file}")
+
+            return True
+
+        finally:
+            ftp.quit()
+
+    def get_virtual_clearing(self, start_date: date, end_date: date) -> bool:
+        """
+        Get Day-Ahead virtual clearing data by Market Operating Area (MOA).
+
+        Shows virtual bids and offers cleared by control area.
+        """
+        logger.info(f"Downloading SPP DA Virtual Clearing")
+
+        ftp = self._connect_ftp()
+        if not ftp:
+            return False
+
+        try:
+            date_list = pd.date_range(start_date, end_date, freq="D")
+            all_data = []
+
+            for current_date in date_list:
+                ftp_path, filename = self._get_ftp_path("da_virtual_clearing", current_date.date())
+                content = self._download_ftp_file(ftp, ftp_path, filename)
+
+                if content:
+                    try:
+                        raw_file = self.config.raw_dir / filename
+                        raw_file.write_bytes(content)
+                        df = pd.read_csv(raw_file)
+                        all_data.append(df)
+                    except Exception as e:
+                        logger.warning(f"Error parsing virtual clearing: {e}")
+
+            if not all_data:
+                logger.warning("No virtual clearing data retrieved")
+                return False
+
+            combined_df = pd.concat(all_data, ignore_index=True)
+            output_file = (
+                self.config.data_dir
+                / f"{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}_SPP_DA_Virtual_Clearing.csv"
+            )
+            combined_df.to_csv(output_file, index=False)
+            logger.info(f"Saved virtual clearing to {output_file}")
+
+            return True
+
+        finally:
+            ftp.quit()
+
     def cleanup(self):
         """Clean up temporary files."""
         import shutil
@@ -580,18 +1215,35 @@ def get_spp_available_data_types() -> Dict[str, List[str]]:
         Dictionary of data categories and their available types
     """
     return {
-        "lmp": [
+        "pricing": [
             "DA-LMP by Settlement Location",
             "DA-LMP by Bus",
             "RTBM-LMP by Settlement Location",
             "RTBM-LMP by Bus",
-        ],
-        "mcp": [
             "DA-MCP (Day-Ahead Market Clearing Prices)",
             "RTBM-MCP (Real-Time Market Clearing Prices)",
         ],
+        "constraints": [
+            "DA Binding Constraints",
+            "RTBM Binding Constraints",
+        ],
         "reserves": [
             "Operating Reserves (RTBM)",
+        ],
+        "fuel": [
+            "Fuel On Margin",
+        ],
+        "load_forecasts": [
+            "Short-term Load Forecast (STLF)",
+            "Medium-term Load Forecast (MTLF)",
+        ],
+        "wind_forecasts": [
+            "Day-Ahead Wind Forecast (DAWF)",
+            "Short-term Wind Forecast (STWF)",
+        ],
+        "market_clearing": [
+            "DA Market Clearing",
+            "DA Virtual Clearing by MOA",
         ],
     }
 
@@ -607,3 +1259,94 @@ def validate_spp_settlement_location(location: str) -> bool:
         True if valid, False otherwise
     """
     return len(location) > 0
+
+
+def get_spp_data_columns() -> Dict[str, List[str]]:
+    """
+    Get expected columns for each SPP data type.
+
+    Useful for data validation and documentation.
+
+    Returns:
+        Dictionary mapping data types to their expected columns
+    """
+    return {
+        "lmp": [
+            "GMTIntervalEnd",
+            "Settlement Location",
+            "Pnode",
+            "LMP",
+            "MLC",
+            "MCC",
+            "MEC",
+        ],
+        "mcp": [
+            "GMTIntervalEnd",
+            "Reserve Zone",
+            "RegUPService",
+            "RegDNService",
+            "RegUPMile",
+            "RegDNMile",
+            "Spin",
+            "Supp",
+        ],
+        "binding_constraints": [
+            "Interval",
+            "GMTIntervalEnd",
+            "Constraint Name",
+            "Constraint Type",
+            "NERCID",
+            "TLR Level",
+            "State",
+            "Shadow Price",
+            "Monitored Facility",
+            "Contingent Facility",
+        ],
+        "fuel_on_margin": [
+            "Interval",
+            "GMTIntervalEnd",
+            "Fuel On Margin",
+        ],
+        "load_forecast": [
+            "Interval",
+            "GMTInterval",
+            "STLF",
+            "Actual",
+        ],
+        "resource_forecast": [
+            "Interval",
+            "GMTIntervalEnd",
+            "ReserveZone" "WindForecastMW",
+            "ActualWindMW",
+            "SolarForecastMW",
+            "ActualSolarMW",
+        ],
+        "market_clearing": [
+            "Interval",
+            "GMTIntervalEnd",
+            "Generation Cleared",
+            "DR Cleared",
+            "Demand Bid Cleared",
+            "Fixed Demand Bid Cleared",
+            "Virtual Bid Cleared",
+            "Virtual Offer",
+            "Total Demand",
+            "NSI",
+            "SMP",
+            "Min LMP",
+            "Max LMP",
+            "RegUP",
+            "RegDN",
+            "Spin",
+            "Supp",
+            "Capacity Available",
+        ],
+        "virtual_clearing": [
+            "Interval",
+            "GMTIntervalEnd",
+            "MOA",
+            "Cleared Demand Bid",
+            "Cleared Virtual Bid",
+            "Cleared Virtual Offer",
+        ],
+    }

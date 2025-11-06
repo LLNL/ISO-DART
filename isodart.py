@@ -390,8 +390,44 @@ def handle_spp(args):
             success = client.get_mcp(market, args.start, end_date)
 
         elif args.data_type == "operating-reserves":
-            logger.info("Downloading SPP Operating Reserves...")
+            logger.info("Downloading SPP Operating Reserves data...")
             success = client.get_operating_reserves(args.start, end_date)
+
+        elif args.data_type == "binding-constraints":
+            if not market:
+                logger.error("Market type required for Binding Constraints data")
+                return False
+
+            logger.info(f"Downloading SPP {market.value} Binding Constraints data...")
+            success = client.get_binding_constraints(market, args.start, end_date)
+
+        elif args.data_type == "fuel-on-margin":
+            logger.info("Downloading SPP Fuel On Margin data...")
+            success = client.get_fuel_on_margin(args.start, end_date)
+
+        elif args.data_type == "short-term-load-forecast":
+            logger.info("Downloading SPP short-term load forecast data...")
+            success = client.get_load_forecast(args.start, end_date, forecast_type="stlf")
+
+        elif args.data_type == "medium-term-load-forecast":
+            logger.info("Downloading SPP medium-term load forecast data...")
+            success = client.get_load_forecast(args.start, end_date, forecast_type="mtlf")
+
+        elif args.data_type == "short-term-resource-forecast":
+            logger.info("Downloading SPP short-term resource (solar + wind) forecast data...")
+            success = client.get_resource_forecast(args.start, end_date, forecast_type="strf")
+
+        elif args.data_type == "medium-term-resource-forecast":
+            logger.info("Downloading SPP medium-term resource (solar + wind) forecast data...")
+            success = client.get_resource_forecast(args.start, end_date, forecast_type="mtrf")
+
+        elif args.data_type == "market-clearing":
+            logger.info("Downloading SPP Market Clearing data...")
+            success = client.get_market_clearing(args.start, end_date)
+
+        elif args.data_type == "virtual-clearing":
+            logger.info("Downloading SPP Virtual Clearing data...")
+            success = client.get_virtual_clearing(args.start, end_date)
 
         else:
             logger.error(f"Unknown SPP data type: {args.data_type}")
