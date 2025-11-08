@@ -1265,12 +1265,12 @@ def get_spp_data_columns() -> Dict[str, List[str]]:
     """
     Get expected columns for each SPP data type.
 
-    Useful for data validation and documentation.
-
-    Returns:
-        Dictionary mapping data types to their expected columns
+    Returns a mapping for both *generic* buckets (e.g. "lmp", "mcp") and the
+    concrete SPP data types exposed on :class:`SPPDataType` so that tests and
+    validation can look up the expected schema by either name.
     """
-    return {
+    # Base/generic schemas
+    base: Dict[str, List[str]] = {
         "lmp": [
             "GMTIntervalEnd",
             "Settlement Location",
@@ -1310,22 +1310,21 @@ def get_spp_data_columns() -> Dict[str, List[str]]:
         "load_forecast": [
             "Interval",
             "GMTInterval",
-            "STLF",
-            "Actual",
+            "Area",
+            "Forecast (MW)",
+            "Actual (MW)",
         ],
         "resource_forecast": [
             "Interval",
             "GMTIntervalEnd",
-            "ReserveZone" "WindForecastMW",
-            "ActualWindMW",
-            "SolarForecastMW",
-            "ActualSolarMW",
+            "Area",
+            "Solar Forecast (MW)",
+            "Wind Forecast (MW)",
         ],
         "market_clearing": [
             "Interval",
             "GMTIntervalEnd",
-            "Generation Cleared",
-            "DR Cleared",
+            "MOA",
             "Demand Bid Cleared",
             "Fixed Demand Bid Cleared",
             "Virtual Bid Cleared",
@@ -1349,4 +1348,39 @@ def get_spp_data_columns() -> Dict[str, List[str]]:
             "Cleared Virtual Bid",
             "Cleared Virtual Offer",
         ],
+        "operating_reserves": [
+            "GMTIntervalEnd",
+            "Reserve_Type",
+            "Requirement_MW",
+            "Cleared_MW",
+        ],
     }
+    # Expand to concrete data types
+    expanded: Dict[str, List[str]] = {
+        # LMP
+        "da_lmp_by_settlement_location": base["lmp"],
+        "rtbm_lmp_by_settlement_location": base["lmp"],
+        "da_lmp_by_bus": base["lmp"],
+        "rtbm_lmp_by_bus": base["lmp"],
+        # Market Clearing Prices (ancillary)
+        "da_mcp": base["mcp"],
+        "rtbm_mcp": base["mcp"],
+        # Operating reserves
+        "rtbm_or": base["operating_reserves"],
+        # Binding constraints
+        "da_binding_constraints": base["binding_constraints"],
+        "rtbm_binding_constraints": base["binding_constraints"],
+        # Fuel on margin
+        "fuel_on_margin": base["fuel_on_margin"],
+        # Load forecasts
+        "stlf": base["load_forecast"],
+        "mtlf": base["load_forecast"],
+        # Resource forecasts
+        "mtrf": base["resource_forecast"],
+        "strf": base["resource_forecast"],
+        # Market/virtual clearing
+        "da_market_clearing": base["market_clearing"],
+        "da_virtual_clearing": base["virtual_clearing"],
+    }
+    expanded.update(base)
+    return expanded

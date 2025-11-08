@@ -19,6 +19,7 @@ from lib.iso.spp import (
     SPPDataType,
     get_spp_available_data_types,
     validate_spp_settlement_location,
+    get_spp_data_columns,
 )
 
 
@@ -75,6 +76,62 @@ def sample_or_csv():
 01/15/2024 01:00,Regulation,500,505
 01/15/2024 01:00,Spinning,750,755
 01/15/2024 01:00,Supplemental,1000,1010
+"""
+
+
+@pytest.fixture
+def sample_binding_constraints_csv():
+    return b"""Interval,GMTIntervalEnd,Constraint Name,Constraint Type,NERCID,TLR Level,State,Shadow Price,Monitored Facility,Contingent Facility
+01/15/2024 00:00,01/15/2024 01:00,CONSTR_A,TDF,SPP,0,NORMAL,12.34,MON_A,CONT_A
+"""
+
+
+@pytest.fixture
+def sample_fuel_on_margin_csv():
+    return b"""Interval,GMTIntervalEnd,Fuel On Margin
+01/15/2024 00:00,01/15/2024 01:00,Natural Gas
+"""
+
+
+@pytest.fixture
+def sample_stlf_csv():
+    return b"""Interval,GMTInterval,Area,Forecast (MW),Actual (MW)
+01/15/2024 00:00,01/15/2024 01:00,SPP,15000,14900
+"""
+
+
+@pytest.fixture
+def sample_mtlf_csv():
+    return b"""Interval,GMTInterval,Area,Forecast (MW),Actual (MW)
+01/22/2024 00:00,01/22/2024 01:00,SPP,15200,15150
+"""
+
+
+@pytest.fixture
+def sample_mtrf_csv():
+    return b"""Interval,GMTIntervalEnd,Area,Solar Forecast (MW),Wind Forecast (MW)
+01/15/2024 00:00,01/15/2024 01:00,SPP,2000,8000
+"""
+
+
+@pytest.fixture
+def sample_strf_csv():
+    return b"""Interval,GMTIntervalEnd,Area,Solar Forecast (MW),Wind Forecast (MW)
+01/15/2024 00:00,01/15/2024 01:00,SPP,2100,7800
+"""
+
+
+@pytest.fixture
+def sample_market_clearing_csv():
+    return b"""Interval,GMTIntervalEnd,MOA,Demand Bid Cleared,Fixed Demand Bid Cleared,Virtual Bid Cleared,Virtual Offer,Total Demand,NSI,SMP,Min LMP,Max LMP,RegUP,RegDN,Spin,Supp,Capacity Available
+01/15/2024 00:00,01/15/2024 01:00,1,100,90,10,5,120,0,25,20,30,50,50,200,300,500
+"""
+
+
+@pytest.fixture
+def sample_virtual_clearing_csv():
+    return b"""Interval,GMTIntervalEnd,MOA,Cleared Demand Bid,Cleared Virtual Bid,Cleared Virtual Offer
+01/15/2024 00:00,01/15/2024 01:00,1,100,10,5
 """
 
 
@@ -280,6 +337,36 @@ class TestSPPFTPPathBuilding:
         assert path == "Markets/DA/BINDING_CONSTRAINTS/2024/01/By_Day"
         assert filename == "DA-BC-202401150100.csv"
 
+    def test_get_ftp_path_rtbm_binding_constraints(self, client):
+        """Test FTP path for RTBM Binding Contraints"""
+        test_date = date(2024, 1, 15)
+        path, filename = client._get_ftp_path("rtbm_binding_constraints", test_date)
+
+        assert path == "Markets/RTBM/BINDING_CONSTRAINTS/2024/01/By_Day"
+        assert filename == "RTBM-DAILY-BC-20240115.csv"
+
+    def test_get_ftp_path_fuel_on_margin(self, client):
+        """Test FTP path for Fuel on Margin"""
+        test_date = date(2024, 1, 15)
+        path, filename = client._get_ftp_path("fuel_on_margin", test_date)
+
+        assert path == "Markets/RTBM/FuelOnMargin/2024/01"
+        assert filename == "FUEL-ON-MARGIN-202401150005.csv"
+
+    def test_get_ftp_path_da_market_clearing(self, client):
+        test_date = date(2024, 1, 15)
+        path, filename = client._get_ftp_path("da_market_clearing", test_date)
+
+        assert path == "Markets/DA/MARKET_CLEARING/2024/01"
+        assert filename == "DA-MC-202401150100.csv"
+
+    def test_get_ftp_path_da_virtual_clearing(self, client):
+        test_date = date(2024, 1, 15)
+        path, filename = client._get_ftp_path("da_virtual_clearing", test_date)
+
+        assert path == "Markets/DA/VirtualClearingByMOA/2024/01"
+        assert filename == "DA-VC-202401150100.csv"
+
     def test_get_ftp_path_invalid_data_type(self, client):
         """Test that invalid data type raises error."""
         test_date = date(2024, 1, 15)
@@ -327,33 +414,6 @@ class TestSPPDownloadFTPFile:
         content = client._download_ftp_file(mock_ftp, "/test/path", "test.csv")
 
         assert content is None
-
-
-class TestSPPLMPMethods:
-    """Test SPP LMP data methods."""
-
-    @patch.object(SPPClient, "_connect_ftp")
-    @patch.object(SPPClient, "_download_ftp_file")
-    def test_mcp_data_structure(
-        self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv
-    ):
-        """Test that MCP data has expected structure."""
-        mock_ftp = Mock()
-        mock_ftp.quit = Mock()
-        mock_connect.return_value = mock_ftp
-        mock_download.return_value = sample_mcp_csv
-
-        success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
-
-        assert success
-
-        # Read output file
-        output_file = list(temp_dir.data_dir.glob("*MCP*.csv"))[0]
-        df = pd.read_csv(output_file)
-
-        # Check for expected columns
-        assert "Product" in df.columns
-        assert "MCP" in df.columns
 
 
 class TestSPPDateHandling:
@@ -463,7 +523,6 @@ class TestSPPFTPQuit:
 class TestSPPIntegration:
     """Integration tests - require actual SPP FTP access."""
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
     def test_get_lmp_integration(self, client):
         """Test actual LMP data download from FTP."""
         # Use recent date (SPP typically has data from 2-3 days ago)
@@ -477,24 +536,22 @@ class TestSPPIntegration:
         output_files = list(client.config.data_dir.glob("*LMP*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
     def test_get_mcp_integration(self, client):
         """Test actual MCP data download from FTP."""
         start = date.today() - timedelta(days=3)
         end = date.today() - timedelta(days=2)
 
-        success = client.get_mcp(SPPMarket.RTBM, start, end)
+        success = client.get_mcp(SPPMarket.DAM, start, end)
 
         assert success
 
         output_files = list(client.config.data_dir.glob("*MCP*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
     def test_get_operating_reserves_integration(self, client):
         """Test actual Operating Reserves download from FTP."""
         start = date.today() - timedelta(days=3)
-        end = date.today() - timedelta(days=2)
+        end = date.today() - timedelta(days=3)
 
         success = client.get_operating_reserves(start, end)
 
@@ -503,59 +560,78 @@ class TestSPPIntegration:
         output_files = list(client.config.data_dir.glob("*Operating_Reserves*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
-    def test_get_generation_forecast_integration(self, client):
-        """Test actual Generation Forecast download from FTP."""
+    def test_get_binding_constraints_integration(self, client):
+        """Test actual Binding Constraints download from FTP"""
         start = date.today() - timedelta(days=3)
-        end = date.today() - timedelta(days=2)
+        end = date.today() - timedelta(days=3)
 
-        success = client.get_generation_forecast(start, end)
+        success = client.get_binding_constraints(SPPMarket.DAM, start, end)
 
         assert success
 
-        output_files = list(client.config.data_dir.glob("*Generation_Forecast*.csv"))
+        output_files = list(client.config.data_dir.glob("*Binding_Constraints*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
-    def test_get_wind_forecast_integration(self, client):
-        """Test actual Wind Forecast download from FTP."""
+    def test_get_fuel_on_margin_integration(self, client):
+        """Test actual Fuel On Margin download from FTP."""
         start = date.today() - timedelta(days=3)
         end = date.today() - timedelta(days=2)
 
-        success = client.get_wind_forecast(start, end)
+        success = client.get_fuel_on_margin(start, end)
 
         assert success
 
-        output_files = list(client.config.data_dir.glob("*Wind_Forecast*.csv"))
+        output_files = list(client.config.data_dir.glob("*Fuel_On_Margin*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
+    def test_get_resource_forecast_integration(self, client):
+        """Test actual Resource Forecast download from FTP."""
+        start = date.today() - timedelta(days=3)
+        end = date.today() - timedelta(days=3)
+
+        success = client.get_resource_forecast(start, end, forecast_type="mtrf")
+
+        assert success
+
+        output_files = list(client.config.data_dir.glob("*MTRF*.csv"))
+        assert len(output_files) > 0
+
     def test_get_load_forecast_integration(self, client):
         """Test actual Load Forecast download from FTP."""
         start = date.today() - timedelta(days=3)
-        end = date.today() - timedelta(days=2)
+        end = date.today() - timedelta(days=3)
 
-        success = client.get_load_forecast(start, end)
+        success = client.get_load_forecast(start, end, forecast_type="mtlf")
 
         assert success
 
-        output_files = list(client.config.data_dir.glob("*Load_Forecast*.csv"))
+        output_files = list(client.config.data_dir.glob("*MTLF*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
-    def test_get_actual_load_integration(self, client):
-        """Test actual Actual Load download from FTP."""
+    def test_get_market_clearing_integration(self, client):
+        """Test actual Market Clearing download from FTP."""
         start = date.today() - timedelta(days=3)
-        end = date.today() - timedelta(days=2)
+        end = date.today() - timedelta(days=3)
 
-        success = client.get_actual_load(start, end)
+        success = client.get_market_clearing(start, end)
 
         assert success
 
-        output_files = list(client.config.data_dir.glob("*Actual_Load*.csv"))
+        output_files = list(client.config.data_dir.glob("*DA_Market_Clearing*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires SPP FTP access")
+    def test_get_virtual_clearing_integration(self, client):
+        """Test actual Virtual Clearing download from FTP."""
+        start = date.today() - timedelta(days=3)
+        end = date.today() - timedelta(days=3)
+
+        success = client.get_virtual_clearing(start, end)
+
+        assert success
+
+        output_files = list(client.config.data_dir.glob("*DA_Virtual_Clearing*.csv"))
+        assert len(output_files) > 0
+
     def test_ftp_connection_integration(self, client):
         """Test actual FTP connection."""
         ftp = client._connect_ftp()
@@ -609,6 +685,29 @@ class TestSPPRawFileStorage:
 
 class TestSPPLMPMethods:
     """Test SPP LMP data methods."""
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_mcp_data_structure(
+        self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv
+    ):
+        """Test that MCP data has expected structure."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_mcp_csv
+
+        success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+
+        assert success
+
+        # Read output file
+        output_file = list(temp_dir.data_dir.glob("*MCP*.csv"))[0]
+        df = pd.read_csv(output_file)
+
+        # Check for expected columns
+        assert "Product" in df.columns
+        assert "MCP" in df.columns
 
     @patch.object(SPPClient, "_connect_ftp")
     @patch.object(SPPClient, "_download_ftp_file")
@@ -775,6 +874,209 @@ class TestSPPOperatingReservesMethods:
         assert len(output_files) == 1
 
 
+class TestSPPBindingConstraintsMethods:
+    """Test SPP Binding Constraints data methods."""
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_bc_dam_success(
+        self, mock_download, mock_connect, client, temp_dir, sample_binding_constraints_csv
+    ):
+        """Test successful DAM BC download."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_binding_constraints_csv
+
+        success = client.get_binding_constraints(
+            SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15)
+        )
+
+        assert success
+        assert mock_connect.called
+        mock_ftp.quit.assert_called_once()
+
+        # Check file was created
+        output_files = list(temp_dir.data_dir.glob("*Binding_Constraints*.csv"))
+        assert len(output_files) == 1
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_bc_rtbm_success(
+        self, mock_download, mock_connect, client, sample_binding_constraints_csv
+    ):
+        """Test successful RTBM BC download."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_binding_constraints_csv
+
+        success = client.get_binding_constraints(
+            SPPMarket.RTBM, date(2024, 1, 15), date(2024, 1, 15)
+        )
+
+        assert success
+
+
+class TestSPPFuelOnMarginMethods:
+    """Test SPP Fuel On Margin methods."""
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_fuel_on_margin_success(
+        self, mock_download, mock_connect, client, temp_dir, sample_fuel_on_margin_csv
+    ):
+        """Test successful Fuel On Margin download."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_fuel_on_margin_csv
+
+        success = client.get_fuel_on_margin(date(2024, 1, 15), date(2024, 1, 15))
+
+        assert success
+        mock_ftp.quit.assert_called_once()
+
+        # Check file was created
+        output_files = list(temp_dir.data_dir.glob("*Fuel_On_Margin*.csv"))
+        assert len(output_files) == 1
+
+
+class TestSPPLoadForecastMethods:
+    """Test STLF/MTLF methods."""
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_stlf_success(self, mock_download, mock_connect, client, temp_dir, sample_stlf_csv):
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_stlf_csv
+
+        success = client.get_load_forecast(
+            date(2024, 1, 15), date(2024, 1, 15), forecast_type="stlf"
+        )
+        assert success
+
+        # Verify file written
+        out = list(temp_dir.data_dir.glob("*SPP_STLF.csv"))
+        assert len(out) == 1
+        df = pd.read_csv(out[0])
+        # Basic columns
+        assert "GMTInterval" in df.columns or "GMTIntervalEnd" in df.columns
+        assert "Area" in df.columns
+        assert "Forecast (MW)" in df.columns
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_mtlf_success(self, mock_download, mock_connect, client, temp_dir, sample_mtlf_csv):
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_mtlf_csv
+
+        success = client.get_load_forecast(
+            date(2024, 1, 15), date(2024, 1, 15), forecast_type="mtlf"
+        )
+        assert success
+
+        out = list(temp_dir.data_dir.glob("*SPP_MTLF.csv"))
+        assert len(out) == 1
+        df = pd.read_csv(out[0])
+        assert "GMTInterval" in df.columns or "GMTIntervalEnd" in df.columns
+        assert "Area" in df.columns
+        assert "Forecast (MW)" in df.columns
+
+
+class TestSPPResourceForecastMethods:
+    """Test MTRF/STRF methods."""
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_mtrf_success(self, mock_download, mock_connect, client, temp_dir, sample_mtrf_csv):
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_mtrf_csv
+
+        success = client.get_resource_forecast(
+            date(2024, 1, 15), date(2024, 1, 15), forecast_type="mtrf"
+        )
+        assert success
+
+        out = list(temp_dir.data_dir.glob("*SPP_MTRF.csv"))
+        assert len(out) == 1
+        df = pd.read_csv(out[0])
+        assert "Area" in df.columns
+        # At least one of Solar/Wind exists (depends on SPP header variants)
+        assert ("Solar Forecast (MW)" in df.columns) or ("Wind Forecast (MW)" in df.columns)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_strf_success(self, mock_download, mock_connect, client, temp_dir, sample_strf_csv):
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_strf_csv
+
+        success = client.get_resource_forecast(
+            date(2024, 1, 15), date(2024, 1, 15), forecast_type="strf"
+        )
+        assert success
+
+        out = list(temp_dir.data_dir.glob("*SPP_STRF.csv"))
+        assert len(out) == 1
+        df = pd.read_csv(out[0])
+        assert "Area" in df.columns
+        assert ("Solar Forecast (MW)" in df.columns) or ("Wind Forecast (MW)" in df.columns)
+
+
+class TestSPPMarketClearingMethods:
+    """Test DA Market Clearing methods."""
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_market_clearing_success(
+        self, mock_download, mock_connect, client, temp_dir, sample_market_clearing_csv
+    ):
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_market_clearing_csv
+
+        success = client.get_market_clearing(date(2024, 1, 15), date(2024, 1, 15))
+        assert success
+
+        out = list(temp_dir.data_dir.glob("*SPP_DA_Market_Clearing.csv"))
+        assert len(out) == 1
+        df = pd.read_csv(out[0])
+        assert "MOA" in df.columns
+        assert "GMTIntervalEnd" in df.columns
+
+
+class TestSPPVirtualClearingMethods:
+    """Test DA Virtual Clearing methods."""
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    def test_get_virtual_clearing_success(
+        self, mock_download, mock_connect, client, temp_dir, sample_virtual_clearing_csv
+    ):
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = sample_virtual_clearing_csv
+
+        success = client.get_virtual_clearing(date(2024, 1, 15), date(2024, 1, 15))
+        assert success
+
+        out = list(temp_dir.data_dir.glob("*SPP_DA_Virtual_Clearing.csv"))
+        assert len(out) == 1
+        df = pd.read_csv(out[0])
+        assert "MOA" in df.columns
+        assert "GMTIntervalEnd" in df.columns
+
+
 class TestSPPHelperFunctions:
     """Test SPP helper functions."""
 
@@ -807,6 +1109,40 @@ class TestSPPHelperFunctions:
 
         # Check market clearing types
         assert len(data_types["market_clearing"]) == 2
+
+    @pytest.mark.parametrize(
+        "dtype,expected_cols",
+        [
+            ("da_mcp", get_spp_data_columns()["mcp"]),
+            ("rtbm_mcp", get_spp_data_columns()["mcp"]),
+            ("da_binding_constraints", get_spp_data_columns()["binding_constraints"]),
+            ("rtbm_binding_constraints", get_spp_data_columns()["binding_constraints"]),
+            ("fuel_on_margin", get_spp_data_columns()["fuel_on_margin"]),
+            ("stlf", get_spp_data_columns()["load_forecast"]),
+            ("mtlf", get_spp_data_columns()["load_forecast"]),
+            ("mtrf", get_spp_data_columns()["resource_forecast"]),
+            ("strf", get_spp_data_columns()["resource_forecast"]),
+            ("da_market_clearing", get_spp_data_columns()["market_clearing"]),
+            ("da_virtual_clearing", get_spp_data_columns()["virtual_clearing"]),
+        ],
+        ids=[
+            "DA MCP",
+            "RTBM MCP",
+            "DA Binding Constraints",
+            "RTBM Binding Constraints",
+            "Fuel on Margin",
+            "STLF",
+            "MTLF",
+            "MTRF",
+            "STRF",
+            "DA Market Clearing",
+            "DA Virtual Clearing",
+        ],
+    )
+    def test_get_spp_data_columns_includes_new_types(self, dtype, expected_cols):
+        columns_map = get_spp_data_columns()
+        assert dtype in columns_map, f"{dtype} missing from get_spp_data_columns"
+        assert columns_map[dtype] == expected_cols
 
     def test_validate_spp_settlement_location(self):
         """Test settlement location validation."""
