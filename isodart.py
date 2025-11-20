@@ -120,6 +120,19 @@ def handle_caiso(args):
             logger.info(f"Downloading {market.value} AS prices...")
             success = client.get_ancillary_services_prices(market, args.start, end_date)
 
+        elif args.data_type == "as-requirements":
+            if not args.market:
+                logger.error("Market type required for AS requirements")
+                return False
+
+            market = market_map.get(args.market.lower())
+            if market not in [Market.DAM, Market.HASP, Market.RTM]:
+                logger.error(f"Invalid market for AS requirements: {args.market}")
+                return False
+
+            logger.info(f"Downloading {market.value} AS requirements...")
+            success = client.get_ancillary_services_requirements(market, args.start, end_date)
+
         else:
             logger.error(f"Unknown CAISO data type: {args.data_type}")
             logger.info(
