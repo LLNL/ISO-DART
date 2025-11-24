@@ -84,7 +84,7 @@ def run_interactive_mode():
 
     # Main data type selection
     print("\nWhat type of data do you want to download?")
-    print("  (1) ISO Data (CAISO, MISO, NYISO, SPP)")
+    print("  (1) ISO Data (CAISO, MISO, NYISO, SPP, BPA)")
     print("  (2) Weather Data")
 
     while True:
@@ -119,13 +119,14 @@ def run_iso_mode():
     print("  (2) MISO - Midcontinent Independent System Operator")
     print("  (3) NYISO - New York Independent System Operator")
     print("  (4) SPP - Southwest Power Pool")
+    print("  (5) BPA - Bonneville Power Administration")
 
     while True:
         try:
-            iso_choice = int(input("\nYour choice (1-4): "))
-            if iso_choice in [1, 2, 3, 4]:
+            iso_choice = int(input("\nYour choice (1-5): "))
+            if iso_choice in range(1, 6):
                 break
-            print("Please enter 1, 2, 3, or 4")
+            print("Please enter 1, 2, 3, 4, or 5")
         except ValueError:
             print("Please enter a valid number")
 
@@ -135,9 +136,10 @@ def run_iso_mode():
         run_miso_mode()
     elif iso_choice == 3:
         run_nyiso_mode()
-    else:
+    elif iso_choice == 4:
         run_spp_mode()
-
+    else:
+        run_bpa_mode()
 
 # ============================================================================
 # CAISO MAIN MENU
@@ -1592,6 +1594,184 @@ def run_spp_mode():
     except Exception as e:
         logger.error(f"Error downloading SPP data: {e}", exc_info=True)
         print(f"\n❌ Error: {e}")
+    finally:
+        client.cleanup()
+
+
+# ============================================================================
+# BPA MODE
+# ============================================================================
+
+def run_bpa_mode():
+    """Interactive mode for BPA data."""
+    from lib.iso.bpa import BPAClient, get_bpa_data_availability
+    from datetime import date, timedelta
+
+    print("\n" + "=" * 60)
+    print("BPA DATA SELECTION")
+    print("=" * 60)
+
+    # Show data availability info
+    info = get_bpa_data_availability()
+
+    print("\n⚠️  IMPORTANT: BPA Data Limitations")
+    print("=" * 60)
+    print(f"• Temporal Coverage: {info['temporal_coverage']}")
+    print(f"• Temporal Resolution: {info['temporal_resolution']}")
+    print(f"• Update Frequency: {info['update_frequency']}")
+    print(f"• Geographic Coverage: {info['geographic_coverage']}")
+    print("\n⚠️  BPA only provides real-time data for the LAST 7 DAYS.")
+    print("   Historical data beyond 7 days is NOT available.")
+    print("=" * 60)
+
+    # Data type selection
+    print("\nWhat type of BPA data?")
+    print("  (1) Load and Generation (all sources)")
+    print("      - Load, VER, Hydro, Fossil/Biomass, Nuclear")
+    print("  (2) Wind and Solar Generation (detailed)")
+    print("      - Wind, Solar breakdown")
+    print("  (3) All Data (both of above)")
+
+    while True:
+        try:
+            data_type = int(input("\nYour choice (1-3): "))
+            if data_type in range(1, 4):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 3")
+
+    # Date filtering (optional)
+    print("\n" + "=" * 60)
+    print("DATE FILTERING (OPTIONAL)")
+    print("=" * 60)
+    print("BPA data includes the last 7 days automatically.")
+    print("You can optionally filter to a specific date range.")
+
+    filter_dates = input("\nFilter by specific dates? (y/n): ").lower()
+
+    start_date = None
+    end_date = None
+
+    if filter_dates == 'y':
+        print("\nEnter date range (must be within last 7 days):")
+        print("Note: BPA data is in Pacific Time")
+
+        # Get start date
+        while True:
+            try:
+                year = int(input("  Start Year (4-digit): "))
+                month = int(input("  Start Month (1-12): "))
+                day = int(input("  Start Day (1-31): "))
+                start_date = date(year, month, day)
+
+                # Check if within last 7 days
+                today = date.today()
+                seven_days_ago = today - timedelta(days=7)
+
+                if start_date < seven_days_ago:
+                    print(f"\n⚠️  Warning: Date is older than 7 days ago.")
+                    print(f"   BPA may not have data before {seven_days_ago}")
+                    confirm = input("   Continue anyway? (y/n): ")
+                    if confirm.lower() != 'y':
+                        continue
+
+                if start_date > today:
+                    print("\n⚠️  Date is in the future. Please select a past date.")
+                    continue
+
+                break
+
+            except ValueError as e:
+                print(f"\n❌ Invalid date: {e}")
+                print("Please try again.")
+                continue
+
+        # Get end date
+        while True:
+            try:
+                year = int(input("\n  End Year (4-digit): "))
+                month = int(input("  End Month (1-12): "))
+                day = int(input("  End Day (1-31): "))
+                end_date = date(year, month, day)
+
+                if end_date < start_date:
+                    print("\n⚠️  End date must be after start date.")
+                    continue
+
+                if end_date > date.today():
+                    print("\n⚠️  End date cannot be in the future.")
+                    continue
+
+                break
+
+            except ValueError as e:
+                print(f"\n❌ Invalid date: {e}")
+                print("Please try again.")
+                continue
+
+        print(f"\n✓ Date range: {start_date} to {end_date}")
+
+    else:
+        print("\n✓ Will download all available data (last 7 days)")
+
+    # Download data
+    print("\n" + "=" * 60)
+    print("DOWNLOADING DATA")
+    print("=" * 60)
+    print("\nThis may take a moment...")
+
+    client = BPAClient()
+
+    try:
+        if data_type == 1:
+            print("\n📥 Downloading Load and Generation data...")
+            print("   (Load, VER, Hydro, Fossil/Biomass, Nuclear)")
+            success = client.get_load_and_generation(start_date, end_date)
+
+        elif data_type == 2:
+            print("\n📥 Downloading Wind and Solar generation data...")
+            success = client.get_wind_solar_generation(start_date, end_date)
+
+        else:  # data_type == 3
+            print("\n📥 Downloading all BPA data...")
+            print("   (1) Load and Generation")
+            print("   (2) Wind and Solar")
+            success = client.get_all_data(start_date, end_date)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/BPA/")
+            print("\n📊 Data Details:")
+            print(f"   • Resolution: {info['temporal_resolution']}")
+            print(f"   • Coverage: {info['temporal_coverage']}")
+            print(f"   • Time Zone: Pacific Time")
+
+            # Show what data types were downloaded
+            print("\n📁 Files Created:")
+            if data_type == 1:
+                print("   • [date]_BPA_Load_and_Generation.csv")
+            elif data_type == 2:
+                print("   • [date]_BPA_Wind_Solar_Generation.csv")
+            else:
+                print("   • [date]_BPA_Load_and_Generation.csv")
+                print("   • [date]_BPA_Wind_Solar_Generation.csv")
+
+            print("\n💡 Tip: BPA data updates every 5 minutes.")
+            print("   Run this again to get the latest data!")
+
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+            print("   Common issues:")
+            print("   • Network connection problems")
+            print("   • BPA website temporarily unavailable")
+            print("   • Requested dates outside 7-day window")
+
+    except Exception as e:
+        logger.error(f"Error downloading BPA data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+        print("   Check logs/isodart.log for details")
+
     finally:
         client.cleanup()
 

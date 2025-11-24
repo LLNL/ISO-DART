@@ -300,64 +300,70 @@ def handle_nyiso(args):
 
 def handle_bpa(args):
     """Handle BPA-specific data download logic."""
-    from lib.iso.bpa import BPAClient, BPAReserveType
+    from lib.iso.bpa import BPAClient, get_bpa_data_availability
 
     logger.info(f"Processing BPA data request: {args.data_type}")
+
+    # Show BPA limitations
+    info = get_bpa_data_availability()
+    logger.warning(f"BPA Data Limitation: {info['temporal_coverage']}")
 
     client = BPAClient()
     success = False
 
     try:
+        # Calculate date range
+        # Note: BPA only has last 7 days, so we validate the dates
+        from datetime import date, timedelta
+
         end_date = calculate_end_date(args.start, args.duration)
+        today = date.today()
+        seven_days_ago = today - timedelta(days=7)
 
+        # Warn if requesting old data
+        if args.start < seven_days_ago:
+            logger.warning(
+                f"Requested start date {args.start} is older than 7 days. "
+                f"BPA only provides data from approximately {seven_days_ago} onwards."
+            )
+            print(f"\n⚠️  WARNING: BPA only provides the last 7 days of data!")
+            print(f"   Requested: {args.start} to {end_date}")
+            print(f"   Available: {seven_days_ago} to {today}")
+            print(f"   Some or all requested data may not be available.\n")
+
+        # Route to appropriate method based on data type
         if args.data_type == "load":
-            logger.info("Downloading BPA actual load...")
-            success = client.get_actual_load(args.start, end_date)
+            logger.info("Downloading BPA load and generation data...")
+            success = client.get_load_and_generation(args.start, end_date)
 
-        elif args.data_type == "wind":
-            logger.info("Downloading BPA wind generation...")
-            success = client.get_wind_generation(args.start, end_date)
+        elif args.data_type == "wind-solar":
+            logger.info("Downloading BPA wind and solar generation data...")
+            success = client.get_wind_solar_generation(args.start, end_date)
 
-        elif args.data_type == "hydro":
-            logger.info("Downloading BPA hydro generation...")
-            success = client.get_hydro_generation(args.start, end_date)
-
-        elif args.data_type == "generation-mix":
-            logger.info("Downloading BPA generation mix...")
-            success = client.get_generation_mix(args.start, end_date)
-
-        elif args.data_type == "interchange":
-            scheduled = getattr(args, "scheduled", True)
-            logger.info(f"Downloading BPA {'scheduled' if scheduled else 'actual'} interchange...")
-            success = client.get_interchange(args.start, end_date, scheduled=scheduled)
-
-        elif args.data_type == "reserves":
-            reserve_type = getattr(args, "reserve_type", BPAReserveType.CONTINGENCY)
-            logger.info(f"Downloading BPA {reserve_type.value} reserves...")
-            success = client.get_reserves(args.start, end_date, reserve_type=reserve_type)
-
-        elif args.data_type == "ace":
-            logger.info("Downloading BPA ACE data...")
-            success = client.get_ace(args.start, end_date)
+        elif args.data_type == "all":
+            logger.info("Downloading all BPA data...")
+            success = client.get_all_data(args.start, end_date)
 
         else:
             logger.error(f"Unknown BPA data type: {args.data_type}")
-            logger.info(
-                "Available types: load, wind, hydro, generation-mix, interchange, reserves, ace"
-            )
+            logger.info("Available types: load, wind-solar, all")
             return False
 
         if success:
             logger.info(f"✅ BPA data downloaded successfully to data/BPA/")
+            print(f"\n✅ BPA data downloaded successfully!")
+            print(f"   Location: data/BPA/")
+            print(f"   Resolution: {info['temporal_resolution']}")
+            print(f"   Coverage: {info['temporal_coverage']}")
         else:
-            logger.warning(
-                "⚠️  BPA data download incomplete (some endpoints may need implementation)"
-            )
+            logger.error("❌ BPA data download failed")
+            print(f"\n❌ BPA data download failed. Check logs for details.")
 
         return success
 
     except Exception as e:
         logger.error(f"Error downloading BPA data: {e}", exc_info=True)
+        print(f"\n❌ Error downloading BPA data: {e}")
         return False
 
     finally:
