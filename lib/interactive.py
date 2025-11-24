@@ -141,6 +141,7 @@ def run_iso_mode():
     else:
         run_bpa_mode()
 
+
 # ============================================================================
 # CAISO MAIN MENU
 # ============================================================================
@@ -1602,6 +1603,7 @@ def run_spp_mode():
 # BPA MODE
 # ============================================================================
 
+
 def run_bpa_mode():
     """Interactive mode for BPA data."""
     from lib.iso.bpa import BPAClient, get_bpa_data_availability
@@ -1653,7 +1655,7 @@ def run_bpa_mode():
     start_date = None
     end_date = None
 
-    if filter_dates == 'y':
+    if filter_dates == "y":
         print("\nEnter date range (must be within last 7 days):")
         print("Note: BPA data is in Pacific Time")
 
@@ -1673,7 +1675,7 @@ def run_bpa_mode():
                     print(f"\n⚠️  Warning: Date is older than 7 days ago.")
                     print(f"   BPA may not have data before {seven_days_ago}")
                     confirm = input("   Continue anyway? (y/n): ")
-                    if confirm.lower() != 'y':
+                    if confirm.lower() != "y":
                         continue
 
                 if start_date > today:
