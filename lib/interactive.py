@@ -1624,7 +1624,7 @@ def run_bpa_mode():
     print(f"• Geographic Area: {info['geographic_coverage']}")
     print(f"• Data Format: Excel (.xlsx)")
 
-    available_years = info['available_years']
+    available_years = info["available_years"]
     print(f"\n• Available Years: {min(available_years)} - {max(available_years)}")
 
     print("\n" + "=" * 60)

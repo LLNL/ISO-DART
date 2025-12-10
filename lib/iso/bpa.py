@@ -64,6 +64,7 @@ class BPAClient:
 
             if attempt < self.config.max_retries - 1:
                 import time
+
                 time.sleep(self.config.retry_delay)
 
         return None
@@ -88,9 +89,7 @@ class BPAClient:
 
         return f"{self.config.base_url}/{filename}"
 
-    def _parse_excel_file(
-            self, content: bytes, data_type: BPADataType
-    ) -> Optional[pd.DataFrame]:
+    def _parse_excel_file(self, content: bytes, data_type: BPADataType) -> Optional[pd.DataFrame]:
         """
         Parse BPA Excel file.
 
@@ -111,23 +110,27 @@ class BPAClient:
             # Read all sheets and combine if necessary
             df = pd.read_excel(excel_file, sheet_name=0, skiprows=1)
 
-            logger.info(f"Successfully parsed Excel file: {len(df)} rows, {len(df.columns)} columns")
+            logger.info(
+                f"Successfully parsed Excel file: {len(df)} rows, {len(df.columns)} columns"
+            )
             logger.debug(f"Columns: {list(df.columns)}")
 
             # Clean column names
             df.columns = df.columns.str.strip()
 
             # Try to parse datetime columns
-            date_columns = [col for col in df.columns if 'date' in col.lower() or 'time' in col.lower()]
+            date_columns = [
+                col for col in df.columns if "date" in col.lower() or "time" in col.lower()
+            ]
             for col in date_columns:
                 try:
-                    df[col] = pd.to_datetime(df[col], errors='coerce')
+                    df[col] = pd.to_datetime(df[col], errors="coerce")
                     logger.info(f"Parsed datetime column: '{col}'")
                 except Exception as e:
                     logger.warning(f"Could not parse datetime column '{col}': {e}")
 
             # Remove completely empty rows
-            df = df.dropna(how='all')
+            df = df.dropna(how="all")
 
             return df
 
@@ -136,10 +139,7 @@ class BPAClient:
             return None
 
     def get_wind_gen_total_load(
-            self,
-            year: int,
-            start_date: Optional[date] = None,
-            end_date: Optional[date] = None
+        self, year: int, start_date: Optional[date] = None, end_date: Optional[date] = None
     ) -> bool:
         """
         Get Wind Generation and Total Load data for a year.
@@ -200,10 +200,7 @@ class BPAClient:
             return False
 
     def get_reserves_deployed(
-            self,
-            year: int,
-            start_date: Optional[date] = None,
-            end_date: Optional[date] = None
+        self, year: int, start_date: Optional[date] = None, end_date: Optional[date] = None
     ) -> bool:
         """
         Get Reserves Deployed data for a year.
@@ -263,10 +260,7 @@ class BPAClient:
             return False
 
     def get_all_data(
-            self,
-            year: int,
-            start_date: Optional[date] = None,
-            end_date: Optional[date] = None
+        self, year: int, start_date: Optional[date] = None, end_date: Optional[date] = None
     ) -> bool:
         """
         Get all available BPA historical data for a year.
@@ -287,10 +281,7 @@ class BPAClient:
         return success_wind and success_reserves
 
     def _filter_by_date_range(
-            self,
-            df: pd.DataFrame,
-            start_date: Optional[date],
-            end_date: Optional[date]
+        self, df: pd.DataFrame, start_date: Optional[date], end_date: Optional[date]
     ) -> pd.DataFrame:
         """Filter dataframe by date range."""
         if df.empty:
@@ -342,7 +333,7 @@ def get_bpa_data_availability() -> Dict[str, Any]:
                     "Hour Ending",
                 ],
                 "file_format": "Excel (.xlsx)",
-                "endpoint": "WindGenTotalLoadYTD_yyyy.xlsx"
+                "endpoint": "WindGenTotalLoadYTD_yyyy.xlsx",
             },
             "reserves_deployed": {
                 "description": "Operating Reserves Deployed",
@@ -354,7 +345,7 @@ def get_bpa_data_availability() -> Dict[str, Any]:
                     "Time",
                 ],
                 "file_format": "Excel (.xlsx)",
-                "endpoint": "ReservesDeployedYTD_yyyy.xlsx"
+                "endpoint": "ReservesDeployedYTD_yyyy.xlsx",
             },
         },
         "geographic_coverage": "BPA Balancing Authority Area (Pacific Northwest)",
@@ -365,7 +356,7 @@ def get_bpa_data_availability() -> Dict[str, Any]:
             "All times are Pacific Time",
             "5-min resolution with hour-ending timestamps",
         ],
-        "available_years": list(range(2000, current_year + 1))
+        "available_years": list(range(2000, current_year + 1)),
     }
 
 
@@ -403,8 +394,7 @@ def print_bpa_data_info():
 if __name__ == "__main__":
     # Enable debug logging
     logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
     print_bpa_data_info()

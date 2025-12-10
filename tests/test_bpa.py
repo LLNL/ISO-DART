@@ -60,7 +60,10 @@ class TestBPAConfig:
     def test_default_config_values(self):
         """Default config should match hard-coded defaults in bpa.py."""
         cfg = BPAConfig()
-        assert cfg.base_url == "https://transmission.bpa.gov/Business/Operations/Wind/OPITabularReports"
+        assert (
+            cfg.base_url
+            == "https://transmission.bpa.gov/Business/Operations/Wind/OPITabularReports"
+        )
         assert cfg.data_dir == Path("data/BPA")
         assert cfg.max_retries == 3
         assert cfg.retry_delay == 5
@@ -164,6 +167,7 @@ class TestMakeRequest:
         assert content is None
         # should have tried max_retries times
         assert client.session.get.call_count == client.config.max_retries
+
 
 # ---------------------------------------------------------------------------
 # Excel parsing tests

@@ -320,11 +320,15 @@ def handle_bpa(args):
         # Route to appropriate method based on data type
         if args.data_type == "wind_gen_total_load":
             logger.info("Downloading BPA wind, generation and total load data...")
-            success = client.get_wind_gen_total_load(args.start.year, start_date=args.start, end_date=end_date)
+            success = client.get_wind_gen_total_load(
+                args.start.year, start_date=args.start, end_date=end_date
+            )
 
         elif args.data_type == "reserves_deployed":
             logger.info("Downloading BPA reserves deployed data...")
-            success = client.get_reserves_deployed(args.start.year, start_date=args.start, end_date=end_date)
+            success = client.get_reserves_deployed(
+                args.start.year, start_date=args.start, end_date=end_date
+            )
 
         elif args.data_type == "all":
             logger.info("Downloading all BPA data...")
