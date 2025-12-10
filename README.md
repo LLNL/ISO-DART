@@ -50,6 +50,10 @@
 - **Resource Data**: Resource (solar + wind) Forecasts (day-ahead, short-term)
 - **Clearing Data**: Day-Ahead Market Clearing data, Day-Ahead Virtual Clearing data 
 
+**BPA (Bonneville Power Administration)** - ✅ Fully supported
+- **Load and Generation Data**: Total Load, Wind Generation, Wind Forecast, Solar Generation, Solar Forecast, Hydro, Thermal and Net Interchange.
+- **Reserves Data**: BPA Reserves Deployed.
+
 #### Weather & Solar Data
 - **Meteostat**: Historical weather data for any US location (temperature, humidity, wind, precipitation, etc.)
 - **NSRDB** (National Solar Radiation Database): Solar irradiance data (GHI, DHI, DNI)
@@ -97,7 +101,7 @@ Independent System Operator Data Automated Request Tool
 ============================================================
 
 What type of data do you want to download?
-  (1) ISO Data (CAISO, MISO, NYISO)
+  (1) ISO Data (CAISO, MISO, NYISO, SPP, BPA)
   (2) Weather Data
 
 Your choice (1 or 2): 1
@@ -109,8 +113,10 @@ Which ISO do you want data from?
   (1) CAISO - California Independent System Operator
   (2) MISO - Midcontinent Independent System Operator
   (3) NYISO - New York Independent System Operator
+  (4) SPP - Southwest Power Pool
+  (5) BPA - Bonneville Power Administration
 
-Your choice (1, 2, or 3): 1
+Your choice (1, 2, 3, 4, or 5): 1
 ```
 
 ### Command-Line Mode
@@ -138,15 +144,15 @@ python isodart.py --data-type weather --state CA \
 ### Command-Line Arguments
 
 ```
---iso {caiso,miso,nyiso}     ISO to download from
---data-type TYPE             Data type (lmp, load, weather, etc.)
---market {dam,rtm,hasp,rtpd} Energy market type
---start YYYY-MM-DD           Start date
---duration N                 Duration in days
---state XX                   US state code (for weather)
---verbose                    Enable detailed logging
---interactive                Force interactive mode
---config PATH                Path to configuration file
+--iso {caiso,miso,nyiso, spp, bpa}     ISO to download from
+--data-type TYPE                       Data type (lmp, load, weather, etc.)
+--market {dam,rtm,hasp,rtpd}           Energy market type
+--start YYYY-MM-DD                     Start date
+--duration N                           Duration in days
+--state XX                             US state code (for weather)
+--verbose                              Enable detailed logging
+--interactive                          Force interactive mode
+--config PATH                          Path to configuration file
 ```
 
 ## Usage Examples
