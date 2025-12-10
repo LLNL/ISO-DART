@@ -313,40 +313,26 @@ def handle_bpa(args):
 
     try:
         # Calculate date range
-        # Note: BPA only has last 7 days, so we validate the dates
         from datetime import date, timedelta
 
         end_date = calculate_end_date(args.start, args.duration)
-        today = date.today()
-        seven_days_ago = today - timedelta(days=7)
-
-        # Warn if requesting old data
-        if args.start < seven_days_ago:
-            logger.warning(
-                f"Requested start date {args.start} is older than 7 days. "
-                f"BPA only provides data from approximately {seven_days_ago} onwards."
-            )
-            print(f"\n⚠️  WARNING: BPA only provides the last 7 days of data!")
-            print(f"   Requested: {args.start} to {end_date}")
-            print(f"   Available: {seven_days_ago} to {today}")
-            print(f"   Some or all requested data may not be available.\n")
 
         # Route to appropriate method based on data type
-        if args.data_type == "load":
-            logger.info("Downloading BPA load and generation data...")
-            success = client.get_load_and_generation(args.start, end_date)
+        if args.data_type == "wind_gen_total_load":
+            logger.info("Downloading BPA wind, generation and total load data...")
+            success = client.get_wind_gen_total_load(args.start.year, start_date=args.start, end_date=end_date)
 
-        elif args.data_type == "wind-solar":
-            logger.info("Downloading BPA wind and solar generation data...")
-            success = client.get_wind_solar_generation(args.start, end_date)
+        elif args.data_type == "reserves_deployed":
+            logger.info("Downloading BPA reserves deployed data...")
+            success = client.get_reserves_deployed(args.start.year, start_date=args.start, end_date=end_date)
 
         elif args.data_type == "all":
             logger.info("Downloading all BPA data...")
-            success = client.get_all_data(args.start, end_date)
+            success = client.get_all_data(args.start.year, start_date=args.start, end_date=end_date)
 
         else:
             logger.error(f"Unknown BPA data type: {args.data_type}")
-            logger.info("Available types: load, wind-solar, all")
+            logger.info("Available types: wind_gen_total_load, reserves_deployed, all")
             return False
 
         if success:

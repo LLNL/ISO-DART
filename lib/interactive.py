@@ -1605,7 +1605,7 @@ def run_spp_mode():
 
 
 def run_bpa_mode():
-    """Interactive mode for BPA data."""
+    """Interactive mode for BPA historical data."""
     from lib.iso.bpa import BPAClient, get_bpa_data_availability
     from datetime import date, timedelta
 
@@ -1613,25 +1613,30 @@ def run_bpa_mode():
     print("BPA DATA SELECTION")
     print("=" * 60)
 
-    # Show data availability info
+    # Show BPA data availability info
     info = get_bpa_data_availability()
 
-    print("\n⚠️  IMPORTANT: BPA Data Limitations")
+    print("\n📊 BPA Historical Data Information")
     print("=" * 60)
-    print(f"• Temporal Coverage: {info['temporal_coverage']}")
-    print(f"• Temporal Resolution: {info['temporal_resolution']}")
+    print(f"• Coverage: {info['temporal_coverage']}")
+    print(f"• Resolution: {info['temporal_resolution']}")
     print(f"• Update Frequency: {info['update_frequency']}")
-    print(f"• Geographic Coverage: {info['geographic_coverage']}")
-    print("\n⚠️  BPA only provides real-time data for the LAST 7 DAYS.")
-    print("   Historical data beyond 7 days is NOT available.")
-    print("=" * 60)
+    print(f"• Geographic Area: {info['geographic_coverage']}")
+    print(f"• Data Format: Excel (.xlsx)")
+
+    available_years = info['available_years']
+    print(f"\n• Available Years: {min(available_years)} - {max(available_years)}")
+
+    print("\n" + "=" * 60)
 
     # Data type selection
     print("\nWhat type of BPA data?")
-    print("  (1) Load and Generation (all sources)")
-    print("      - Load, VER, Hydro, Fossil/Biomass, Nuclear")
-    print("  (2) Wind and Solar Generation (detailed)")
-    print("      - Wind, Solar breakdown")
+    print("  (1) Wind Generation and Total Load")
+    print("      - Hourly wind generation (MW)")
+    print("      - Hourly total load (MW)")
+    print("  (2) Operating Reserves Deployed")
+    print("      - Regulation Up/Down reserves")
+    print("      - Contingency reserves")
     print("  (3) All Data (both of above)")
 
     while True:
@@ -1643,42 +1648,46 @@ def run_bpa_mode():
             pass
         print("Please enter a number between 1 and 3")
 
-    # Date filtering (optional)
+    # Year selection
+    print("\n" + "=" * 60)
+    print("YEAR SELECTION")
+    print("=" * 60)
+    print(f"\nBPA provides historical data by full calendar year.")
+    print(f"Available years: {min(available_years)} - {max(available_years)}")
+
+    while True:
+        try:
+            year = int(input(f"\nEnter year ({min(available_years)}-{max(available_years)}): "))
+            if year in available_years:
+                break
+            else:
+                print(f"Year must be between {min(available_years)} and {max(available_years)}")
+        except ValueError:
+            print("Please enter a valid 4-digit year")
+
+    # Optional date filtering
     print("\n" + "=" * 60)
     print("DATE FILTERING (OPTIONAL)")
     print("=" * 60)
-    print("BPA data includes the last 7 days automatically.")
-    print("You can optionally filter to a specific date range.")
+    print(f"You selected year {year}. You can optionally filter to a specific date range")
+    print(f"within that year, or download the entire year.")
 
-    filter_dates = input("\nFilter by specific dates? (y/n): ").lower()
+    filter_dates = input("\nFilter by specific dates within the year? (y/n): ").lower()
 
     start_date = None
     end_date = None
 
     if filter_dates == "y":
-        print("\nEnter date range (must be within last 7 days):")
-        print("Note: BPA data is in Pacific Time")
+        print(f"\nEnter date range within {year}:")
 
         # Get start date
         while True:
             try:
-                year = int(input("  Start Year (4-digit): "))
                 month = int(input("  Start Month (1-12): "))
                 day = int(input("  Start Day (1-31): "))
                 start_date = date(year, month, day)
 
-                # Check if within last 7 days
-                today = date.today()
-                seven_days_ago = today - timedelta(days=7)
-
-                if start_date < seven_days_ago:
-                    print(f"\n⚠️  Warning: Date is older than 7 days ago.")
-                    print(f"   BPA may not have data before {seven_days_ago}")
-                    confirm = input("   Continue anyway? (y/n): ")
-                    if confirm.lower() != "y":
-                        continue
-
-                if start_date > today:
+                if start_date > date.today():
                     print("\n⚠️  Date is in the future. Please select a past date.")
                     continue
 
@@ -1692,8 +1701,7 @@ def run_bpa_mode():
         # Get end date
         while True:
             try:
-                year = int(input("\n  End Year (4-digit): "))
-                month = int(input("  End Month (1-12): "))
+                month = int(input("\n  End Month (1-12): "))
                 day = int(input("  End Day (1-31): "))
                 end_date = date(year, month, day)
 
@@ -1715,59 +1723,73 @@ def run_bpa_mode():
         print(f"\n✓ Date range: {start_date} to {end_date}")
 
     else:
-        print("\n✓ Will download all available data (last 7 days)")
+        print(f"\n✓ Will download entire year {year}")
 
     # Download data
     print("\n" + "=" * 60)
     print("DOWNLOADING DATA")
     print("=" * 60)
-    print("\nThis may take a moment...")
+    print("\nDownloading BPA historical data (Excel format)...")
+    print("This may take a moment depending on file size...")
 
     client = BPAClient()
 
     try:
         if data_type == 1:
-            print("\n📥 Downloading Load and Generation data...")
-            print("   (Load, VER, Hydro, Fossil/Biomass, Nuclear)")
-            success = client.get_load_and_generation(start_date, end_date)
+            print("\n📥 Downloading Wind Generation and Total Load data...")
+            print(f"   Year: {year}")
+            if start_date:
+                print(f"   Filtering: {start_date} to {end_date}")
+            success = client.get_wind_gen_total_load(year, start_date, end_date)
 
         elif data_type == 2:
-            print("\n📥 Downloading Wind and Solar generation data...")
-            success = client.get_wind_solar_generation(start_date, end_date)
+            print("\n📥 Downloading Operating Reserves Deployed data...")
+            print(f"   Year: {year}")
+            if start_date:
+                print(f"   Filtering: {start_date} to {end_date}")
+            success = client.get_reserves_deployed(year, start_date, end_date)
 
         else:  # data_type == 3
             print("\n📥 Downloading all BPA data...")
-            print("   (1) Load and Generation")
-            print("   (2) Wind and Solar")
-            success = client.get_all_data(start_date, end_date)
+            print(f"   Year: {year}")
+            if start_date:
+                print(f"   Filtering: {start_date} to {end_date}")
+            print("   (1) Wind Generation and Total Load")
+            print("   (2) Operating Reserves Deployed")
+            success = client.get_all_data(year, start_date, end_date)
 
         if success:
             print("\n✅ Download complete!")
             print(f"   Data saved to: data/BPA/")
             print("\n📊 Data Details:")
+            print(f"   • Year: {year}")
             print(f"   • Resolution: {info['temporal_resolution']}")
-            print(f"   • Coverage: {info['temporal_coverage']}")
+            print(f"   • Format: CSV (converted from Excel)")
             print(f"   • Time Zone: Pacific Time")
 
             # Show what data types were downloaded
             print("\n📁 Files Created:")
             if data_type == 1:
-                print("   • [date]_BPA_Load_and_Generation.csv")
+                print(f"   • {year}_BPA_Wind_Generation_Total_Load.csv")
             elif data_type == 2:
-                print("   • [date]_BPA_Wind_Solar_Generation.csv")
+                print(f"   • {year}_BPA_Reserves_Deployed.csv")
             else:
-                print("   • [date]_BPA_Load_and_Generation.csv")
-                print("   • [date]_BPA_Wind_Solar_Generation.csv")
+                print(f"   • {year}_BPA_Wind_Generation_Total_Load.csv")
+                print(f"   • {year}_BPA_Reserves_Deployed.csv")
 
-            print("\n💡 Tip: BPA data updates every 5 minutes.")
-            print("   Run this again to get the latest data!")
+            print("\n💡 Tips:")
+            print("   • Data is in CSV format for easy analysis")
+            print("   • All timestamps are in Pacific Time (PST/PDT)")
+            print("   • 5-min resolution with hour-ending timestamps")
+            print("   • Historical data is typically final/validated")
 
         else:
             print("\n❌ Download failed. Check logs for details.")
             print("   Common issues:")
             print("   • Network connection problems")
             print("   • BPA website temporarily unavailable")
-            print("   • Requested dates outside 7-day window")
+            print("   • Year not available on BPA servers")
+            print(f"   • Try a different year from: {min(available_years)}-{max(available_years)}")
 
     except Exception as e:
         logger.error(f"Error downloading BPA data: {e}", exc_info=True)

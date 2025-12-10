@@ -1,14 +1,17 @@
 """
-Test suite for BPA client
+Test suite for BPA client (Excel-based historical data).
 
-Run with: pytest tests/test_bpa.py -v
+Run with: pytest test_bpa.py -v
 """
 
-import pytest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from io import BytesIO
+from typing import Dict, Any
+
 import pandas as pd
+import pytest
+from unittest.mock import MagicMock, Mock, patch
 
 from lib.iso.bpa import (
     BPAClient,
@@ -19,602 +22,404 @@ from lib.iso.bpa import (
 )
 
 
-@pytest.fixture
-def temp_dir(tmp_path):
-    """Create temporary directory structure for tests."""
-    config = BPAConfig(data_dir=tmp_path / "data/BPA")
-    config.data_dir.mkdir(parents=True, exist_ok=True)
-    return config
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
 
 
 @pytest.fixture
-def client(temp_dir):
-    """Create BPA client with test configuration."""
-    return BPAClient(config=temp_dir)
+def temp_config(tmp_path: Path) -> BPAConfig:
+    """BPAConfig using a temporary data directory."""
+    return BPAConfig(data_dir=tmp_path)
 
 
 @pytest.fixture
-def sample_bpa_text_data():
-    """Sample BPA text format data."""
-    return """# BPA Balancing Authority Load Data
-Date\tTime\tLoad_MW\tGeneration_MW
-2024-01-15\t00:00\t5000\t5100
-2024-01-15\t01:00\t4800\t4900
-2024-01-15\t02:00\t4600\t4700
-2024-01-15\t03:00\t4500\t4600
-"""
+def client(temp_config: BPAConfig) -> BPAClient:
+    """BPAClient instance with temp config."""
+    return BPAClient(config=temp_config)
 
 
-@pytest.fixture
-def sample_bpa_wind_data():
-    """Sample BPA wind generation data."""
-    return """# BPA Wind Generation
-Date\tTime\tWind_MW
-2024-01-15\t00:00\t1200
-2024-01-15\t01:00\t1250
-2024-01-15\t02:00\t1300
-2024-01-15\t03:00\t1280
-"""
-
-
-class TestBPAClient:
-    """Test BPA client functionality."""
-
-    def test_init_creates_directories(self, temp_dir):
-        """Test that initialization creates necessary directories."""
-        client = BPAClient(config=temp_dir)
-        assert temp_dir.data_dir.exists()
-
-    def test_init_with_default_config(self):
-        """Test initialization with default configuration."""
-        client = BPAClient()
-        assert client.config.data_dir == Path("data/BPA")
-        assert client.config.max_retries == 3
-        assert client.config.timeout == 30
-
-    def test_config_attributes(self, temp_dir):
-        """Test that config has all required attributes."""
-        assert hasattr(temp_dir, "base_url")
-        assert hasattr(temp_dir, "load_generation_file")
-        assert hasattr(temp_dir, "wind_solar_file")
-        assert hasattr(temp_dir, "data_dir")
-        assert hasattr(temp_dir, "max_retries")
-        assert hasattr(temp_dir, "retry_delay")
-        assert hasattr(temp_dir, "timeout")
-
-    @patch("requests.Session.get")
-    def test_make_request_success(self, mock_get, client):
-        """Test successful API request."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = "test content"
-        mock_get.return_value = mock_response
-
-        content = client._make_request("http://test.url")
-
-        assert content == "test content"
-        assert mock_get.called
-
-    @patch("requests.Session.get")
-    def test_make_request_retry(self, mock_get, client):
-        """Test request retry logic."""
-        mock_response_fail = Mock()
-        mock_response_fail.ok = False
-
-        mock_response_success = Mock()
-        mock_response_success.ok = True
-        mock_response_success.text = "success"
-
-        mock_get.side_effect = [mock_response_fail, mock_response_fail, mock_response_success]
-
-        content = client._make_request("http://test.url")
-
-        assert content == "success"
-        assert mock_get.call_count == 3
-
-    @patch("requests.Session.get")
-    def test_make_request_failure(self, mock_get, client):
-        """Test request failure after retries."""
-        mock_response = Mock()
-        mock_response.ok = False
-        mock_get.return_value = mock_response
-
-        content = client._make_request("http://test.url")
-
-        assert content is None
-        assert mock_get.call_count == 3  # max_retries
-
-    @patch("requests.Session.get")
-    def test_make_request_exception(self, mock_get, client):
-        """Test request with exception."""
-        import requests
-
-        mock_get.side_effect = requests.RequestException("Connection error")
-
-        content = client._make_request("http://test.url")
-
-        assert content is None
-
-    def test_parse_bpa_text_format(self, client, sample_bpa_text_data):
-        """Test parsing BPA text format."""
-        df = client._parse_bpa_text_format(sample_bpa_text_data, "load_and_generation")
-
-        assert not df.empty
-        assert "Date" in df.columns
-        assert "Time" in df.columns
-        assert "Load_MW" in df.columns
-        assert len(df) == 4
-
-    def test_parse_bpa_text_format_empty(self, client):
-        """Test parsing empty BPA data."""
-        df = client._parse_bpa_text_format("", "load_and_generation")
-
-        assert df.empty
-
-    def test_parse_bpa_text_format_no_header(self, client):
-        """Test parsing BPA data without header."""
-        data = "5000\t5100\n4800\t4900\n"
-        df = client._parse_bpa_text_format(data, "load_and_generation")
-
-        # Should return empty or handle gracefully
-        assert isinstance(df, pd.DataFrame)
+# ---------------------------------------------------------------------------
+# Enum and config tests
+# ---------------------------------------------------------------------------
 
 
 class TestBPADataType:
-    """Test BPA data type enumeration."""
+    def test_enum_members(self):
+        """Enum should expose the expected members and values."""
+        assert BPADataType.WIND_GEN_TOTAL_LOAD.value == "wind_gen_total_load"
+        assert BPADataType.RESERVES_DEPLOYED.value == "reserves_deployed"
 
-    def test_data_type_values(self):
-        """Test that data type enum has correct values."""
-        assert BPADataType.LOAD_AND_GENERATION.value == "load_and_generation"
-        assert BPADataType.WIND_SOLAR_GENERATION.value == "wind_solar"
-
-    def test_all_data_types_exist(self):
-        """Test that all expected data types are defined."""
-        expected_types = [
-            "LOAD_AND_GENERATION",
-            "WIND_SOLAR_GENERATION",
-        ]
-
-        for type_name in expected_types:
-            assert hasattr(BPADataType, type_name)
+    def test_enum_is_iterable(self):
+        """Enum should contain exactly the two expected members."""
+        names = {m.name for m in BPADataType}
+        assert names == {"WIND_GEN_TOTAL_LOAD", "RESERVES_DEPLOYED"}
 
 
-class TestBPAHelperFunctions:
-    """Test BPA helper functions."""
+class TestBPAConfig:
+    def test_default_config_values(self):
+        """Default config should match hard-coded defaults in bpa.py."""
+        cfg = BPAConfig()
+        assert cfg.base_url == "https://transmission.bpa.gov/Business/Operations/Wind/OPITabularReports"
+        assert cfg.data_dir == Path("data/BPA")
+        assert cfg.max_retries == 3
+        assert cfg.retry_delay == 5
+        assert cfg.timeout == 30
 
+    def test_override_data_dir(self, tmp_path: Path):
+        """Data directory can be overridden."""
+        cfg = BPAConfig(data_dir=tmp_path)
+        assert cfg.data_dir == tmp_path
+
+
+# ---------------------------------------------------------------------------
+# BPAClient initialization and helpers
+# ---------------------------------------------------------------------------
+
+
+class TestBPAClientInit:
+    def test_init_creates_directory(self, tmp_path: Path):
+        """Initializing the client should ensure the data directory exists."""
+        cfg = BPAConfig(data_dir=tmp_path / "nested" / "bpa")
+        assert not cfg.data_dir.exists()
+        BPAClient(config=cfg)
+        assert cfg.data_dir.exists()
+
+    def test_default_config_is_used_when_not_provided(self):
+        """Client should create and use a default config when none is passed."""
+        client = BPAClient()
+        assert isinstance(client.config, BPAConfig)
+        assert client.config.data_dir == Path("data/BPA")
+
+
+class TestBuildUrl:
+    def test_build_url_wind_gen_total_load(self, client: BPAClient):
+        year = 2024
+        url = client._build_url(BPADataType.WIND_GEN_TOTAL_LOAD, year)
+        assert str(year) in url
+        assert url.endswith(f"WindGenTotalLoadYTD_{year}.xlsx")
+        assert client.config.base_url in url
+
+    def test_build_url_reserves_deployed(self, client: BPAClient):
+        year = 2023
+        url = client._build_url(BPADataType.RESERVES_DEPLOYED, year)
+        assert str(year) in url
+        assert url.endswith(f"ReservesDeployedYTD_{year}.xlsx")
+        assert client.config.base_url in url
+
+    def test_build_url_unknown_type_raises(self, client: BPAClient):
+        class FakeType:
+            # anything non-BPADataType should hit the ValueError branch
+            pass
+
+        with pytest.raises(ValueError):
+            client._build_url(FakeType(), 2020)  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# Request / HTTP tests
+# ---------------------------------------------------------------------------
+
+
+class TestMakeRequest:
+    def test_make_request_success(self, client: BPAClient):
+        """_make_request should return content when response is OK."""
+        mock_response = Mock()
+        mock_response.ok = True
+        mock_response.content = b"excel-bytes"
+        client.session.get = Mock(return_value=mock_response)  # type: ignore[assignment]
+
+        content = client._make_request("https://example.com/file.xlsx")
+        assert content == b"excel-bytes"
+        client.session.get.assert_called_once()
+
+    def test_make_request_failure_then_success(self, client: BPAClient):
+        """_make_request should retry until success within max_retries."""
+        cfg = client.config
+        first = Mock()
+        first.ok = False
+        first.content = b""
+        second = Mock()
+        second.ok = True
+        second.content = b"ok"
+
+        client.session.get = Mock(side_effect=[first, second])  # type: ignore[assignment]
+
+        content = client._make_request("https://example.com/file.xlsx")
+        assert content == b"ok"
+        assert client.session.get.call_count == 2
+
+    def test_make_request_all_failures_returns_none(self, client: BPAClient):
+        """When all attempts fail (non-OK), _make_request should return None."""
+        client.config.max_retries = 3
+
+        fail_resp = Mock()
+        fail_resp.ok = False
+        fail_resp.content = b""
+
+        # Always return a non-OK response
+        client.session.get = Mock(return_value=fail_resp)  # type: ignore[assignment]
+
+        content = client._make_request("https://example.com/file.xlsx")
+        assert content is None
+        # should have tried max_retries times
+        assert client.session.get.call_count == client.config.max_retries
+
+# ---------------------------------------------------------------------------
+# Excel parsing tests
+# ---------------------------------------------------------------------------
+
+
+class TestParseExcelFile:
+    def _build_valid_excel_bytes(self) -> bytes:
+        """
+        Build an in-memory Excel payload shaped the way _parse_excel_file expects.
+
+        bpa._parse_excel_file uses `skiprows=1`, so we write a first *data* row
+        whose values become the column names: "Date", "Time", "Value", and a
+        second row of actual data.
+        """
+        df = pd.DataFrame(
+            [
+                {"col1": "Date", "col2": "Time", "col3": "Value"},
+                {
+                    "col1": datetime(2024, 1, 1, 0, 0),
+                    "col2": datetime(2024, 1, 1, 0, 5),
+                    "col3": 100.0,
+                },
+            ]
+        )
+        buf = BytesIO()
+        df.to_excel(buf, index=False)
+        return buf.getvalue()
+
+    def test_parse_excel_file_success(self, client: BPAClient):
+        """_parse_excel_file should return a DataFrame with parsed datetime columns."""
+        content = self._build_valid_excel_bytes()
+        df = client._parse_excel_file(content, BPADataType.WIND_GEN_TOTAL_LOAD)
+        assert isinstance(df, pd.DataFrame)
+        assert not df.empty
+        assert list(df.columns) == ["Date", "Time", "Value"]
+        # both Date and Time should have been parsed to datetime dtype
+        assert pd.api.types.is_datetime64_any_dtype(df["Date"])
+        assert pd.api.types.is_datetime64_any_dtype(df["Time"])
+
+    def test_parse_excel_file_failure_returns_none(self, client: BPAClient):
+        """
+        If parsing fails for any reason, the method should catch and return None.
+        Use clearly invalid bytes to hit the exception path.
+        """
+        df = client._parse_excel_file(b"not-an-excel-file", BPADataType.WIND_GEN_TOTAL_LOAD)
+        assert df is None
+
+
+# ---------------------------------------------------------------------------
+# Date-range filtering tests
+# ---------------------------------------------------------------------------
+
+
+class TestFilterByDateRange:
+    def test_empty_dataframe_returns_unchanged(self, client: BPAClient):
+        df = pd.DataFrame()
+        result = client._filter_by_date_range(df, None, None)
+        assert result is df
+
+    def test_no_dates_provided_returns_original(self, client: BPAClient):
+        dt_index = pd.date_range("2024-01-01", periods=3, freq="h")
+        df = pd.DataFrame({"ts": dt_index, "value": [1, 2, 3]})
+        result = client._filter_by_date_range(df, None, None)
+        assert result.equals(df)
+
+    def test_no_datetime_column_returns_original(self, client: BPAClient):
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        result = client._filter_by_date_range(df, date(2024, 1, 1), date(2024, 1, 2))
+        # nothing to filter on -> original df
+        assert result.equals(df)
+
+    def test_filters_by_start_and_end(self, client: BPAClient):
+        dt_index = pd.date_range("2024-01-01", periods=5, freq="D")
+        df = pd.DataFrame({"ts": dt_index, "value": [1, 2, 3, 4, 5]})
+        start = date(2024, 1, 2)
+        end = date(2024, 1, 4)
+
+        result = client._filter_by_date_range(df, start, end)
+
+        # should contain only 3 rows: 2nd, 3rd, 4th dates
+        assert len(result) == 3
+        assert result["ts"].min().date() == start
+        assert result["ts"].max().date() == end
+
+    def test_filters_by_start_only(self, client: BPAClient):
+        dt_index = pd.date_range("2024-01-01", periods=3, freq="D")
+        df = pd.DataFrame({"ts": dt_index, "value": [1, 2, 3]})
+        start = date(2024, 1, 2)
+
+        result = client._filter_by_date_range(df, start, None)
+        assert list(result["ts"].dt.date) == [date(2024, 1, 2), date(2024, 1, 3)]
+
+    def test_filters_by_end_only(self, client: BPAClient):
+        dt_index = pd.date_range("2024-01-01", periods=3, freq="D")
+        df = pd.DataFrame({"ts": dt_index, "value": [1, 2, 3]})
+        end = date(2024, 1, 2)
+
+        result = client._filter_by_date_range(df, None, end)
+        assert list(result["ts"].dt.date) == [date(2024, 1, 1), date(2024, 1, 2)]
+
+
+# ---------------------------------------------------------------------------
+# High-level data download methods
+# ---------------------------------------------------------------------------
+
+
+class TestWindGenTotalLoad:
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_successful_download_and_save(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        client.config.data_dir = tmp_path
+
+        # Prepare a simple DataFrame as parsed output
+        dt_index = pd.date_range("2024-01-01", periods=3, freq="h")
+        df = pd.DataFrame({"DateTime": dt_index, "Value": [1, 2, 3]})
+        mock_request.return_value = b"excel-content"
+        mock_parse.return_value = df
+
+        start = date(2024, 1, 1)
+        end = date(2024, 1, 2)
+
+        success = client.get_wind_gen_total_load(2024, start, end)
+        assert success is True
+
+        # Ensure we actually made the request and parsed the content
+        mock_request.assert_called_once()
+        mock_parse.assert_called_once_with(b"excel-content", BPADataType.WIND_GEN_TOTAL_LOAD)
+
+    @patch.object(BPAClient, "_make_request")
+    def test_request_failure_returns_false(
+        self,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        client.config.data_dir = tmp_path
+        mock_request.return_value = None
+
+        success = client.get_wind_gen_total_load(2024)
+        assert success is False
+
+        output_file = client.config.data_dir / "2024_BPA_WindGenTotalLoad.csv"
+        assert not output_file.exists()
+
+
+class TestReservesDeployed:
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_successful_download_and_save(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        client.config.data_dir = tmp_path
+
+        dt_index = pd.date_range("2024-01-01", periods=3, freq="h")
+        df = pd.DataFrame({"DateTime": dt_index, "Value": [10, 20, 30]})
+        mock_request.return_value = b"excel-content"
+        mock_parse.return_value = df
+
+        success = client.get_reserves_deployed(2024)
+        assert success is True
+
+        output_file = client.config.data_dir / "2024_BPA_Reserves_Deployed.csv"
+        assert output_file.exists()
+        saved = pd.read_csv(output_file)
+        assert len(saved) > 0
+
+    @patch.object(BPAClient, "_make_request")
+    def test_request_failure_returns_false(
+        self,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        client.config.data_dir = tmp_path
+        mock_request.return_value = None
+
+        success = client.get_reserves_deployed(2024)
+        assert success is False
+
+        output_file = client.config.data_dir / "2024_BPA_Reserves_Deployed.csv"
+        assert not output_file.exists()
+
+
+class TestGetAllData:
+    def test_get_all_data_combines_results(self, client: BPAClient):
+        client.get_wind_gen_total_load = MagicMock(return_value=True)  # type: ignore[assignment]
+        client.get_reserves_deployed = MagicMock(return_value=False)  # type: ignore[assignment]
+
+        result = client.get_all_data(2024)
+        assert result is False  # True AND False
+
+        client.get_reserves_deployed.return_value = True
+        result2 = client.get_all_data(2024)
+        assert result2 is True
+
+
+# ---------------------------------------------------------------------------
+# Availability metadata & printing
+# ---------------------------------------------------------------------------
+
+
+class TestAvailabilityMetadata:
     def test_get_bpa_data_availability_structure(self):
-        """Test that data availability returns correct structure."""
-        info = get_bpa_data_availability()
+        info: Dict[str, Any] = get_bpa_data_availability()
 
-        assert isinstance(info, dict)
+        # top-level keys
         assert "temporal_coverage" in info
         assert "temporal_resolution" in info
         assert "update_frequency" in info
         assert "data_types" in info
         assert "geographic_coverage" in info
         assert "notes" in info
+        assert "available_years" in info
 
-    def test_get_bpa_data_availability_data_types(self):
-        """Test that all expected data types are in availability info."""
-        info = get_bpa_data_availability()
+        assert isinstance(info["data_types"], dict)
+        assert "wind_gen_total_load" in info["data_types"]
+        assert "reserves_deployed" in info["data_types"]
 
-        assert "load_and_generation" in info["data_types"]
-        assert "wind_solar" in info["data_types"]
+        years = info["available_years"]
+        assert isinstance(years, list)
+        assert min(years) <= datetime.now().year
+        assert max(years) >= datetime.now().year
 
-    def test_get_bpa_data_availability_details(self):
-        """Test specific details in data availability."""
-        info = get_bpa_data_availability()
-
-        # Check temporal info
-        assert "Last 7 days" in info["temporal_coverage"]
-        assert "5-minute" in info["temporal_resolution"]
-
-        # Check data types have descriptions and variables
-        for dtype in info["data_types"].values():
-            assert "description" in dtype
-            assert "variables" in dtype
-            assert isinstance(dtype["variables"], list)
-
-    def test_print_bpa_data_info(self, capsys):
-        """Test that print_bpa_data_info outputs correctly."""
+    def test_print_bpa_data_info_outputs_text(self, capsys):
         print_bpa_data_info()
+        captured = capsys.readouterr().out
+        assert "BPA HISTORICAL DATA AVAILABILITY" in captured
+        assert "Available Data Types" in captured
+        assert "wind_gen_total_load" in captured
+        assert "reserves_deployed" in captured
 
-        captured = capsys.readouterr()
-        output = captured.out
 
-        # Check that key information is printed
-        assert "BPA DATA AVAILABILITY" in output
-        assert "Temporal Coverage" in output
-        assert "Temporal Resolution" in output
-        assert "Last 7 days" in output
-        assert "5-minute intervals" in output
-        assert "load_and_generation" in output
-        assert "wind_solar" in output
+# ---------------------------------------------------------------------------
+# Cleanup
+# ---------------------------------------------------------------------------
 
 
-class TestBPADateFiltering:
-    """Test BPA date filtering functionality."""
-
-    def test_filter_by_date_range_both_dates(self, client):
-        """Test filtering with both start and end dates."""
-        # Create sample dataframe with datetime column
-        dates = pd.date_range("2024-01-10", periods=10, freq="D")
-        df = pd.DataFrame({"Date": dates, "Value": range(10)})
-        df["Date"] = pd.to_datetime(df["Date"])
-
-        start_date = date(2024, 1, 12)
-        end_date = date(2024, 1, 16)
-
-        filtered = client._filter_by_date_range(df, start_date, end_date)
-
-        # Should only include dates from 2024-01-12 to 2024-01-16 (5 days)
-        assert len(filtered) == 5
-        assert filtered["Date"].min() >= pd.Timestamp(start_date)
-        assert filtered["Date"].max() <= pd.Timestamp(end_date)
-
-    def test_filter_by_date_range_start_only(self, client):
-        """Test filtering with only start date."""
-        dates = pd.date_range("2024-01-10", periods=10, freq="D")
-        df = pd.DataFrame({"Date": dates, "Value": range(10)})
-        df["Date"] = pd.to_datetime(df["Date"])
-
-        start_date = date(2024, 1, 15)
-
-        filtered = client._filter_by_date_range(df, start_date, None)
-
-        # Should only include dates from 2024-01-15 onwards
-        assert len(filtered) == 5
-        assert filtered["Date"].min() >= pd.Timestamp(start_date)
-
-    def test_filter_by_date_range_end_only(self, client):
-        """Test filtering with only end date."""
-        dates = pd.date_range("2024-01-10", periods=10, freq="D")
-        df = pd.DataFrame({"Date": dates, "Value": range(10)})
-        df["Date"] = pd.to_datetime(df["Date"])
-
-        end_date = date(2024, 1, 15)
-
-        filtered = client._filter_by_date_range(df, None, end_date)
-
-        # Should only include dates up to 2024-01-15
-        assert len(filtered) == 6
-        assert filtered["Date"].max() <= pd.Timestamp(end_date)
-
-    def test_filter_by_date_range_no_dates(self, client):
-        """Test filtering with no date filters."""
-        dates = pd.date_range("2024-01-10", periods=10, freq="D")
-        df = pd.DataFrame({"Date": dates, "Value": range(10)})
-        df["Date"] = pd.to_datetime(df["Date"])
-
-        filtered = client._filter_by_date_range(df, None, None)
-
-        # Should return all data
-        assert len(filtered) == 10
-
-    def test_filter_by_date_range_empty_df(self, client):
-        """Test filtering on empty dataframe."""
-        df = pd.DataFrame()
-
-        filtered = client._filter_by_date_range(df, date(2024, 1, 1), date(2024, 1, 31))
-
-        assert filtered.empty
-
-    def test_filter_by_date_range_no_datetime_column(self, client):
-        """Test filtering when no datetime column exists."""
-        df = pd.DataFrame({"Value": [1, 2, 3], "Name": ["A", "B", "C"]})
-
-        # Should return original dataframe with warning logged
-        filtered = client._filter_by_date_range(df, date(2024, 1, 1), date(2024, 1, 31))
-
-        assert len(filtered) == 3
-
-
-class TestBPALoadGeneration:
-    """Test BPA load and generation data download."""
-
-    @patch("requests.Session.get")
-    def test_get_load_and_generation_success(
-        self, mock_get, client, sample_bpa_text_data, temp_dir
-    ):
-        """Test successful load and generation download."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = sample_bpa_text_data
-        mock_get.return_value = mock_response
-
-        success = client.get_load_and_generation()
-
-        assert success
-        assert mock_get.called
-
-        # Check file was created
-        files = list(temp_dir.data_dir.glob("*Load_and_Generation*.csv"))
-        assert len(files) == 1
-
-    @patch("requests.Session.get")
-    def test_get_load_and_generation_with_date_filter(self, mock_get, client, sample_bpa_text_data):
-        """Test load generation download with date filtering."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = sample_bpa_text_data
-        mock_get.return_value = mock_response
-
-        start_date = date(2024, 1, 15)
-        end_date = date(2024, 1, 15)
-
-        success = client.get_load_and_generation(start_date, end_date)
-
-        assert success
-
-    @patch("requests.Session.get")
-    def test_get_load_and_generation_no_data(self, mock_get, client):
-        """Test load generation when no data returned."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = ""
-        mock_get.return_value = mock_response
-
-        success = client.get_load_and_generation()
-
-        assert not success
-
-    @patch("lib.iso.bpa.BPAClient._make_request")
-    def test_get_load_and_generation_request_failure(self, mock_request, client):
-        """Test load generation with request failure."""
-        mock_request.return_value = None
-
-        success = client.get_load_and_generation()
-
-        assert not success
-
-
-class TestBPAWindSolar:
-    """Test BPA wind and solar generation data download."""
-
-    @patch("requests.Session.get")
-    def test_get_wind_solar_generation_success(
-        self, mock_get, client, sample_bpa_wind_data, temp_dir
-    ):
-        """Test successful wind and solar download."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = sample_bpa_wind_data
-        mock_get.return_value = mock_response
-
-        success = client.get_wind_solar_generation()
-
-        assert success
-        assert mock_get.called
-
-        # Check file was created
-        files = list(temp_dir.data_dir.glob("*Wind_Solar_Generation*.csv"))
-        assert len(files) == 1
-
-    @patch("requests.Session.get")
-    def test_get_wind_solar_generation_with_date_filter(
-        self, mock_get, client, sample_bpa_wind_data
-    ):
-        """Test wind solar download with date filtering."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = sample_bpa_wind_data
-        mock_get.return_value = mock_response
-
-        start_date = date(2024, 1, 15)
-        end_date = date(2024, 1, 15)
-
-        success = client.get_wind_solar_generation(start_date, end_date)
-
-        assert success
-
-    @patch("requests.Session.get")
-    def test_get_wind_solar_generation_no_data(self, mock_get, client):
-        """Test wind solar when no data returned."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = ""
-        mock_get.return_value = mock_response
-
-        success = client.get_wind_solar_generation()
-
-        assert not success
-
-
-class TestBPAGetAllData:
-    """Test BPA get all data functionality."""
-
-    @patch.object(BPAClient, "get_load_and_generation")
-    @patch.object(BPAClient, "get_wind_solar_generation")
-    def test_get_all_data_success(self, mock_wind_solar, mock_load_gen, client):
-        """Test successful download of all data."""
-        mock_load_gen.return_value = True
-        mock_wind_solar.return_value = True
-
-        success = client.get_all_data()
-
-        assert success
-        mock_load_gen.assert_called_once()
-        mock_wind_solar.assert_called_once()
-
-    @patch.object(BPAClient, "get_load_and_generation")
-    @patch.object(BPAClient, "get_wind_solar_generation")
-    def test_get_all_data_with_dates(self, mock_wind_solar, mock_load_gen, client):
-        """Test all data download with date filtering."""
-        mock_load_gen.return_value = True
-        mock_wind_solar.return_value = True
-
-        start_date = date(2024, 1, 15)
-        end_date = date(2024, 1, 16)
-
-        success = client.get_all_data(start_date, end_date)
-
-        assert success
-        mock_load_gen.assert_called_once_with(start_date, end_date)
-        mock_wind_solar.assert_called_once_with(start_date, end_date)
-
-    @patch.object(BPAClient, "get_load_and_generation")
-    @patch.object(BPAClient, "get_wind_solar_generation")
-    def test_get_all_data_partial_failure(self, mock_wind_solar, mock_load_gen, client):
-        """Test all data download when one source fails."""
-        mock_load_gen.return_value = True
-        mock_wind_solar.return_value = False
-
-        success = client.get_all_data()
-
-        assert not success
-
-    @patch.object(BPAClient, "get_load_and_generation")
-    @patch.object(BPAClient, "get_wind_solar_generation")
-    def test_get_all_data_complete_failure(self, mock_wind_solar, mock_load_gen, client):
-        """Test all data download when both sources fail."""
-        mock_load_gen.return_value = False
-        mock_wind_solar.return_value = False
-
-        success = client.get_all_data()
-
-        assert not success
-
-
-class TestBPAParsingEdgeCases:
-    """Test BPA text parsing edge cases."""
-
-    def test_parse_with_multiple_header_formats(self, client):
-        """Test parsing data with different header formats."""
-        # Data with varying header styles (using realistic BPA keywords)
-        data = """# Comment line
-Date\tTime\tLoad\tWind\tHydro
-2024-01-15\t00:00\t5000\t1200\t3000
-2024-01-15\t01:00\t4900\t1250\t2950
-"""
-        df = client._parse_bpa_text_format(data, "test")
-
-        assert not df.empty
-        assert len(df) == 2
-
-    def test_parse_with_tabs_and_spaces_mixed(self, client):
-        """Test parsing data with mixed delimiters."""
-        data = """Date\tTime  Load\tWind
-2024-01-15\t00:00  5000\t1200
-"""
-        df = client._parse_bpa_text_format(data, "test")
-
-        assert not df.empty
-
-    def test_parse_with_unicode_characters(self, client):
-        """Test parsing data with unicode characters."""
-        # Use realistic BPA keywords so header is detected
-        data = """Date\tTime\tLoad\tTemperature_°F
-2024-01-15\t00:00\t5000\t50
-"""
-        df = client._parse_bpa_text_format(data, "test")
-
-        assert not df.empty
-
-    def test_parse_removes_empty_rows(self, client):
-        """Test that parsing removes completely empty rows."""
-        data = """Date\tTime\tLoad
-2024-01-15\t00:00\t5000
-
-2024-01-15\t01:00\t4900
-"""
-        df = client._parse_bpa_text_format(data, "test")
-
-        # Should have 2 rows, not 3
-        assert len(df) == 2
-
-
-class TestBPAErrorHandling:
-    """Test BPA error handling."""
-
-    @patch("requests.Session.get")
-    def test_get_load_generation_exception_handling(self, mock_get, client):
-        """Test exception handling in load generation download."""
-        mock_response = Mock()
-        mock_response.ok = True
-        # Return malformed data that will cause parsing error
-        mock_response.text = "Invalid\tData\nNo\tHeader"
-        mock_get.return_value = mock_response
-
-        # Should handle exception gracefully
-        success = client.get_load_and_generation()
-
-        # Might succeed or fail depending on parsing tolerance
-        assert isinstance(success, bool)
-
-    @patch("requests.Session.get")
-    def test_get_wind_solar_exception_handling(self, mock_get, client):
-        """Test exception handling in wind solar download."""
-        mock_response = Mock()
-        mock_response.ok = True
-        mock_response.text = "Malformed Data"
-        mock_get.return_value = mock_response
-
-        success = client.get_wind_solar_generation()
-
-        assert isinstance(success, bool)
-
-    def test_parse_with_invalid_datetime_format(self, client):
-        """Test parsing with invalid datetime values."""
-        data = """Date\tTime\tLoad
-NotADate\t99:99\t5000
-2024-01-15\t00:00\t4900
-"""
-        df = client._parse_bpa_text_format(data, "test")
-
-        # Should still parse successfully (pandas handles errors with 'coerce')
-        assert not df.empty
-        # At least one row should be valid
-        assert len(df) >= 1
-
-
-# ============================================================================
-# Integration-style tests
-# ============================================================================
-
-
-@pytest.mark.integration
-class TestBPAIntegration:
-    """Integration tests for BPA client."""
-
-    # @pytest.mark.skip(reason="Requires BPA API access")
-    def test_download_real_load_data(self, client):
-        """Test downloading real load and generation data."""
-        success = client.get_load_and_generation()
-
-        assert success
-
-        # Check that file was created
-        files = list(client.config.data_dir.glob("*Load_and_Generation*.csv"))
-        assert len(files) > 0
-
-        # Verify file has expected columns
-        df = pd.read_csv(files[0])
-        assert len(df) > 0
-
-    # @pytest.mark.skip(reason="Requires BPA API access")
-    def test_download_real_wind_solar_data(self, client):
-        """Test downloading real wind and solar data."""
-        success = client.get_wind_solar_generation()
-
-        assert success
-
-        files = list(client.config.data_dir.glob("*Wind_Solar*.csv"))
-        assert len(files) > 0
-
-
-class TestBPACleanup:
-    """Test BPA cleanup functionality."""
-
-    def test_cleanup(self, client):
-        """Test cleanup method."""
-        # Should not raise any errors
+class TestCleanup:
+    def test_cleanup_no_error(self, client: BPAClient):
+        # Should simply log and not raise
         client.cleanup()
 
-    def test_cleanup_multiple_calls(self, client):
-        """Test cleanup can be called multiple times."""
+    def test_cleanup_idempotent(self, client: BPAClient):
         client.cleanup()
-        client.cleanup()
-        # Should not raise errors
+        client.cleanup()  # should still not raise
 
 
 if __name__ == "__main__":
