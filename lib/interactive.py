@@ -643,92 +643,114 @@ def run_caiso_ancillary():
 
 def run_miso_mode():
     """Interactive mode for MISO data."""
-    from lib.iso.miso import MISOClient
+    from lib.iso.miso import MISOConfig, MISOClient
 
     print("\n" + "=" * 60)
     print("MISO DATA SELECTION")
     print("=" * 60)
 
     print("\nWhat type of data?")
-    print("  (1) Historical Locational Marginal Prices (LMP)")
-    print("  (2) Historical Marginal Clearing Prices (MCP)")
-    print("  (3) Summary Reports")
-    print("  (4) Fuel Mix")
-    print("  (5) Area Control Error (ACE)")
-    print("  (6) Wind Generation")
-    print("  (7) Market Totals")
+    print("  (1) Pricing Data (LMP & MCP)")
+    print("  (2) Load & Demand Data")
+    print("  (3) Generation Data")
+    print("  (4) Interchange Data")
+    print("  (5) Outages & Constraints")
 
     while True:
         try:
-            data_type = int(input("\nYour choice (1-7): "))
-            if data_type in range(1, 8):
+            data_type = int(input("\nYour choice (1-5): "))
+            if data_type in range(1, 6):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 7")
+        print("Please enter a number between 1 and 5")
 
     if data_type == 1:
-        run_miso_lmp()
+        run_miso_pricing()
     elif data_type == 2:
-        run_miso_mcp()
+        run_miso_load()
     elif data_type == 3:
-        run_miso_summary()
+        run_miso_generation()
     elif data_type == 4:
-        run_miso_fuel_mix()
-    elif data_type == 5:
-        run_miso_ace()
-    elif data_type == 6:
-        run_miso_wind()
+        run_miso_interchange()
     else:
-        run_miso_market_totals()
+        run_miso_outages()
+
+
+def run_miso_pricing():
+    """MISO pricing data selection."""
+    from lib.iso.miso import MISOConfig, MISOClient
+
+    print("\n" + "=" * 60)
+    print("MISO PRICING DATA")
+    print("=" * 60)
+
+    print("\nWhat type of pricing data?")
+    print("  (1) Locational Marginal Prices (LMP)")
+    print("  (2) Market Clearing Prices (MCP)")
+
+    while True:
+        try:
+            price_type = int(input("\nYour choice (1-2): "))
+            if price_type in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    if price_type == 1:
+        run_miso_lmp()
+    else:
+        run_miso_mcp()
 
 
 def run_miso_lmp():
     """MISO LMP data selection."""
-    from lib.iso.miso import MISOClient
+    from lib.iso.miso import MISOConfig, MISOClient
 
     print("\n" + "=" * 60)
     print("MISO LMP DATA")
     print("=" * 60)
 
     print("\nWhat type of LMP?")
-    print("  (1) Day-Ahead EPNode LMPs")
-    print("  (2) Day-Ahead Market ExAnte LMPs")
-    print("  (3) Day-Ahead Market ExPost LMPs")
-    print("  (4) Real-Time EPNode LMPs")
-    print("  (5) Real-Time 5-min ExAnte LMPs")
-    print("  (6) Real-Time Final Market LMPs")
+    print("  (1) Day-Ahead ExAnte LMP")
+    print("  (2) Day-Ahead ExPost LMP")
+    print("  (3) Real-Time ExAnte LMP")
+    print("  (4) Real-Time ExPost LMP")
 
     while True:
         try:
-            lmp_type = int(input("\nYour choice (1-6): "))
-            if lmp_type in range(1, 7):
+            lmp_type = int(input("\nYour choice (1-4): "))
+            if lmp_type in range(1, 5):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 6")
+        print("Please enter a number between 1 and 4")
 
     lmp_map = {
-        1: "da_epnodes",
-        2: "da_exante",
-        3: "da_expost",
-        4: "rt_epnodes",
-        5: "rt_5min_exante",
-        6: "rt_final",
+        1: "da_exante",
+        2: "da_expost",
+        3: "rt_exante",
+        4: "rt_expost",
     }
 
     lmp_choice = lmp_map[lmp_type]
 
     start_date, duration = get_date_input()
 
-    client = MISOClient()
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
+
     try:
         print(f"\n📥 Downloading MISO {lmp_choice.upper()} LMP data...")
-        success = client.get_lmp(lmp_choice, start_date, duration)
+        data = client.get_lmp(lmp_choice, start_date, duration)
 
-        if success:
+        if data:
+            filename = f"miso_{lmp_choice}_lmp_{start_date}.csv"
+            client.save_to_csv(data, filename)
             print("\n✅ Download complete!")
-            print(f"   Data saved to: data/MISO/")
+            print(f"   Data saved to: data/MISO/{filename}")
+            print(f"   Records: {sum(len(records) for records in data.values())}")
         else:
             print("\n❌ Download failed. Check logs for details.")
     except Exception as e:
@@ -738,50 +760,53 @@ def run_miso_lmp():
 
 def run_miso_mcp():
     """MISO MCP data selection."""
-    from lib.iso.miso import MISOClient
+    from lib.iso.miso import MISOConfig, MISOClient
 
     print("\n" + "=" * 60)
     print("MISO MCP DATA")
     print("=" * 60)
 
     print("\nWhat type of MCP?")
-    print("  (1) ASM Day-Ahead Market ExAnte MCPs")
-    print("  (2) ASM Day-Ahead Market ExPost MCPs")
-    print("  (3) ASM Real-Time 5-min ExAnte MCPs")
-    print("  (4) ASM Real-Time Final Market MCPs")
-    print("  (5) Day-Ahead ExAnte Ramp MCPs")
-    print("  (6) Day-Ahead ExPost Ramp MCPs")
+    print("  (1) ASM Day-Ahead ExAnte MCP")
+    print("  (2) ASM Day-Ahead ExPost MCP")
+    print("  (3) ASM Real-Time ExAnte MCP")
+    print("  (4) ASM Real-Time ExPost MCP")
+    print("  (5) ASM Real-Time Summary MCP")
 
     while True:
         try:
-            mcp_type = int(input("\nYour choice (1-6): "))
-            if mcp_type in range(1, 7):
+            mcp_type = int(input("\nYour choice (1-5): "))
+            if mcp_type in range(1, 6):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 6")
+        print("Please enter a number between 1 and 5")
 
     mcp_map = {
         1: "asm_da_exante",
         2: "asm_da_expost",
-        3: "asm_rt_5min_exante",
-        4: "asm_rt_final",
-        5: "da_exante_ramp",
-        6: "da_expost_ramp",
+        3: "asm_rt_exante",
+        4: "asm_rt_expost",
+        5: "asm_rt_summary",
     }
 
     mcp_choice = mcp_map[mcp_type]
 
     start_date, duration = get_date_input()
 
-    client = MISOClient()
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
+
     try:
         print(f"\n📥 Downloading MISO {mcp_choice.upper()} MCP data...")
-        success = client.get_mcp(mcp_choice, start_date, duration)
+        data = client.get_mcp(mcp_choice, start_date, duration)
 
-        if success:
+        if data:
+            filename = f"miso_{mcp_choice}_mcp_{start_date}.csv"
+            client.save_to_csv(data, filename)
             print("\n✅ Download complete!")
-            print(f"   Data saved to: data/MISO/")
+            print(f"   Data saved to: data/MISO/{filename}")
+            print(f"   Records: {sum(len(records) for records in data.values())}")
         else:
             print("\n❌ Download failed. Check logs for details.")
     except Exception as e:
@@ -789,160 +814,254 @@ def run_miso_mcp():
         print(f"\n❌ Error: {e}")
 
 
-def run_miso_summary():
-    """MISO summary data selection."""
-    from lib.iso.miso import MISOClient
+def run_miso_load():
+    """MISO load and demand data selection."""
+    from lib.iso.miso import MISOConfig, MISOClient
 
     print("\n" + "=" * 60)
-    print("MISO SUMMARY REPORTS")
+    print("MISO LOAD & DEMAND DATA")
     print("=" * 60)
 
-    print("\nWhat type of summary?")
-    print("  (1) Daily Forecast and Actual Load by Local Resource Zone")
-    print("  (2) Daily Regional Forecast and Actual Load")
+    print("\nWhat type of load data?")
+    print("  (1) Day-Ahead Demand")
+    print("  (2) Real-Time Demand Forecast")
+    print("  (3) Real-Time Actual Load")
+    print("  (4) Real-Time State Estimator Load")
+    print("  (5) Medium-Term Load Forecast")
 
     while True:
         try:
-            summary_type = int(input("\nYour choice (1-2): "))
-            if summary_type in [1, 2]:
+            load_type = int(input("\nYour choice (1-5): "))
+            if load_type in range(1, 6):
                 break
         except ValueError:
             pass
-        print("Please enter 1 or 2")
-
-    summary_map = {1: "daily_forecast_actual", 2: "regional_forecast_actual"}
-
-    summary_choice = summary_map[summary_type]
+        print("Please enter a number between 1 and 5")
 
     start_date, duration = get_date_input()
 
-    client = MISOClient()
-    try:
-        print(f"\n📥 Downloading MISO Load Summary...")
-        success = client.get_load_summary(summary_choice, start_date, duration)
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
 
-        if success:
+    try:
+        if load_type == 1:
+            print(f"\n📥 Downloading Day-Ahead Demand...")
+            data = client.get_demand("da_demand", start_date, duration, time_resolution="daily")
+            filename = f"miso_da_demand_{start_date}.csv"
+
+        elif load_type == 2:
+            print(f"\n📥 Downloading Real-Time Demand Forecast...")
+            data = client.get_demand("rt_forecast", start_date, duration, time_resolution="daily")
+            filename = f"miso_rt_demand_forecast_{start_date}.csv"
+
+        elif load_type == 3:
+            print(f"\n📥 Downloading Real-Time Actual Load...")
+            data = client.get_demand("rt_actual", start_date, duration, time_resolution="daily")
+            filename = f"miso_rt_actual_load_{start_date}.csv"
+
+        elif load_type == 4:
+            print(f"\n📥 Downloading State Estimator Load...")
+            data = client.get_demand(
+                "rt_state_estimator", start_date, duration, time_resolution="daily"
+            )
+            filename = f"miso_state_estimator_load_{start_date}.csv"
+
+        else:  # load_type == 5
+            print(f"\n📥 Downloading Medium-Term Load Forecast...")
+            data = client.get_load_forecast(start_date, duration, time_resolution="daily")
+            filename = f"miso_load_forecast_{start_date}.csv"
+
+        if data:
+            client.save_to_csv(data, filename)
             print("\n✅ Download complete!")
-            print(f"   Data saved to: data/MISO/")
+            print(f"   Data saved to: data/MISO/{filename}")
+            print(f"   Records: {sum(len(records) for records in data.values())}")
         else:
             print("\n❌ Download failed. Check logs for details.")
+
     except Exception as e:
         logger.error(f"Error downloading data: {e}", exc_info=True)
         print(f"\n❌ Error: {e}")
 
 
-def run_miso_fuel_mix():
-    """MISO fuel mix data selection."""
-    from lib.iso.miso import MISOClient
+def run_miso_generation():
+    """MISO generation data selection."""
+    from lib.iso.miso import MISOConfig, MISOClient
 
     print("\n" + "=" * 60)
-    print("MISO FUEL MIX DATA")
+    print("MISO GENERATION DATA")
     print("=" * 60)
 
-    start_date, duration = get_date_input()
-
-    client = MISOClient()
-    try:
-        print(f"\n📥 Downloading MISO Fuel Mix data...")
-        success = client.get_fuel_mix(start_date, duration)
-
-        if success:
-            print("\n✅ Download complete!")
-            print(f"   Data saved to: data/MISO/")
-        else:
-            print("\n❌ Download failed. Check logs for details.")
-    except Exception as e:
-        logger.error(f"Error downloading data: {e}", exc_info=True)
-        print(f"\n❌ Error: {e}")
-
-
-def run_miso_ace():
-    """MISO ACE data selection."""
-    from lib.iso.miso import MISOClient
-
-    print("\n" + "=" * 60)
-    print("MISO AREA CONTROL ERROR (ACE) DATA")
-    print("=" * 60)
-
-    start_date, duration = get_date_input()
-
-    client = MISOClient()
-    try:
-        print(f"\n📥 Downloading MISO ACE data...")
-        success = client.get_ace(start_date, duration)
-
-        if success:
-            print("\n✅ Download complete!")
-            print(f"   Data saved to: data/MISO/")
-        else:
-            print("\n❌ Download failed. Check logs for details.")
-    except Exception as e:
-        logger.error(f"Error downloading data: {e}", exc_info=True)
-        print(f"\n❌ Error: {e}")
-
-
-def run_miso_wind():
-    """MISO wind generation data selection."""
-    from lib.iso.miso import MISOClient
-
-    print("\n" + "=" * 60)
-    print("MISO WIND GENERATION DATA")
-    print("=" * 60)
-
-    print("\nWhat type of wind data?")
-    print("  (1) Wind Generation Forecast")
-    print("  (2) Actual Wind Generation")
+    print("\nWhat type of generation data?")
+    print("  (1) Day-Ahead Cleared Generation (Physical)")
+    print("  (2) Day-Ahead Cleared Generation (Virtual)")
+    print("  (3) Day-Ahead Generation Fuel Type")
+    print("  (4) Day-Ahead Offered Generation (ECOMAX)")
+    print("  (5) Day-Ahead Offered Generation (ECOMIN)")
+    print("  (6) Real-Time Cleared Generation")
+    print("  (7) Real-Time Committed Generation (ECOMAX)")
+    print("  (8) Real-Time Fuel on the Margin")
+    print("  (9) Real-Time Generation Fuel Type")
+    print(" (10) Real-Time Offered Generation (ECOMAX)")
 
     while True:
         try:
-            wind_type = int(input("\nYour choice (1-2): "))
-            if wind_type in [1, 2]:
+            gen_type = int(input("\nYour choice (1-10): "))
+            if gen_type in range(1, 11):
                 break
         except ValueError:
             pass
-        print("Please enter 1 or 2")
+        print("Please enter a number between 1 and 10")
+
+    gen_map = {
+        1: ("da_cleared_physical", "Day-Ahead Cleared Physical"),
+        2: ("da_cleared_virtual", "Day-Ahead Cleared Virtual"),
+        3: ("da_fuel_type", "Day-Ahead Fuel Type"),
+        4: ("da_offered_ecomax", "Day-Ahead Offered ECOMAX"),
+        5: ("da_offered_ecomin", "Day-Ahead Offered ECOMIN"),
+        6: ("rt_cleared", "Real-Time Cleared"),
+        7: ("rt_committed_ecomax", "Real-Time Committed ECOMAX"),
+        8: ("rt_fuel_margin", "Real-Time Fuel on Margin"),
+        9: ("rt_fuel_type", "Real-Time Fuel Type"),
+        10: ("rt_offered_ecomax", "Real-Time Offered ECOMAX"),
+    }
+
+    gen_choice, gen_name = gen_map[gen_type]
 
     start_date, duration = get_date_input()
 
-    client = MISOClient()
-    try:
-        if wind_type == 1:
-            print(f"\n📥 Downloading MISO Wind Forecast...")
-            success = client.get_wind_forecast(start_date, duration)
-        else:
-            print(f"\n📥 Downloading MISO Actual Wind Generation...")
-            success = client.get_wind_actual(start_date, duration)
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
 
-        if success:
+    try:
+        print(f"\n📥 Downloading {gen_name}...")
+
+        # Special handling for fuel on margin
+        if gen_choice == "rt_fuel_margin":
+            data = client.get_fuel_mix(start_date, duration)
+        else:
+            data = client.get_generation(gen_choice, start_date, duration)
+
+        if data:
+            filename = f"miso_{gen_choice}_{start_date}.csv"
+            client.save_to_csv(data, filename)
             print("\n✅ Download complete!")
-            print(f"   Data saved to: data/MISO/")
+            print(f"   Data saved to: data/MISO/{filename}")
+            print(f"   Records: {sum(len(records) for records in data.values())}")
         else:
             print("\n❌ Download failed. Check logs for details.")
+
     except Exception as e:
         logger.error(f"Error downloading data: {e}", exc_info=True)
         print(f"\n❌ Error: {e}")
 
 
-def run_miso_market_totals():
-    """MISO market totals data selection."""
-    from lib.iso.miso import MISOClient
+def run_miso_interchange():
+    """MISO interchange data selection."""
+    from lib.iso.miso import MISOConfig, MISOClient
 
     print("\n" + "=" * 60)
-    print("MISO MARKET TOTALS DATA")
+    print("MISO INTERCHANGE DATA")
     print("=" * 60)
+
+    print("\nWhat type of interchange data?")
+    print("  (1) Day-Ahead Net Scheduled Interchange")
+    print("  (2) Real-Time Net Actual Interchange")
+    print("  (3) Real-Time Net Scheduled Interchange")
+    print("  (4) Historical Net Scheduled Interchange")
+
+    while True:
+        try:
+            interchange_type = int(input("\nYour choice (1-4): "))
+            if interchange_type in range(1, 5):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 4")
+
+    interchange_map = {
+        1: "da_net_scheduled",
+        2: "rt_net_actual",
+        3: "rt_net_scheduled",
+        4: "historical",
+    }
+
+    interchange_choice = interchange_map[interchange_type]
 
     start_date, duration = get_date_input()
 
-    client = MISOClient()
-    try:
-        print(f"\n📥 Downloading MISO Day-Ahead Market Totals...")
-        success = client.get_market_totals(start_date, duration)
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
 
-        if success:
+    try:
+        print(f"\n📥 Downloading {interchange_choice.replace('_', ' ').title()}...")
+        data = client.get_interchange(interchange_choice, start_date, duration)
+
+        if data:
+            filename = f"miso_{interchange_choice}_{start_date}.csv"
+            client.save_to_csv(data, filename)
             print("\n✅ Download complete!")
-            print(f"   Data saved to: data/MISO/")
+            print(f"   Data saved to: data/MISO/{filename}")
+            print(f"   Records: {sum(len(records) for records in data.values())}")
         else:
             print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_miso_outages():
+    """MISO outages and constraints data selection."""
+    from lib.iso.miso import MISOConfig, MISOClient
+
+    print("\n" + "=" * 60)
+    print("MISO OUTAGES & CONSTRAINTS")
+    print("=" * 60)
+
+    print("\nWhat type of data?")
+    print("  (1) Outage Forecast")
+    print("  (2) Real-Time Outages")
+    print("  (3) Real-Time Binding Constraints")
+
+    while True:
+        try:
+            data_type = int(input("\nYour choice (1-3): "))
+            if data_type in range(1, 4):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 3")
+
+    start_date, duration = get_date_input()
+
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
+
+    try:
+        if data_type == 1:
+            print(f"\n📥 Downloading Outage Forecast...")
+            data = client.get_outages("forecast", start_date, duration)
+            filename = f"miso_outage_forecast_{start_date}.csv"
+
+        elif data_type == 2:
+            print(f"\n📥 Downloading Real-Time Outages...")
+            data = client.get_outages("rt_outage", start_date, duration)
+            filename = f"miso_rt_outages_{start_date}.csv"
+
+        else:  # data_type == 3
+            print(f"\n📥 Downloading Binding Constraints...")
+            data = client.get_binding_constraints(start_date, duration)
+            filename = f"miso_binding_constraints_{start_date}.csv"
+
+        if data:
+            client.save_to_csv(data, filename)
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/MISO/{filename}")
+            print(f"   Records: {sum(len(records) for records in data.values())}")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
     except Exception as e:
         logger.error(f"Error downloading data: {e}", exc_info=True)
         print(f"\n❌ Error: {e}")

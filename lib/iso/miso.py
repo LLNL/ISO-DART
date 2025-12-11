@@ -1,299 +1,726 @@
 """
-MISO Client for ISO-DART v2.0
+MISO REST API Client for ISO-DART v2.0
 
-Modernized client for Midcontinent Independent System Operator data retrieval.
+Modernized client using MISO Data Exchange REST API.
+Supports Pricing API and Load/Generation/Interchange API.
 File location: lib/iso/miso.py
 """
 
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import date, timedelta
 from pathlib import Path
 import logging
 import requests
-import zipfile
-import io
 from dataclasses import dataclass
 from enum import Enum
+import time
+import configparser
+import os
 
 logger = logging.getLogger(__name__)
 
 
-class MISODataType(Enum):
-    """MISO data types."""
+class MISOPricingEndpoint(Enum):
+    """MISO Pricing API endpoints."""
 
-    # LMP Types
-    DA_EPNODES = "DA_Load_EPNodes"
-    DA_EXANTE_LMP = "da_exante_lmp"
-    DA_EXPOST_LMP = "da_expost_lmp"
-    RT_EPNODES = "RT_Load_EPNodes"
-    RT_5MIN_EXANTE_LMP = "5min_exante_lmp"
-    RT_FINAL_LMP = "rt_lmp_final"
+    DA_EXANTE_LMP = "day-ahead/{date}/lmp-exante"
+    DA_EXPOST_LMP = "day-ahead/{date}/lmp-expost"
+    RT_EXANTE_LMP = "real-time/{date}/lmp-exante"
+    RT_EXPOST_LMP = "real-time/{date}/lmp-expost"
+    ASM_DA_EXANTE_MCP = "day-ahead/{date}/asm-exante"
+    ASM_DA_EXPOST_MCP = "day-ahead/{date}/asm-expost"
+    ASM_RT_EXANTE_MCP = "real-time/{date}/asm-exante"
+    ASM_RT_EXPOST_MCP = "real-time/{date}/asm-expost"
+    ASM_RT_SUMMARY = "real-time/{date}/asm-summary"
 
-    # MCP Types
-    ASM_DA_EXANTE_MCP = "asm_exante_damcp"
-    ASM_DA_EXPOST_MCP = "asm_expost_damcp"
-    ASM_RT_5MIN_EXANTE_MCP = "5min_exante_mcp"
-    ASM_RT_FINAL_MCP = "asm_rtmcp_final"
-    DA_EXANTE_RAMP_MCP = "da_exante_ramp_mcp"
-    DA_EXPOST_RAMP_MCP = "da_expost_ramp_mcp"
 
-    # Summary Types
-    DAILY_FORECAST_ACTUAL_LOAD = "df_al"
-    REGIONAL_FORECAST_ACTUAL_LOAD = "rf_al"
+class MISOLGIEndpoint(Enum):
+    """MISO Load/Generation/Interchange API endpoints."""
 
-    # Fuel Mix Types
-    FUEL_MIX = "fuel_on_the_margin"
-    ACE = "ace"
+    # Load/Demand
+    DA_DEMAND = "day-ahead/{date}/demand"
+    RT_DEMAND_FORECAST = "real-time/{date}/demand/forecast"
+    RT_DEMAND_ACTUAL = "real-time/{date}/demand/actual"
+    RT_DEMAND_STATE_EST = "real-time/{date}/demand/load-state-estimator"
+    LOAD_FORECAST = "forecast/{date}/load"
 
-    # Generation Types
-    WIND_FORECAST = "wind_forecast"
-    WIND_ACTUAL = "wind_gen"
+    # Generation - Day-Ahead
+    DA_GEN_CLEARED_PHYSICAL = "day-ahead/{date}/generation/cleared/physical"
+    DA_GEN_CLEARED_VIRTUAL = "day-ahead/{date}/generation/cleared/virtual"
+    DA_GEN_FUEL_TYPE = "day-ahead/{date}/generation/fuel-type"
+    DA_GEN_OFFERED_ECOMAX = "day-ahead/{date}/generation/offered/ecomax"
+    DA_GEN_OFFERED_ECOMIN = "day-ahead/{date}/generation/offered/ecomin"
 
-    # Market Summary
-    MARKET_TOTALS = "ms_da"
+    # Generation - Real-Time
+    RT_GEN_CLEARED = "real-time/{date}/generation/cleared/supply"
+    RT_GEN_COMMITTED_ECOMAX = "real-time/{date}/generation/committed/ecomax"
+    RT_GEN_FUEL_MARGIN = "real-time/{date}/generation/fuel-on-the-margin"
+    RT_GEN_FUEL_TYPE = "real-time/{date}/generation/fuel-type"
+    RT_GEN_OFFERED_ECOMAX = "real-time/{date}/generation/offered/ecomax"
+
+    # Interchange
+    DA_INTERCHANGE_NET_SCHEDULED = "day-ahead/{date}/interchange/net-scheduled"
+    RT_INTERCHANGE_NET_ACTUAL = "real-time/{date}/interchange/net-actual"
+    RT_INTERCHANGE_NET_SCHEDULED = "real-time/{date}/interchange/net-scheduled"
+    HISTORICAL_INTERCHANGE = "historical/{date}/interchange/net-scheduled"
+
+    # Outages & Constraints
+    OUTAGE_FORECAST = "forecast/{date}/outage"
+    RT_OUTAGE = "real-time/{date}/outage"
+    RT_BINDING_CONSTRAINTS = "real-time/{date}/binding-constraint"
 
 
 @dataclass
 class MISOConfig:
-    """Configuration for MISO client."""
+    """Configuration for MISO REST API client."""
 
-    base_url: str = "https://docs.misoenergy.org/marketreports/"
+    pricing_base_url: str = "https://apim.misoenergy.org/pricing/v1"
+    lgi_base_url: str = "https://apim.misoenergy.org/lgi/v1"
+    pricing_api_key: Optional[str] = None  # API key for Pricing product
+    lgi_api_key: Optional[str] = None  # API key for LGI product
     data_dir: Path = Path("data/MISO")
     max_retries: int = 3
     retry_delay: int = 5
     timeout: int = 30
+    rate_limit_delay: float = 0.6  # 100 calls/min
+
+    @classmethod
+    def from_ini_file(cls, config_path: Optional[Path] = None) -> "MISOConfig":
+        """
+        Load configuration from INI file.
+
+        Search order:
+        1. Provided config_path
+        2. ./user_config.ini
+        3. ./config.ini
+        4. ~/.miso/config.ini
+
+        Args:
+            config_path: Optional path to config file
+
+        Returns:
+            MISOConfig instance
+
+        Example INI file format:
+
+        [miso]
+        pricing_api_key = your-pricing-key-here
+        lgi_api_key = your-lgi-key-here
+        data_dir = data/MISO
+        max_retries = 3
+        timeout = 30
+        """
+        config = configparser.ConfigParser()
+
+        # Define search paths
+        search_paths = []
+        if config_path:
+            search_paths.append(config_path)
+
+        search_paths.extend(
+            [
+                Path("user_config.ini"),
+                Path("config.ini"),
+                Path.home() / ".miso" / "config.ini",
+            ]
+        )
+
+        # Find first existing config file
+        config_file = None
+        for path in search_paths:
+            if path.exists():
+                config_file = path
+                logger.info(f"Loading configuration from: {config_file}")
+                break
+
+        if not config_file:
+            logger.warning(f"No config file found. Searched: {[str(p) for p in search_paths]}")
+            return cls()
+
+        config.read(config_file)
+
+        # Extract MISO section
+        if "miso" not in config:
+            logger.warning("No [miso] section found in config file")
+            return cls()
+
+        miso_config = config["miso"]
+
+        # Build config with values from file
+        kwargs = {}
+
+        if "pricing_api_key" in miso_config:
+            kwargs["pricing_api_key"] = miso_config["pricing_api_key"]
+
+        if "lgi_api_key" in miso_config:
+            kwargs["lgi_api_key"] = miso_config["lgi_api_key"]
+
+        if "data_dir" in miso_config:
+            kwargs["data_dir"] = Path(miso_config["data_dir"])
+
+        if "max_retries" in miso_config:
+            kwargs["max_retries"] = int(miso_config["max_retries"])
+
+        if "retry_delay" in miso_config:
+            kwargs["retry_delay"] = int(miso_config["retry_delay"])
+
+        if "timeout" in miso_config:
+            kwargs["timeout"] = int(miso_config["timeout"])
+
+        if "rate_limit_delay" in miso_config:
+            kwargs["rate_limit_delay"] = float(miso_config["rate_limit_delay"])
+
+        return cls(**kwargs)
+
+    @classmethod
+    def create_template_ini(cls, output_path: Path = Path("user_config.ini")):
+        """
+        Create a template INI file for users to fill in.
+
+        Args:
+            output_path: Where to save the template file
+        """
+        template = """[miso]
+# MISO Data Exchange API Keys
+# Get your keys from: https://data-exchange.misoenergy.org/
+
+# API key for Pricing product (LMP and MCP data)
+pricing_api_key = your-pricing-api-key-here
+
+# API key for Load, Generation, and Interchange product
+lgi_api_key = your-lgi-api-key-here
+
+# Directory for storing downloaded data
+data_dir = data/MISO
+
+# Request settings
+max_retries = 3
+retry_delay = 5
+timeout = 30
+rate_limit_delay = 0.6
+"""
+        output_path.write_text(template)
+        logger.info(f"Created template config file at: {output_path}")
+        print(f"Template config file created: {output_path}")
+        print("Please edit this file and add your API keys.")
 
 
 class MISOClient:
-    """Client for retrieving data from MISO."""
+    """Client for retrieving data from MISO Data Exchange REST API."""
 
     def __init__(self, config: Optional[MISOConfig] = None):
         self.config = config or MISOConfig()
         self._ensure_directories()
         self.session = requests.Session()
+        self._last_request_time = 0
 
     def _ensure_directories(self):
         """Ensure required directories exist."""
         self.config.data_dir.mkdir(parents=True, exist_ok=True)
 
-    def _build_filename(self, data_type: MISODataType, date_str: str, is_zip: bool = False) -> str:
-        """Build filename based on MISO naming conventions."""
-        query_name = data_type.value
+    def _rate_limit(self):
+        """Implement rate limiting."""
+        elapsed = time.time() - self._last_request_time
+        if elapsed < self.config.rate_limit_delay:
+            time.sleep(self.config.rate_limit_delay - elapsed)
+        self._last_request_time = time.time()
 
-        if is_zip:
-            return f"{query_name}_{date_str}.zip"
-        else:
-            # CSV files have date first for some types
-            if data_type in [
-                MISODataType.DA_EXANTE_LMP,
-                MISODataType.DA_EXPOST_LMP,
-                MISODataType.RT_FINAL_LMP,
-                MISODataType.ASM_DA_EXANTE_MCP,
-                MISODataType.ASM_DA_EXPOST_MCP,
-                MISODataType.ASM_RT_FINAL_MCP,
-            ]:
-                return f"{date_str}_{query_name}.csv"
-            else:
-                # XLS extension for some files
-                return f"{date_str}_{query_name}.xls"
-
-    def _make_request(self, url: str) -> Optional[bytes]:
+    def _make_request(
+        self, base_url: str, endpoint: str, params: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
         """Make API request with retry logic."""
+        url = f"{base_url}/{endpoint}"
+
+        # Determine which API key to use based on base URL
+        headers = {}
+        if "pricing" in base_url and self.config.pricing_api_key:
+            headers["Ocp-Apim-Subscription-Key"] = self.config.pricing_api_key
+        elif "lgi" in base_url and self.config.lgi_api_key:
+            headers["Ocp-Apim-Subscription-Key"] = self.config.lgi_api_key
+        else:
+            # No API key found for this URL
+            logger.warning(f"No API key configured for {base_url}")
+
         for attempt in range(self.config.max_retries):
             try:
-                logger.debug(f"Requesting: {url} (attempt {attempt + 1}/{self.config.max_retries})")
-                response = self.session.get(url, timeout=self.config.timeout)
+                self._rate_limit()
+                logger.debug(f"Requesting: {url} (attempt {attempt + 1})")
+                logger.debug(f"Headers: {list(headers.keys())}")
+                logger.debug(f"Params: {params}")
 
-                if response.ok:
-                    # Check if it's an error message from Azure Blob Storage
-                    if b"BlobNotFound" in response.content:
-                        logger.error(f"Data not found at {url}")
-                        return None
+                response = self.session.get(
+                    url, params=params, headers=headers, timeout=self.config.timeout
+                )
 
+                if response.status_code == 200:
                     logger.info(f"Request successful: {url}")
-                    return response.content
+                    return response.json()
+                elif response.status_code == 401:
+                    logger.error("Authentication failed - check API key")
+                    return None
+                elif response.status_code == 404:
+                    logger.warning(f"Data not found for {url}")
+                    logger.debug(f"Response: {response.text[:200]}")
+                    return None
+                elif response.status_code == 429:
+                    logger.warning("Rate limit exceeded, waiting...")
+                    time.sleep(60)
+                    continue
                 else:
                     logger.warning(f"Request failed with status {response.status_code}")
+                    logger.debug(f"Response: {response.text[:200]}")
 
             except requests.RequestException as e:
                 logger.error(f"Request error: {e}")
 
             if attempt < self.config.max_retries - 1:
-                import time
-
                 time.sleep(self.config.retry_delay)
 
         return None
 
-    def download_data(self, data_type: MISODataType, start_date: date, duration: int) -> bool:
-        """
-        Download MISO data for a date range.
+    def _fetch_all_pages(
+        self, base_url: str, endpoint: str, params: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        """Fetch all pages of paginated data."""
+        all_data = []
+        page_number = 1
+        params = params or {}
 
-        Args:
-            data_type: Type of data to download
-            start_date: Start date for data
-            duration: Duration in days
+        while True:
+            params["pageNumber"] = page_number
+            result = self._make_request(base_url, endpoint, params)
 
-        Returns:
-            True if successful, False otherwise
-        """
-        logger.info(f"Downloading {data_type.value} from {start_date} for {duration} days")
+            if not result or "data" not in result:
+                break
 
-        # Generate date list
+            all_data.extend(result["data"])
+
+            page_info = result.get("page", {})
+            if page_info.get("lastPage", True):
+                break
+
+            page_number += 1
+            logger.info(f"Fetching page {page_number}...")
+
+        return all_data
+
+    def _download_data(
+        self, base_url: str, endpoint_template: str, start_date: date, duration: int, **filters
+    ) -> Dict[date, List[Dict[str, Any]]]:
+        """Download data for a date range."""
         date_list = [start_date + timedelta(days=i) for i in range(duration)]
+        results = {}
 
-        success_count = 0
         for current_date in date_list:
-            date_str = current_date.strftime("%Y%m%d")
+            date_str = current_date.strftime("%Y-%m-%d")
+            endpoint = endpoint_template.format(date=date_str)
 
-            # Determine if it's a ZIP file
-            is_zip = data_type in [MISODataType.DA_EPNODES, MISODataType.RT_EPNODES]
+            data = self._fetch_all_pages(base_url, endpoint, filters)
 
-            filename = self._build_filename(data_type, date_str, is_zip)
-            url = f"{self.config.base_url}{filename}"
-
-            content = self._make_request(url)
-            if not content:
-                logger.warning(f"Failed to download data for {current_date}")
-                continue
-
-            # Save the file
-            if is_zip:
-                # Extract ZIP contents
-                try:
-                    z = zipfile.ZipFile(io.BytesIO(content))
-                    z.extractall(self.config.data_dir)
-                    logger.info(f"Extracted ZIP to {self.config.data_dir}")
-                    success_count += 1
-                except zipfile.BadZipFile:
-                    logger.error(f"Invalid ZIP file for {current_date}")
+            if data:
+                results[current_date] = data
+                logger.info(f"Downloaded {len(data)} records for {current_date}")
             else:
-                # Save CSV/XLS directly
-                output_path = self.config.data_dir / filename
-                output_path.write_bytes(content)
-                logger.info(f"Saved: {output_path}")
-                success_count += 1
+                logger.warning(f"No data found for {current_date}")
 
-        logger.info(f"Downloaded {success_count}/{len(date_list)} files successfully")
-        return success_count > 0
+        logger.info(f"Downloaded data for {len(results)}/{len(date_list)} dates")
+        return results
 
-    def get_lmp(self, lmp_type: str, start_date: date, duration: int) -> bool:
-        """
-        Get LMP data.
+    # ========== PRICING API METHODS ==========
 
-        Args:
-            lmp_type: Type of LMP ('da_epnodes', 'da_exante', 'da_expost',
-                                   'rt_epnodes', 'rt_5min_exante', 'rt_final')
-            start_date: Start date
-            duration: Duration in days
-        """
+    def get_lmp(
+        self,
+        lmp_type: str,
+        start_date: date,
+        duration: int,
+        node: Optional[str] = None,
+        interval: Optional[str] = None,
+        preliminary_final: Optional[str] = None,
+        time_resolution: Optional[str] = None,
+    ) -> Dict[date, List[Dict[str, Any]]]:
+        """Get LMP data."""
         type_map = {
-            "da_epnodes": MISODataType.DA_EPNODES,
-            "da_exante": MISODataType.DA_EXANTE_LMP,
-            "da_expost": MISODataType.DA_EXPOST_LMP,
-            "rt_epnodes": MISODataType.RT_EPNODES,
-            "rt_5min_exante": MISODataType.RT_5MIN_EXANTE_LMP,
-            "rt_final": MISODataType.RT_FINAL_LMP,
+            "da_exante": MISOPricingEndpoint.DA_EXANTE_LMP,
+            "da_expost": MISOPricingEndpoint.DA_EXPOST_LMP,
+            "rt_exante": MISOPricingEndpoint.RT_EXANTE_LMP,
+            "rt_expost": MISOPricingEndpoint.RT_EXPOST_LMP,
         }
 
         if lmp_type not in type_map:
             logger.error(f"Invalid LMP type: {lmp_type}")
-            return False
+            return {}
 
-        return self.download_data(type_map[lmp_type], start_date, duration)
+        filters = {}
+        if node:
+            filters["node"] = node
+        if interval:
+            filters["interval"] = interval
+        if preliminary_final:
+            filters["preliminaryFinal"] = preliminary_final
+        if time_resolution:
+            filters["timeResolution"] = time_resolution
 
-    def get_mcp(self, mcp_type: str, start_date: date, duration: int) -> bool:
-        """
-        Get MCP (Marginal Clearing Price) data.
+        return self._download_data(
+            self.config.pricing_base_url, type_map[lmp_type].value, start_date, duration, **filters
+        )
 
-        Args:
-            mcp_type: Type of MCP ('asm_da_exante', 'asm_da_expost',
-                                   'asm_rt_5min_exante', 'asm_rt_final',
-                                   'da_exante_ramp', 'da_expost_ramp')
-            start_date: Start date
-            duration: Duration in days
-        """
+    def get_mcp(
+        self,
+        mcp_type: str,
+        start_date: date,
+        duration: int,
+        zone: Optional[str] = None,
+        product: Optional[str] = None,
+        interval: Optional[str] = None,
+        preliminary_final: Optional[str] = None,
+        time_resolution: Optional[str] = None,
+    ) -> Dict[date, List[Dict[str, Any]]]:
+        """Get MCP (Market Clearing Price) data."""
         type_map = {
-            "asm_da_exante": MISODataType.ASM_DA_EXANTE_MCP,
-            "asm_da_expost": MISODataType.ASM_DA_EXPOST_MCP,
-            "asm_rt_5min_exante": MISODataType.ASM_RT_5MIN_EXANTE_MCP,
-            "asm_rt_final": MISODataType.ASM_RT_FINAL_MCP,
-            "da_exante_ramp": MISODataType.DA_EXANTE_RAMP_MCP,
-            "da_expost_ramp": MISODataType.DA_EXPOST_RAMP_MCP,
+            "asm_da_exante": MISOPricingEndpoint.ASM_DA_EXANTE_MCP,
+            "asm_da_expost": MISOPricingEndpoint.ASM_DA_EXPOST_MCP,
+            "asm_rt_exante": MISOPricingEndpoint.ASM_RT_EXANTE_MCP,
+            "asm_rt_expost": MISOPricingEndpoint.ASM_RT_EXPOST_MCP,
+            "asm_rt_summary": MISOPricingEndpoint.ASM_RT_SUMMARY,
         }
 
         if mcp_type not in type_map:
             logger.error(f"Invalid MCP type: {mcp_type}")
-            return False
+            return {}
 
-        return self.download_data(type_map[mcp_type], start_date, duration)
+        filters = {}
+        if zone:
+            filters["zone"] = zone
+        if product:
+            filters["product"] = product
+        if interval:
+            filters["interval"] = interval
+        if preliminary_final:
+            filters["preliminaryFinal"] = preliminary_final
+        if time_resolution:
+            filters["timeResolution"] = time_resolution
 
-    def get_load_summary(self, summary_type: str, start_date: date, duration: int) -> bool:
+        return self._download_data(
+            self.config.pricing_base_url, type_map[mcp_type].value, start_date, duration, **filters
+        )
+
+    # ========== LOAD/DEMAND METHODS ==========
+
+    def get_demand(
+        self,
+        demand_type: str,
+        start_date: date,
+        duration: int,
+        region: Optional[str] = None,
+        interval: Optional[str] = None,
+        time_resolution: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[date, List[Dict[str, Any]]]:
         """
-        Get load summary data.
+        Get demand/load data.
 
-        Args:
-            summary_type: Type of summary ('daily_forecast_actual', 'regional_forecast_actual')
-            start_date: Start date
-            duration: Duration in days
+        Types: 'da_demand', 'rt_forecast', 'rt_actual', 'rt_state_estimator'
         """
         type_map = {
-            "daily_forecast_actual": MISODataType.DAILY_FORECAST_ACTUAL_LOAD,
-            "regional_forecast_actual": MISODataType.REGIONAL_FORECAST_ACTUAL_LOAD,
+            "da_demand": MISOLGIEndpoint.DA_DEMAND,
+            "rt_forecast": MISOLGIEndpoint.RT_DEMAND_FORECAST,
+            "rt_actual": MISOLGIEndpoint.RT_DEMAND_ACTUAL,
+            "rt_state_estimator": MISOLGIEndpoint.RT_DEMAND_STATE_EST,
         }
 
-        if summary_type not in type_map:
-            logger.error(f"Invalid summary type: {summary_type}")
-            return False
+        if demand_type not in type_map:
+            logger.error(f"Invalid demand type: {demand_type}")
+            return {}
 
-        return self.download_data(type_map[summary_type], start_date, duration)
+        filters = {}
+        if region:
+            filters["region"] = region
+        if interval:
+            filters["interval"] = interval
+        if time_resolution:
+            filters["timeResolution"] = time_resolution
 
-    def get_fuel_mix(self, start_date: date, duration: int) -> bool:
+        # Additional filters for specific endpoints
+        filters.update(kwargs)
+
+        return self._download_data(
+            self.config.lgi_base_url, type_map[demand_type].value, start_date, duration, **filters
+        )
+
+    def get_load_forecast(
+        self,
+        start_date: date,
+        duration: int,
+        region: Optional[str] = None,
+        local_resource_zone: Optional[str] = None,
+        interval: Optional[str] = None,
+        time_resolution: Optional[str] = None,
+        init_date: Optional[date] = None,
+    ) -> Dict[date, List[Dict[str, Any]]]:
+        """Get medium term load forecast."""
+        filters = {}
+        if region:
+            filters["region"] = region
+        if local_resource_zone:
+            filters["localResourceZone"] = local_resource_zone
+        if interval:
+            filters["interval"] = interval
+        if time_resolution:
+            filters["timeResolution"] = time_resolution
+        if init_date:
+            filters["init"] = init_date.strftime("%Y-%m-%d")
+
+        return self._download_data(
+            self.config.lgi_base_url,
+            MISOLGIEndpoint.LOAD_FORECAST.value,
+            start_date,
+            duration,
+            **filters,
+        )
+
+    # ========== GENERATION METHODS ==========
+
+    def get_generation(
+        self,
+        gen_type: str,
+        start_date: date,
+        duration: int,
+        region: Optional[str] = None,
+        interval: Optional[str] = None,
+        time_resolution: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[date, List[Dict[str, Any]]]:
         """
-        Get fuel on the margin data.
+        Get generation data.
 
-        Args:
-            start_date: Start date
-            duration: Duration in days
+        Types: 'da_cleared_physical', 'da_cleared_virtual', 'da_fuel_type',
+               'da_offered_ecomax', 'da_offered_ecomin', 'rt_cleared',
+               'rt_committed_ecomax', 'rt_fuel_margin', 'rt_fuel_type',
+               'rt_offered_ecomax'
         """
-        return self.download_data(MISODataType.FUEL_MIX, start_date, duration)
+        type_map = {
+            "da_cleared_physical": MISOLGIEndpoint.DA_GEN_CLEARED_PHYSICAL,
+            "da_cleared_virtual": MISOLGIEndpoint.DA_GEN_CLEARED_VIRTUAL,
+            "da_fuel_type": MISOLGIEndpoint.DA_GEN_FUEL_TYPE,
+            "da_offered_ecomax": MISOLGIEndpoint.DA_GEN_OFFERED_ECOMAX,
+            "da_offered_ecomin": MISOLGIEndpoint.DA_GEN_OFFERED_ECOMIN,
+            "rt_cleared": MISOLGIEndpoint.RT_GEN_CLEARED,
+            "rt_committed_ecomax": MISOLGIEndpoint.RT_GEN_COMMITTED_ECOMAX,
+            "rt_fuel_margin": MISOLGIEndpoint.RT_GEN_FUEL_MARGIN,
+            "rt_fuel_type": MISOLGIEndpoint.RT_GEN_FUEL_TYPE,
+            "rt_offered_ecomax": MISOLGIEndpoint.RT_GEN_OFFERED_ECOMAX,
+        }
 
-    def get_ace(self, start_date: date, duration: int) -> bool:
-        """
-        Get Area Control Error (ACE) data.
+        if gen_type not in type_map:
+            logger.error(f"Invalid generation type: {gen_type}")
+            return {}
 
-        Args:
-            start_date: Start date
-            duration: Duration in days
-        """
-        return self.download_data(MISODataType.ACE, start_date, duration)
+        filters = {}
+        if region:
+            filters["region"] = region
+        if interval:
+            filters["interval"] = interval
+        if time_resolution:
+            filters["timeResolution"] = time_resolution
 
-    def get_wind_forecast(self, start_date: date, duration: int) -> bool:
-        """
-        Get wind generation forecast data.
+        # Additional filters
+        filters.update(kwargs)
 
-        Args:
-            start_date: Start date
-            duration: Duration in days
-        """
-        return self.download_data(MISODataType.WIND_FORECAST, start_date, duration)
+        return self._download_data(
+            self.config.lgi_base_url, type_map[gen_type].value, start_date, duration, **filters
+        )
 
-    def get_wind_actual(self, start_date: date, duration: int) -> bool:
-        """
-        Get actual wind generation data.
+    def get_fuel_mix(
+        self,
+        start_date: date,
+        duration: int,
+        region: Optional[str] = None,
+        fuel_type: Optional[str] = None,
+        interval: Optional[str] = None,
+    ) -> Dict[date, List[Dict[str, Any]]]:
+        """Get fuel on the margin data (5-minute intervals)."""
+        filters = {}
+        if region:
+            filters["region"] = region
+        if fuel_type:
+            filters["fuelType"] = fuel_type
+        if interval:
+            filters["interval"] = interval
 
-        Args:
-            start_date: Start date
-            duration: Duration in days
-        """
-        return self.download_data(MISODataType.WIND_ACTUAL, start_date, duration)
+        return self._download_data(
+            self.config.lgi_base_url,
+            MISOLGIEndpoint.RT_GEN_FUEL_MARGIN.value,
+            start_date,
+            duration,
+            **filters,
+        )
 
-    def get_market_totals(self, start_date: date, duration: int) -> bool:
-        """
-        Get day-ahead market summary totals.
+    # ========== INTERCHANGE METHODS ==========
 
-        Args:
-            start_date: Start date
-            duration: Duration in days
+    def get_interchange(
+        self,
+        interchange_type: str,
+        start_date: date,
+        duration: int,
+        region: Optional[str] = None,
+        adjacent_ba: Optional[str] = None,
+        interval: Optional[str] = None,
+    ) -> Dict[date, List[Dict[str, Any]]]:
         """
-        return self.download_data(MISODataType.MARKET_TOTALS, start_date, duration)
+        Get interchange data.
+
+        Types: 'da_net_scheduled', 'rt_net_actual', 'rt_net_scheduled', 'historical'
+        """
+        type_map = {
+            "da_net_scheduled": MISOLGIEndpoint.DA_INTERCHANGE_NET_SCHEDULED,
+            "rt_net_actual": MISOLGIEndpoint.RT_INTERCHANGE_NET_ACTUAL,
+            "rt_net_scheduled": MISOLGIEndpoint.RT_INTERCHANGE_NET_SCHEDULED,
+            "historical": MISOLGIEndpoint.HISTORICAL_INTERCHANGE,
+        }
+
+        if interchange_type not in type_map:
+            logger.error(f"Invalid interchange type: {interchange_type}")
+            return {}
+
+        filters = {}
+        if region:
+            filters["region"] = region
+        if adjacent_ba:
+            filters["adjacentBa"] = adjacent_ba
+        if interval:
+            filters["interval"] = interval
+
+        return self._download_data(
+            self.config.lgi_base_url,
+            type_map[interchange_type].value,
+            start_date,
+            duration,
+            **filters,
+        )
+
+    # ========== OUTAGES & CONSTRAINTS ==========
+
+    def get_outages(
+        self,
+        outage_type: str,
+        start_date: date,
+        duration: int,
+        region: Optional[str] = None,
+        interval: Optional[str] = None,
+    ) -> Dict[date, List[Dict[str, Any]]]:
+        """
+        Get outage data.
+
+        Types: 'forecast', 'rt_outage'
+        """
+        type_map = {
+            "forecast": MISOLGIEndpoint.OUTAGE_FORECAST,
+            "rt_outage": MISOLGIEndpoint.RT_OUTAGE,
+        }
+
+        if outage_type not in type_map:
+            logger.error(f"Invalid outage type: {outage_type}")
+            return {}
+
+        filters = {}
+        if region:
+            filters["region"] = region
+        if interval:
+            filters["interval"] = interval
+
+        return self._download_data(
+            self.config.lgi_base_url, type_map[outage_type].value, start_date, duration, **filters
+        )
+
+    def get_binding_constraints(
+        self, start_date: date, duration: int, interval: Optional[str] = None
+    ) -> Dict[date, List[Dict[str, Any]]]:
+        """Get real-time binding constraints."""
+        filters = {}
+        if interval:
+            filters["interval"] = interval
+
+        return self._download_data(
+            self.config.lgi_base_url,
+            MISOLGIEndpoint.RT_BINDING_CONSTRAINTS.value,
+            start_date,
+            duration,
+            **filters,
+        )
+
+    # ========== UTILITY METHODS ==========
+
+    def save_to_csv(self, data: Dict[date, List[Dict[str, Any]]], filename: str):
+        """Save downloaded data to CSV file."""
+        import pandas as pd
+
+        all_records = []
+        for date_key, records in data.items():
+            for record in records:
+                record["query_date"] = date_key
+                all_records.append(record)
+
+        if not all_records:
+            logger.warning("No data to save")
+            return
+
+        df = pd.DataFrame(all_records)
+        output_path = self.config.data_dir / filename
+        df.to_csv(output_path, index=False)
+        logger.info(f"Saved {len(all_records)} records to {output_path}")
+
+
+# Example usage
+if __name__ == "__main__":
+    import os
+
+    logging.basicConfig(level=logging.INFO)
+
+    # Method 1: Load from INI file (recommended for multi-user tools)
+    # First, create a template if it doesn't exist
+    if not Path("user_config.ini").exists():
+        MISOConfig.create_template_ini()
+        print("\nPlease edit user_config.ini with your API keys, then run again.")
+        exit(0)
+
+    # Load config from INI file
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
+
+    # Method 2: Load from environment variables (alternative)
+    # config = MISOConfig(
+    #     pricing_api_key=os.getenv('MISO_PRICING_API_KEY'),
+    #     lgi_api_key=os.getenv('MISO_LGI_API_KEY')
+    # )
+    # client = MISOClient(config)
+
+    # Method 3: Load from custom INI file path
+    # config = MISOConfig.from_ini_file(Path("/path/to/my_config.ini"))
+    # client = MISOClient(config)
+
+    # Example 1: Get LMP data (uses pricing API key)
+    # Note: Use dates that are a few days old to ensure data availability
+    example_date = date.today() - timedelta(days=7)
+
+    lmp_data = client.get_lmp(
+        lmp_type="da_exante", start_date=example_date, duration=7, node="ALTW.WELLS1"
+    )
+    if lmp_data:
+        client.save_to_csv(lmp_data, "da_exante_lmp.csv")
+
+    # Example 2: Get fuel mix (uses LGI API key)
+    fuel_data = client.get_fuel_mix(start_date=example_date, duration=7)
+    if fuel_data:
+        client.save_to_csv(fuel_data, "fuel_mix.csv")
+
+    # Example 3: Get actual load (uses LGI API key)
+    load_data = client.get_demand(
+        demand_type="rt_actual", start_date=example_date, duration=7, time_resolution="daily"
+    )
+    if load_data:
+        client.save_to_csv(load_data, "actual_load.csv")
+
+    # Example 4: Get generation fuel type (uses LGI API key)
+    gen_fuel = client.get_generation(gen_type="rt_fuel_type", start_date=example_date, duration=7)
+    if gen_fuel:
+        client.save_to_csv(gen_fuel, "generation_fuel_type.csv")

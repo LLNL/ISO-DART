@@ -157,63 +157,114 @@ def handle_caiso(args):
 
 def handle_miso(args):
     """Handle MISO-specific data download logic."""
-    from lib.iso.miso import MISOClient
+    from lib.iso.miso import MISOConfig, MISOClient
 
     logger.info(f"Processing MISO data request: {args.data_type}")
 
-    client = MISOClient()
-    success = False
+    config = MISOConfig.from_ini_file()
+    client = MISOClient(config)
 
     try:
+        data = None
+        filename = None
+
         if args.data_type == "lmp":
-            # Default to DA ExAnte if not specified
+            # LMP types: da_exante, da_expost, rt_exante, rt_expost
             lmp_type = getattr(args, "lmp_type", "da_exante")
             logger.info(f"Downloading MISO {lmp_type} LMP data...")
-            success = client.get_lmp(lmp_type, args.start, args.duration)
+
+            data = client.get_lmp(lmp_type=lmp_type, start_date=args.start, duration=args.duration)
+            filename = f"miso_{lmp_type}_lmp_{args.start}.csv"
 
         elif args.data_type == "mcp":
-            # Default to ASM DA ExAnte if not specified
+            # MCP types: asm_da_exante, asm_da_expost, asm_rt_exante, asm_rt_expost, asm_rt_summary
             mcp_type = getattr(args, "mcp_type", "asm_da_exante")
             logger.info(f"Downloading MISO {mcp_type} MCP data...")
-            success = client.get_mcp(mcp_type, args.start, args.duration)
+
+            data = client.get_mcp(mcp_type=mcp_type, start_date=args.start, duration=args.duration)
+            filename = f"miso_{mcp_type}_mcp_{args.start}.csv"
 
         elif args.data_type == "load":
-            logger.info("Downloading MISO load summary...")
-            success = client.get_load_summary("daily_forecast_actual", args.start, args.duration)
+            # Load types: da_demand, rt_forecast, rt_actual, rt_state_estimator
+            load_type = getattr(args, "load_type", "rt_actual")
+            logger.info(f"Downloading MISO {load_type} load data...")
+
+            data = client.get_demand(
+                demand_type=load_type,
+                start_date=args.start,
+                duration=args.duration,
+                time_resolution="daily",
+            )
+            filename = f"miso_{load_type}_load_{args.start}.csv"
+
+        elif args.data_type == "load-forecast":
+            logger.info("Downloading MISO medium-term load forecast...")
+
+            data = client.get_load_forecast(
+                start_date=args.start, duration=args.duration, time_resolution="daily"
+            )
+            filename = f"miso_load_forecast_{args.start}.csv"
 
         elif args.data_type == "fuel-mix":
-            logger.info("Downloading MISO fuel mix...")
-            success = client.get_fuel_mix(args.start, args.duration)
+            logger.info("Downloading MISO fuel on the margin...")
 
-        elif args.data_type == "wind":
-            logger.info("Downloading MISO wind generation...")
-            success = client.get_wind_actual(args.start, args.duration)
+            data = client.get_fuel_mix(start_date=args.start, duration=args.duration)
+            filename = f"miso_fuel_mix_{args.start}.csv"
 
-        elif args.data_type == "wind-forecast":
-            logger.info("Downloading MISO wind forecast...")
-            success = client.get_wind_forecast(args.start, args.duration)
+        elif args.data_type == "generation":
+            # Generation types: da_cleared_physical, da_cleared_virtual, da_fuel_type,
+            # da_offered_ecomax, da_offered_ecomin, rt_cleared, rt_committed_ecomax,
+            # rt_fuel_margin, rt_fuel_type, rt_offered_ecomax
+            gen_type = getattr(args, "gen_type", "rt_fuel_type")
+            logger.info(f"Downloading MISO {gen_type} generation data...")
 
-        elif args.data_type == "ace":
-            logger.info("Downloading MISO ACE data...")
-            success = client.get_ace(args.start, args.duration)
+            data = client.get_generation(
+                gen_type=gen_type, start_date=args.start, duration=args.duration
+            )
+            filename = f"miso_{gen_type}_generation_{args.start}.csv"
 
-        elif args.data_type == "market-totals":
-            logger.info("Downloading MISO market totals...")
-            success = client.get_market_totals(args.start, args.duration)
+        elif args.data_type == "interchange":
+            # Interchange types: da_net_scheduled, rt_net_actual, rt_net_scheduled, historical
+            interchange_type = getattr(args, "interchange_type", "rt_net_actual")
+            logger.info(f"Downloading MISO {interchange_type} interchange data...")
+
+            data = client.get_interchange(
+                interchange_type=interchange_type, start_date=args.start, duration=args.duration
+            )
+            filename = f"miso_{interchange_type}_interchange_{args.start}.csv"
+
+        elif args.data_type == "outages":
+            # Outage types: forecast, rt_outage
+            outage_type = getattr(args, "outage_type", "rt_outage")
+            logger.info(f"Downloading MISO {outage_type} data...")
+
+            data = client.get_outages(
+                outage_type=outage_type, start_date=args.start, duration=args.duration
+            )
+            filename = f"miso_{outage_type}_{args.start}.csv"
+
+        elif args.data_type == "binding-constraints":
+            logger.info("Downloading MISO binding constraints...")
+
+            data = client.get_binding_constraints(start_date=args.start, duration=args.duration)
+            filename = f"miso_binding_constraints_{args.start}.csv"
 
         else:
             logger.error(f"Unknown MISO data type: {args.data_type}")
             logger.info(
-                "Available types: lmp, mcp, load, fuel-mix, wind, wind-forecast, ace, market-totals"
+                "Available types: lmp, mcp, load, load-forecast, fuel-mix, generation, "
+                "interchange, outages, binding-constraints"
             )
             return False
 
-        if success:
-            logger.info(f"✅ MISO data downloaded successfully to data/MISO/")
+        # Save data if we got any
+        if data:
+            client.save_to_csv(data, filename)
+            logger.info(f"✅ MISO data downloaded successfully to data/MISO/{filename}")
+            return True
         else:
-            logger.error("❌ MISO data download failed")
-
-        return success
+            logger.error("❌ MISO data download failed - no data returned")
+            return False
 
     except Exception as e:
         logger.error(f"Error downloading MISO data: {e}", exc_info=True)
