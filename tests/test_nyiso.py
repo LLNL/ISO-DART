@@ -640,7 +640,6 @@ class TestNYISOSolarMethods:
 class TestNYISOIntegration:
     """Integration tests - require actual API access."""
 
-    @pytest.mark.skip(reason="Requires API access")
     def test_get_lbmp_integration(self, client):
         """Test actual LBMP data download."""
         start = date.today() - timedelta(days=35)
@@ -652,7 +651,6 @@ class TestNYISOIntegration:
         output_files = list(client.config.data_dir.glob("*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires API access")
     def test_get_load_data_integration(self, client):
         """Test actual load data download."""
         start = date.today() - timedelta(days=35)

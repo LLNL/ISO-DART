@@ -239,7 +239,6 @@ class TestReportVersion:
 class TestCAISOIntegration:
     """Integration tests - require actual API access."""
 
-    @pytest.mark.skip(reason="Requires API access")
     def test_get_lmp_integration(self, client):
         """Test actual LMP data download."""
         start = date.today() - timedelta(days=7)
@@ -253,7 +252,6 @@ class TestCAISOIntegration:
         output_files = list(client.config.data_dir.glob("*.csv"))
         assert len(output_files) > 0
 
-    @pytest.mark.skip(reason="Requires API access")
     def test_get_load_forecast_integration(self, client):
         """Test actual load forecast download."""
         start = date.today() - timedelta(days=3)
