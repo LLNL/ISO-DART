@@ -622,6 +622,65 @@ Examples:
     )
 
     parser.add_argument(
+        "--lmp-type",
+        choices=["da_exante", "da_expost", "rt_exante", "rt_expost"],
+        default="da_exante",
+        help="For MISO LMP: type of LMP data to download",
+    )
+
+    parser.add_argument(
+        "--mcp-type",
+        choices=[
+            "asm_da_exante",
+            "asm_da_expost",
+            "asm_rt_exante",
+            "asm_rt_expost",
+            "asm_rt_summary",
+        ],
+        default="asm_da_exante",
+        help="For MISO MCP: type of MCP data to download",
+    )
+
+    parser.add_argument(
+        "--load-type",
+        choices=["da_demand", "rt_forecast", "rt_actual", "rt_state_estimator"],
+        default="rt_actual",
+        help="For MISO Load: type of load data to download",
+    )
+
+    parser.add_argument(
+        "--gen-type",
+        choices=[
+            "da_cleared_physical",
+            "da_cleared_virtual",
+            "da_fuel_type",
+            "da_offered_ecomax",
+            "da_offered_ecomin",
+            "rt_cleared",
+            "rt_committed_ecomax",
+            "rt_fuel_margin",
+            "rt_fuel_type",
+            "rt_offered_ecomax",
+        ],
+        default="rt_fuel_type",
+        help="For MISO Generation: type of generation data to download",
+    )
+
+    parser.add_argument(
+        "--interchange-type",
+        choices=["da_net_scheduled", "rt_net_actual", "rt_net_scheduled", "historical"],
+        default="rt_net_actual",
+        help="For MISO Interchange: type of interchange data to download",
+    )
+
+    parser.add_argument(
+        "--outage-type",
+        choices=["forecast", "rt_outage"],
+        default="rt_outage",
+        help="For MISO Outage: type of outage data to download",
+    )
+
+    parser.add_argument(
         "--include-solar",
         action="store_true",
         help="Include solar data with weather download",

@@ -66,8 +66,8 @@ jobs:
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
-    # Only run integration tests on main branch or manual trigger
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    # Only run integration tests on dev branch or manual trigger
+    if: github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch'
     
     steps:
     - name: Checkout code
