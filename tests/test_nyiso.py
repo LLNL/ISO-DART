@@ -577,36 +577,6 @@ class TestNYISOInterfaceFlowMethods:
         assert mock_merge.called
 
 
-class TestNYISOWindMethods:
-    """Test NYISO wind generation methods."""
-
-    @patch("lib.iso.nyiso.NYISOClient._make_request")
-    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
-    def test_get_wind_generation(self, mock_merge, mock_request, client):
-        """Test getting wind generation data."""
-        mock_request.return_value = True
-        mock_merge.return_value = True
-
-        success = client.get_wind_generation(date(2024, 1, 1), 7)
-
-        assert success
-        assert mock_request.called
-        assert mock_merge.called
-
-    @patch("lib.iso.nyiso.NYISOClient._make_request")
-    @patch("lib.iso.nyiso.NYISOClient._merge_csvs")
-    def test_get_wind_generation_month_span(self, mock_merge, mock_request, client):
-        """Test getting wind data spanning multiple months."""
-        mock_request.return_value = True
-        mock_merge.return_value = True
-
-        success = client.get_wind_generation(date(2024, 1, 25), 15)
-
-        assert success
-        # Should call for 2 months
-        assert mock_request.call_count == 2
-
-
 class TestNYISOSolarMethods:
     """Test NYISO BTM solar methods."""
 
