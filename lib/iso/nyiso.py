@@ -412,40 +412,6 @@ class NYISOClient:
 
         return success
 
-    def get_wind_generation(self, start_date: date, duration: int) -> bool:
-        """
-        Get actual wind generation data.
-
-        Args:
-            start_date: Start date
-            duration: Duration in days
-        """
-        dataid = "wind"
-        file_dataid = "wind"
-
-        end_date = start_date + timedelta(days=duration)
-        month_starts = self._get_month_start_dates(start_date, end_date)
-
-        raw_path = self.config.raw_dir / dataid
-        raw_path.mkdir(parents=True, exist_ok=True)
-
-        for month_start in month_starts:
-            url = self._build_url(dataid, month_start, file_dataid)
-            logger.info(f"Downloading from: {url}")
-
-            if not self._make_request(url, raw_path):
-                logger.warning(f"Failed to download {month_start}")
-
-        success = self._merge_csvs(raw_path, dataid, start_date, duration)
-
-        # Cleanup
-        import shutil
-
-        if self.config.raw_dir.exists():
-            shutil.rmtree(self.config.raw_dir)
-
-        return success
-
     def get_btm_solar(self, start_date: date, duration: int) -> bool:
         """
         Get behind-the-meter (BTM) solar generation data.
@@ -455,7 +421,7 @@ class NYISOClient:
             duration: Duration in days
         """
         dataid = "btmactualforecast"
-        file_dataid = "btmactualforecast"
+        file_dataid = "BTMEstimatedActual"
 
         end_date = start_date + timedelta(days=duration)
         month_starts = self._get_month_start_dates(start_date, end_date)

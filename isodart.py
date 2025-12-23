@@ -307,10 +307,6 @@ def handle_nyiso(args):
             logger.info("Downloading NYISO fuel mix...")
             success = client.get_fuel_mix(args.start, args.duration)
 
-        elif args.data_type == "wind":
-            logger.info("Downloading NYISO wind generation...")
-            success = client.get_wind_generation(args.start, args.duration)
-
         elif args.data_type == "btm-solar":
             logger.info("Downloading NYISO BTM solar...")
             success = client.get_btm_solar(args.start, args.duration)
@@ -358,11 +354,10 @@ def handle_nyiso(args):
             logger.info(f"Downloading NYISO {market.value} constraint data...")
             success = client.get_constraints(market, args.start, args.duration)
 
-
         else:
             logger.error(f"Unknown NYISO data type: {args.data_type}")
             logger.info(
-                "Available types: lbmp, load, fuel-mix, wind, btm-solar, interface-flows, as-prices, bid, outages, constraints"
+                "Available types: lbmp, load, fuel-mix, btm-solar, interface-flows, as-prices, bid, outages, constraints"
             )
             return False
 
@@ -523,7 +518,11 @@ def handle_spp(args):
 
         else:
             logger.error(f"Unknown SPP data type: {args.data_type}")
-            logger.info("Available types: lmp, mcp, operating-reserves")
+            logger.info(
+                "Available types: lmp, mcp, operating-reserves, binding-constraints, fuel-on-margin, "
+                "short-term-load-forecast, medium-term-load-forecast, short-term-resource-forecast, "
+                "medium-term-resource-forecast, market-clearing, virtual-clearing"
+            )
             return False
 
         if success:
