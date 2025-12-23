@@ -327,10 +327,42 @@ def handle_nyiso(args):
             logger.info(f"Downloading NYISO {market.value} AS prices...")
             success = client.get_ancillary_services_prices(market, args.start, args.duration)
 
+        elif args.data_type == "bid":
+            # Default to generator bid data
+            bid_type = getattr(args, "bid_type", "generator")
+            logger.info(f"Downloading NYISO {bid_type} bid data...")
+            success = client.get_bid_data(bid_type, args.start, args.duration)
+
+        elif args.data_type == "outages":
+            if not market:
+                logger.error("Market type required for outage data")
+                return False
+
+            if market == NYISOMarket.DAM:
+                outage_type = None
+                logger.info(f"Downloading NYISO {market.value} outage data...")
+            else:
+                # Default to actual if not specified (outage type only for RTM)
+                outage_type = getattr(args, "outage_type", "actual")
+                logger.info(f"Downloading NYISO {market.value} {outage_type} outage data...")
+
+            success = client.get_outages(
+                market, outage_type=outage_type, start_date=args.start, duration=args.duration
+            )
+
+        elif args.data_type == "constraints":
+            if not market:
+                logger.error("Market type required for constraints data")
+                return False
+
+            logger.info(f"Downloading NYISO {market.value} constraint data...")
+            success = client.get_constraints(market, args.start, args.duration)
+
+
         else:
             logger.error(f"Unknown NYISO data type: {args.data_type}")
             logger.info(
-                "Available types: lbmp, load, fuel-mix, wind, btm-solar, interface-flows, as-prices"
+                "Available types: lbmp, load, fuel-mix, wind, btm-solar, interface-flows, as-prices, bid, outages, constraints"
             )
             return False
 
@@ -643,9 +675,17 @@ Examples:
 
     parser.add_argument(
         "--load-type",
-        choices=["da_demand", "rt_forecast", "rt_actual", "rt_state_estimator"],
-        default="rt_actual",
-        help="For MISO Load: type of load data to download",
+        choices=[
+            "da_demand",
+            "rt_forecast",
+            "rt_actual",
+            "rt_state_estimator",
+            "actual",
+            "iso_forecast",
+            "zonal_bid",
+            "weather_forecast",
+        ],
+        help="For MISO & NYISO Load: type of load data to download",
     )
 
     parser.add_argument(
@@ -675,9 +715,21 @@ Examples:
 
     parser.add_argument(
         "--outage-type",
-        choices=["forecast", "rt_outage"],
-        default="rt_outage",
-        help="For MISO Outage: type of outage data to download",
+        choices=["forecast", "rt_outage", "scheduled", "actual"],
+        help="For MISO & NYISO Outage: type of outage data to download",
+    )
+
+    parser.add_argument(
+        "--level",
+        choices=["zonal", "generator"],
+        default="zonal",
+        help="For NYISO LBMP: level of LBMP data to download",
+    )
+
+    parser.add_argument(
+        "--bid-type",
+        choices=["generator", "load", "transaction", "commitment"],
+        help="For NYISO Bid: type of bid data to download",
     )
 
     parser.add_argument(
