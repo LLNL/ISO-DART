@@ -25,6 +25,7 @@ def setup_directories():
         Path("data/NYISO"),
         Path("data/BPA"),
         Path("data/SPP"),
+        Path("data/PJM"),
         Path("data/weather"),
         Path("data/solar"),
         Path("raw_data/xml_files"),
@@ -540,6 +541,103 @@ def handle_spp(args):
         client.cleanup()
 
 
+def handle_pjm(args):
+    """Handle PJM-specific data download logic."""
+    from lib.iso.pjm import PJMClient, PJMConfig
+
+    logger.info(f"Processing PJM data request: {args.data_type}")
+
+    config = PJMConfig.from_ini_file()
+    client = PJMClient(config)
+    success = False
+
+    try:
+        end_date = calculate_end_date(args.start, args.duration)
+
+        if args.data_type == "lmp":
+            # LMP types: da_hourly, rt_5min, rt_hourly
+            lmp_type = getattr(args, "lmp_type", "da_hourly")
+            pnode_id = getattr(args, "pnode_id", None)
+
+            logger.info(f"Downloading PJM {lmp_type} LMP data...")
+            if pnode_id:
+                logger.info(f"Filtering by pricing node: {pnode_id}")
+
+            success = client.get_lmp(
+                lmp_type=lmp_type, start_date=args.start, duration=args.duration, pnode_id=pnode_id
+            )
+
+        elif args.data_type == "load-forecast":
+            # Forecast types: 5min, historical, 7day
+            forecast_type = getattr(args, "forecast_type", "historical")
+            logger.info(f"Downloading PJM {forecast_type} load forecast...")
+
+            success = client.get_load_forecast(
+                forecast_type=forecast_type, start_date=args.start, duration=args.duration
+            )
+
+        elif args.data_type == "hourly-load":
+            # Load types: estimated, metered, preliminary
+            load_type = getattr(args, "load_type", "metered")
+            logger.info(f"Downloading PJM {load_type} hourly load...")
+
+            success = client.get_hourly_load(
+                load_type=load_type, start_date=args.start, duration=args.duration
+            )
+
+        elif args.data_type == "renewable":
+            # Renewable types: solar, wind
+            renewable_type = getattr(args, "renewable_type", "wind")
+            logger.info(f"Downloading PJM {renewable_type} generation...")
+
+            success = client.get_renewable_generation(
+                renewable_type=renewable_type, start_date=args.start, duration=args.duration
+            )
+
+        elif args.data_type == "ancillary-services":
+            # AS types: hourly, 5min, reserve_market
+            as_type = getattr(args, "as_type", "hourly")
+            logger.info(f"Downloading PJM {as_type} ancillary services...")
+
+            success = client.get_ancillary_services(
+                as_type=as_type, start_date=args.start, duration=args.duration
+            )
+
+        elif args.data_type == "outages":
+            logger.info("Downloading PJM generation outages...")
+            success = client.get_outages_and_limits(
+                data_type="outages", start_date=args.start, duration=args.duration
+            )
+
+        elif args.data_type == "transfer-limits":
+            logger.info("Downloading PJM RTO transfer limits and flows...")
+            success = client.get_outages_and_limits(
+                data_type="transfer_limits", start_date=args.start, duration=args.duration
+            )
+
+        else:
+            logger.error(f"Unknown PJM data type: {args.data_type}")
+            logger.info(
+                "Available types: lmp, load-forecast, hourly-load, renewable, "
+                "ancillary-services, outages, transfer-limits"
+            )
+            return False
+
+        if success:
+            logger.info(f"✅ PJM data downloaded successfully to data/PJM/")
+        else:
+            logger.error("❌ PJM data download failed")
+
+        return success
+
+    except Exception as e:
+        logger.error(f"Error downloading PJM data: {e}", exc_info=True)
+        return False
+
+    finally:
+        client.cleanup()
+
+
 def handle_weather(args):
     """Handle weather data download logic."""
     from lib.weather.client import WeatherClient
@@ -614,7 +712,7 @@ Examples:
 
     parser.add_argument(
         "--iso",
-        choices=["caiso", "miso", "nyiso", "bpa", "spp"],
+        choices=["caiso", "miso", "nyiso", "bpa", "spp", "pjm"],
         help="Independent System Operator",
     )
 
@@ -654,9 +752,16 @@ Examples:
 
     parser.add_argument(
         "--lmp-type",
-        choices=["da_exante", "da_expost", "rt_exante", "rt_expost"],
-        default="da_exante",
-        help="For MISO LMP: type of LMP data to download",
+        choices=[
+            "da_exante",
+            "da_expost",
+            "rt_exante",
+            "rt_expost",
+            "da_hourly",
+            "rt_5min",
+            "rt_hourly",
+        ],
+        help="For MISO and PJM LMP: type of LMP data to download",
     )
 
     parser.add_argument(
@@ -683,8 +788,11 @@ Examples:
             "iso_forecast",
             "zonal_bid",
             "weather_forecast",
+            "estimated",
+            "metered",
+            "preliminary",
         ],
-        help="For MISO & NYISO Load: type of load data to download",
+        help="For MISO, NYISO, PJM Load: type of load data to download",
     )
 
     parser.add_argument(
@@ -729,6 +837,31 @@ Examples:
         "--bid-type",
         choices=["generator", "load", "transaction", "commitment"],
         help="For NYISO Bid: type of bid data to download",
+    )
+
+    parser.add_argument(
+        "--pnode-id",
+        type=int,
+        help="For PJM LMP: Pricing node ID (optional, downloads all nodes if not specified)",
+    )
+
+    parser.add_argument(
+        "--forecast-type",
+        choices=["5min", "historical", "7day"],
+        default="historical",
+        help="For PJM Load Forecast: type of forecast",
+    )
+
+    parser.add_argument(
+        "--renewable-type",
+        choices=["solar", "wind"],
+        help="For PJM Renewable: type of renewable generation",
+    )
+
+    parser.add_argument(
+        "--as-type",
+        choices=["hourly", "5min", "reserve_market"],
+        help="For PJM Ancillary Services: type of AS data",
     )
 
     parser.add_argument(
@@ -793,6 +926,7 @@ Examples:
         "nyiso": handle_nyiso,
         "bpa": handle_bpa,
         "spp": handle_spp,
+        "pjm": handle_pjm,
     }
 
     handler = handlers.get(args.iso)

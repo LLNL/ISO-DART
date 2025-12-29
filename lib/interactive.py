@@ -1920,6 +1920,381 @@ def run_bpa_mode():
 
 
 # ============================================================================
+# PJM MODE
+# ============================================================================
+
+
+def run_pjm_mode():
+    """Interactive mode for PJM data."""
+    from lib.iso.pjm import PJMClient, PJMConfig
+
+    print("\n" + "=" * 60)
+    print("PJM DATA SELECTION")
+    print("=" * 60)
+
+    print("\nWhat type of data?")
+    print("  (1) Locational Marginal Prices (LMP)")
+    print("  (2) Load Data")
+    print("  (3) Renewable Generation")
+    print("  (4) Ancillary Services")
+    print("  (5) Outages and Transfer Limits")
+
+    while True:
+        try:
+            data_type = int(input("\nYour choice (1-5): "))
+            if data_type in range(1, 6):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 5")
+
+    if data_type == 1:
+        run_pjm_lmp()
+    elif data_type == 2:
+        run_pjm_load()
+    elif data_type == 3:
+        run_pjm_renewable()
+    elif data_type == 4:
+        run_pjm_ancillary()
+    else:
+        run_pjm_outages()
+
+
+def run_pjm_lmp():
+    """PJM LMP data selection."""
+    from lib.iso.pjm import PJMClient, PJMConfig
+
+    print("\n" + "=" * 60)
+    print("PJM LOCATIONAL MARGINAL PRICES")
+    print("=" * 60)
+
+    print("\nWhat type of LMP?")
+    print("  (1) Day-Ahead Hourly LMPs")
+    print("  (2) Real-Time Five Minute LMPs")
+    print("  (3) Real-Time Hourly LMPs")
+
+    while True:
+        try:
+            lmp_type = int(input("\nYour choice (1-3): "))
+            if lmp_type in range(1, 4):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 3")
+
+    lmp_map = {
+        1: ("da_hourly", "Day-Ahead Hourly"),
+        2: ("rt_5min", "Real-Time 5-Minute"),
+        3: ("rt_hourly", "Real-Time Hourly"),
+    }
+
+    lmp_choice, lmp_name = lmp_map[lmp_type]
+
+    # Ask for pricing node ID
+    print("\n" + "=" * 60)
+    print("PRICING NODE SELECTION")
+    print("=" * 60)
+    print("\nDo you want to filter by a specific pricing node?")
+    print("(Leave blank to download all nodes)")
+
+    pnode_input = input("\nEnter Pricing Node ID (or press Enter for all): ").strip()
+    pnode_id = int(pnode_input) if pnode_input else None
+
+    if pnode_id:
+        print(f"\n✓ Will download data for pricing node: {pnode_id}")
+    else:
+        print(f"\n✓ Will download data for all pricing nodes")
+
+    # Get date range
+    start_date, duration = get_date_input()
+
+    # Download data
+    print("\n" + "=" * 60)
+    print("DOWNLOADING DATA")
+    print("=" * 60)
+    print(f"\n📥 Downloading {lmp_name} LMP data...")
+    if pnode_id:
+        print(f"   Pricing Node: {pnode_id}")
+    print(f"   Date range: {start_date} to {start_date + timedelta(days=duration)}")
+    print("   This may take a few minutes...\n")
+
+    config = PJMConfig.from_ini_file()
+    client = PJMClient(config)
+
+    try:
+        success = client.get_lmp(lmp_choice, start_date, duration, pnode_id=pnode_id)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/PJM/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+    finally:
+        client.cleanup()
+
+
+def run_pjm_load():
+    """PJM load data selection."""
+    from lib.iso.pjm import PJMClient, PJMConfig
+
+    print("\n" + "=" * 60)
+    print("PJM LOAD DATA")
+    print("=" * 60)
+
+    print("\nWhat type of load data?")
+    print("  (1) Load Forecast")
+    print("  (2) Hourly Load")
+
+    while True:
+        try:
+            load_category = int(input("\nYour choice (1-2): "))
+            if load_category in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    if load_category == 1:
+        print("\nWhat type of load forecast?")
+        print("  (1) Five Minute Load Forecast")
+        print("  (2) Historical Load Forecast")
+        print("  (3) Seven-Day Load Forecast")
+
+        while True:
+            try:
+                forecast_type = int(input("\nYour choice (1-3): "))
+                if forecast_type in range(1, 4):
+                    break
+            except ValueError:
+                pass
+            print("Please enter a number between 1 and 3")
+
+        forecast_map = {
+            1: ("5min", "Five Minute Load Forecast"),
+            2: ("historical", "Historical Load Forecast"),
+            3: ("7day", "Seven-Day Load Forecast"),
+        }
+
+        forecast_choice, forecast_name = forecast_map[forecast_type]
+
+        start_date, duration = get_date_input()
+
+        config = PJMConfig.from_ini_file()
+        client = PJMClient(config)
+
+        try:
+            print(f"\n📥 Downloading {forecast_name}...")
+            success = client.get_load_forecast(forecast_choice, start_date, duration)
+
+            if success:
+                print("\n✅ Download complete!")
+                print(f"   Data saved to: data/PJM/")
+            else:
+                print("\n❌ Download failed. Check logs for details.")
+        except Exception as e:
+            logger.error(f"Error downloading data: {e}", exc_info=True)
+            print(f"\n❌ Error: {e}")
+        finally:
+            client.cleanup()
+
+    else:  # Hourly load
+        print("\nWhat type of hourly load?")
+        print("  (1) Estimated")
+        print("  (2) Metered")
+        print("  (3) Preliminary")
+
+        while True:
+            try:
+                load_type = int(input("\nYour choice (1-3): "))
+                if load_type in range(1, 4):
+                    break
+            except ValueError:
+                pass
+            print("Please enter a number between 1 and 3")
+
+        load_map = {
+            1: ("estimated", "Estimated Hourly Load"),
+            2: ("metered", "Metered Hourly Load"),
+            3: ("preliminary", "Preliminary Hourly Load"),
+        }
+
+        load_choice, load_name = load_map[load_type]
+
+        start_date, duration = get_date_input()
+
+        config = PJMConfig.from_ini_file()
+        client = PJMClient(config)
+
+        try:
+            print(f"\n📥 Downloading {load_name}...")
+            success = client.get_hourly_load(load_choice, start_date, duration)
+
+            if success:
+                print("\n✅ Download complete!")
+                print(f"   Data saved to: data/PJM/")
+            else:
+                print("\n❌ Download failed. Check logs for details.")
+        except Exception as e:
+            logger.error(f"Error downloading data: {e}", exc_info=True)
+            print(f"\n❌ Error: {e}")
+        finally:
+            client.cleanup()
+
+
+def run_pjm_renewable():
+    """PJM renewable generation data selection."""
+    from lib.iso.pjm import PJMClient, PJMConfig
+
+    print("\n" + "=" * 60)
+    print("PJM RENEWABLE GENERATION")
+    print("=" * 60)
+
+    print("\nWhat type of renewable generation?")
+    print("  (1) Solar Generation")
+    print("  (2) Wind Generation")
+
+    while True:
+        try:
+            renewable_type = int(input("\nYour choice (1-2): "))
+            if renewable_type in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    renewable_map = {
+        1: ("solar", "Solar Generation"),
+        2: ("wind", "Wind Generation"),
+    }
+
+    renewable_choice, renewable_name = renewable_map[renewable_type]
+
+    start_date, duration = get_date_input()
+
+    config = PJMConfig.from_ini_file()
+    client = PJMClient(config)
+
+    try:
+        print(f"\n📥 Downloading {renewable_name}...")
+        success = client.get_renewable_generation(renewable_choice, start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/PJM/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+    finally:
+        client.cleanup()
+
+
+def run_pjm_ancillary():
+    """PJM ancillary services data selection."""
+    from lib.iso.pjm import PJMClient, PJMConfig
+
+    print("\n" + "=" * 60)
+    print("PJM ANCILLARY SERVICES")
+    print("=" * 60)
+
+    print("\nWhat type of ancillary services data?")
+    print("  (1) Hourly LMPs")
+    print("  (2) Five Minute LMPs")
+    print("  (3) Reserve Market Results")
+
+    while True:
+        try:
+            as_type = int(input("\nYour choice (1-3): "))
+            if as_type in range(1, 4):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 3")
+
+    as_map = {
+        1: ("hourly", "Hourly Ancillary Services LMPs"),
+        2: ("5min", "Five Minute Ancillary Services LMPs"),
+        3: ("reserve_market", "Reserve Market Results"),
+    }
+
+    as_choice, as_name = as_map[as_type]
+
+    start_date, duration = get_date_input()
+
+    config = PJMConfig.from_ini_file()
+    client = PJMClient(config)
+
+    try:
+        print(f"\n📥 Downloading {as_name}...")
+        success = client.get_ancillary_services(as_choice, start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/PJM/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+    finally:
+        client.cleanup()
+
+
+def run_pjm_outages():
+    """PJM outages and transfer limits data selection."""
+    from lib.iso.pjm import PJMClient, PJMConfig
+
+    print("\n" + "=" * 60)
+    print("PJM OUTAGES AND TRANSFER LIMITS")
+    print("=" * 60)
+
+    print("\nWhich one?")
+    print("  (1) Generation Outage for Seven Days by Type")
+    print("  (2) RTO Transfer Limit and Flows")
+
+    while True:
+        try:
+            data_type = int(input("\nYour choice (1-2): "))
+            if data_type in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    data_map = {
+        1: ("outages", "Generation Outages by Type"),
+        2: ("transfer_limits", "RTO Transfer Limits and Flows"),
+    }
+
+    data_choice, data_name = data_map[data_type]
+
+    start_date, duration = get_date_input()
+
+    config = PJMConfig.from_ini_file()
+    client = PJMClient(config)
+
+    try:
+        print(f"\n📥 Downloading {data_name}...")
+        success = client.get_outages_and_limits(data_choice, start_date, duration)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: data/PJM/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+    finally:
+        client.cleanup()
+
+
+# ============================================================================
 # WEATHER MODE
 # ============================================================================
 
