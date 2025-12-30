@@ -1,0 +1,1079 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your First Data Download &mdash; ISO-DART 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=5f08a599" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=5f08a599" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=30646c52"></script>
+      <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Intermediate Tutorials" href="../intermediate/index.html" />
+    <link rel="prev" title="Basic Tutorials" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ISO-DART
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#quick-install">Quick Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#detailed-installation">Detailed Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#step-1-check-python-version">Step 1: Check Python Version</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#step-2-install-git">Step 2: Install Git</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#step-3-clone-repository">Step 3: Clone Repository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#step-4-create-virtual-environment-recommended">Step 4: Create Virtual Environment (Recommended)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#step-5-install-dependencies">Step 5: Install Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#step-6-verify-installation">Step 6: Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#alternative-installation-methods">Alternative Installation Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#method-1-conda-mamba">Method 1: Conda/Mamba</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#method-2-pipenv">Method 2: Pipenv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#method-3-system-wide-install-not-recommended">Method 3: System-Wide Install (Not Recommended)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#method-4-development-install">Method 4: Development Install</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#optional-dependencies">Optional Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#for-documentation-building">For Documentation Building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#for-development">For Development</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#for-data-analysis">For Data Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#api-keys-optional">API Keys (Optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#directory-structure">Directory Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#troubleshooting-installation">Troubleshooting Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#issue-python-command-not-found">Issue: “python: command not found”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#issue-pip-command-not-found">Issue: “pip: command not found”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#issue-permission-denied-errors">Issue: Permission denied errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#issue-ssl-certificate-errors">Issue: SSL certificate errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#issue-dependency-conflicts">Issue: Dependency conflicts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#issue-pandas-or-numpy-install-fails">Issue: pandas or numpy install fails</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#platform-specific-notes">Platform-Specific Notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#linux">Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#macos">macOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/installation.html#windows">Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#updating-iso-dart">Updating ISO-DART</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#uninstalling">Uninstalling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#testing-your-installation">Testing Your Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#post-installation-setup">Post-Installation Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#docker-installation-advanced">Docker Installation (Advanced)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/installation.html#installation-checklist">Installation Checklist</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/quickstart.html">ISO-DART v2.0 Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#installation-2-minutes">🚀 Installation (2 minutes)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#your-first-download-3-minutes">📊 Your First Download (3 minutes)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#option-1-interactive-mode-easiest">Option 1: Interactive Mode (Easiest)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#option-2-command-line-fastest">Option 2: Command Line (Fastest)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#using-your-data">📈 Using Your Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#load-and-visualize">Load and Visualize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#basic-analysis">Basic Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#weather-data">🌤️ Weather Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#analyze-weather-data">Analyze Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#common-workflows">🔄 Common Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#download-multiple-markets">1. Download Multiple Markets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#automated-daily-download">2. Automated Daily Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#compare-multiple-locations">3. Compare Multiple Locations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#troubleshooting">🔍 Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#issue-modulenotfounderror">Issue: “ModuleNotFoundError”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#issue-no-data-returned">Issue: “No data returned”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/quickstart.html#issue-slow-downloads">Issue: Slow downloads</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#next-steps">📚 Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#pro-tips">💡 Pro Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#useful-commands">🎯 Useful Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#need-help">🤝 Need Help?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/quickstart.html#power-user-shortcut">⚡ Power User Shortcut</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/migration.html">ISO-DART Migration Guide: v1.1 → v2.0</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#quick-summary">🎯 Quick Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#migration-steps">🚀 Migration Steps</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#backup-your-data">1. Backup Your Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#update-python-version">2. Update Python Version</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#install-v2-0">3. Install v2.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#verify-installation">4. Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#code-migration">🔄 Code Migration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#old-way-v1-1">Old Way (v1.1)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#new-way-v2-0">New Way (v2.0)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#breaking-changes">📋 Breaking Changes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#file-structure">1. File Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#import-changes">2. Import Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#query-class-changes">3. Query Class Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#error-handling">4. Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#configuration">5. Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#new-features">🆕 New Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#command-line-interface">1. Command-Line Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#logging">2. Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#type-safety">3. Type Safety</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#testing">4. Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#better-error-messages">5. Better Error Messages</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#custom-script-migration">🔧 Custom Script Migration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#example-automated-daily-download">Example: Automated Daily Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#example-multi-market-download">Example: Multi-Market Download</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#data-compatibility">📊 Data Compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#known-issues-solutions">⚠️ Known Issues &amp; Solutions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#issue-1-pdb-set-trace-removed">Issue 1: <code class="docutils literal notranslate"><span class="pre">pdb.set_trace()</span></code> removed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#issue-2-exec-open-read-not-supported">Issue 2: <code class="docutils literal notranslate"><span class="pre">exec(open().read())</span></code> not supported</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#issue-3-different-error-handling">Issue 3: Different error handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#learning-resources">🎓 Learning Resources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#for-new-v2-0-features">For New v2.0 Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#for-python-modernization">For Python Modernization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#getting-help">📞 Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#during-migration">During Migration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/migration.html#common-migration-questions">Common Migration Questions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#migration-checklist">✅ Migration Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/migration.html#you-re-ready">🎉 You’re Ready!</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html">Interactive Mode Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#starting-interactive-mode">Starting Interactive Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#main-menu-options">Main Menu Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#option-1-iso-data">Option 1: ISO Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#option-2-weather-data">Option 2: Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#complete-walkthrough-caiso-example">Complete Walkthrough: CAISO Example</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-1-select-data-source">Step 1: Select Data Source</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-2-select-data-category">Step 2: Select Data Category</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-3-select-specific-data-type">Step 3: Select Specific Data Type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-4-select-market">Step 4: Select Market</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-5-enter-date-range">Step 5: Enter Date Range</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-6-download-progress">Step 6: Download Progress</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#navigation-tips">Navigation Tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#going-back">Going Back</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#input-validation">Input Validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#date-validation">Date Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#iso-specific-features">ISO-Specific Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#caiso-interactive-mode">CAISO Interactive Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#miso-interactive-mode">MISO Interactive Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#nyiso-interactive-mode">NYISO Interactive Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#spp-interactive-mode">SPP Interactive Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#bpa-interactive-mode">BPA Interactive Mode</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#weather-data-interactive-mode">Weather Data Interactive Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-by-step-weather-download">Step-by-Step: Weather Download</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#tips-for-efficient-use">Tips for Efficient Use</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#batch-downloads">Batch Downloads</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#taking-notes">Taking Notes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#large-date-ranges">Large Date Ranges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#keyboard-shortcuts">Keyboard Shortcuts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#common-workflows">Common Workflows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#daily-price-check">Daily Price Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#weekly-data-collection">Weekly Data Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#monthly-analysis-prep">Monthly Analysis Prep</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#troubleshooting-interactive-mode">Troubleshooting Interactive Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-invalid-choice-errors">Issue: “Invalid choice” errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-no-data-stations-found-weather">Issue: No data stations found (weather)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-download-hangs-or-is-very-slow">Issue: Download hangs or is very slow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-connection-error-or-timeout">Issue: “Connection error” or “Timeout”</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#within-interactive-mode">Within Interactive Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#after-download">After Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#exiting-interactive-mode">Exiting Interactive Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guide/interactive-mode.html#graceful-exit">Graceful Exit</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#comparison-with-other-modes">Comparison with Other Modes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#next-steps">Next Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../user-guide/interactive-mode.html">Interactive Mode Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#starting-interactive-mode">Starting Interactive Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#main-menu-options">Main Menu Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#option-1-iso-data">Option 1: ISO Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#option-2-weather-data">Option 2: Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#complete-walkthrough-caiso-example">Complete Walkthrough: CAISO Example</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-1-select-data-source">Step 1: Select Data Source</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-2-select-data-category">Step 2: Select Data Category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-3-select-specific-data-type">Step 3: Select Specific Data Type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-4-select-market">Step 4: Select Market</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-5-enter-date-range">Step 5: Enter Date Range</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-6-download-progress">Step 6: Download Progress</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#navigation-tips">Navigation Tips</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#going-back">Going Back</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#input-validation">Input Validation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#date-validation">Date Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#iso-specific-features">ISO-Specific Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#caiso-interactive-mode">CAISO Interactive Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#miso-interactive-mode">MISO Interactive Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#nyiso-interactive-mode">NYISO Interactive Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#spp-interactive-mode">SPP Interactive Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#bpa-interactive-mode">BPA Interactive Mode</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#weather-data-interactive-mode">Weather Data Interactive Mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#step-by-step-weather-download">Step-by-Step: Weather Download</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#tips-for-efficient-use">Tips for Efficient Use</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#batch-downloads">Batch Downloads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#taking-notes">Taking Notes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#large-date-ranges">Large Date Ranges</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#keyboard-shortcuts">Keyboard Shortcuts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#common-workflows">Common Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#daily-price-check">Daily Price Check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#weekly-data-collection">Weekly Data Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#monthly-analysis-prep">Monthly Analysis Prep</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#troubleshooting-interactive-mode">Troubleshooting Interactive Mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-invalid-choice-errors">Issue: “Invalid choice” errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-no-data-stations-found-weather">Issue: No data stations found (weather)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-download-hangs-or-is-very-slow">Issue: Download hangs or is very slow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#issue-connection-error-or-timeout">Issue: “Connection error” or “Timeout”</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#within-interactive-mode">Within Interactive Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#after-download">After Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#exiting-interactive-mode">Exiting Interactive Mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guide/interactive-mode.html#graceful-exit">Graceful Exit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#comparison-with-other-modes">Comparison with Other Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guide/interactive-mode.html#see-also">See Also</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">ISO Coverage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../isos/index.html">ISO Coverage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../isos/caiso/index.html">CAISO Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html">CAISO Data Guide</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#quick-reference">Quick Reference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#caiso-markets">CAISO Markets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#available-data-types">Available Data Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#common-workflows">Common Workflows</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#data-quality-limitations">Data Quality &amp; Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#performance-tips">Performance Tips</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#additional-resources">Additional Resources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../isos/caiso/index.html">CAISO Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../isos/caiso/overview.html">CAISO Data Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#quick-reference">Quick Reference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#caiso-markets">CAISO Markets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#day-ahead-market-dam">Day-Ahead Market (DAM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#hour-ahead-scheduling-process-hasp">Hour-Ahead Scheduling Process (HASP)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#real-time-market-rtm">Real-Time Market (RTM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#real-time-pre-dispatch-rtpd">Real-Time Pre-Dispatch (RTPD)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#residual-unit-commitment-ruc">Residual Unit Commitment (RUC)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#available-data-types">Available Data Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#pricing-data">1. Pricing Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#load-data">2. Load Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#generation-resources">3. Generation &amp; Resources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#market-operations-data">4. Market Operations Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#ancillary-services">5. Ancillary Services</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#common-workflows">Common Workflows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#daily-price-monitoring">1. Daily Price Monitoring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#renewable-generation-analysis">2. Renewable Generation Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#data-quality-limitations">Data Quality &amp; Limitations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#update-schedule">Update Schedule</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#historical-data-availability">Historical Data Availability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#known-issues">Known Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#data-validation">Data Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#performance-tips">Performance Tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#optimize-date-ranges">1. Optimize Date Ranges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#adjust-step-size">2. Adjust Step Size</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#parallel-downloads">3. Parallel Downloads</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#issue-api-error-404-data-not-found">Issue: “API Error 404: Data not found”</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#issue-slow-downloads">Issue: Slow Downloads</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../isos/caiso/overview.html#issue-missing-intervals">Issue: Missing Intervals</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#additional-resources">Additional Resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../isos/caiso/overview.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Weather &amp; Solar</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../weather/index.html">Weather &amp; Solar Data</a><ul class="simple">
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Basic Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Your First Data Download</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-choose-your-data">Step 1: Choose Your Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-download-the-data">Step 2: Download the Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#method-1-interactive-mode-recommended-for-first-time">Method 1: Interactive Mode (Recommended for First Time)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#method-2-command-line-faster">Method 2: Command Line (Faster)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#method-3-python-script-most-flexible">Method 3: Python Script (Most Flexible)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-verify-your-download">Step 3: Verify Your Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-4-load-the-data">Step 4: Load the Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-5-explore-the-data">Step 5: Explore the Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-6-create-your-first-visualization">Step 6: Create Your First Visualization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-your-results">Understanding Your Results</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#what-the-visualization-shows">What the Visualization Shows</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#why-do-prices-vary">Why Do Prices Vary?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#common-patterns">Common Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#step-7-compare-multiple-locations">Step 7: Compare Multiple Locations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#issue-filenotfounderror">Issue: “FileNotFoundError”</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#issue-no-module-named-pandas">Issue: “No module named ‘pandas’”</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#issue-empty-or-invalid-data">Issue: Empty or Invalid Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#issue-plot-doesn-t-display">Issue: Plot Doesn’t Display</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#practice-exercises">Practice Exercises</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#exercise-1-different-time-period">Exercise 1: Different Time Period</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exercise-2-calculate-volatility">Exercise 2: Calculate Volatility</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exercise-3-weekend-vs-weekday">Exercise 3: Weekend vs. Weekday</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#key-takeaways">Key Takeaways</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resources">Resources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#need-help">Need Help?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../intermediate/index.html">Intermediate Tutorials</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced/index.html">Advanced Tutorials</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Analysis Examples</a><ul class="simple">
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a><ul class="simple">
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer Guide</a><ul class="simple">
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Operations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../operations/index.html">Operations Guide</a><ul class="simple">
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/index.html">Reference</a><ul class="simple">
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ISO-DART</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Basic Tutorials</a></li>
+      <li class="breadcrumb-item active">Your First Data Download</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/tutorials/basic/first-download.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="your-first-data-download">
+<h1>Your First Data Download<a class="headerlink" href="#your-first-data-download" title="Link to this heading"></a></h1>
+<p>This tutorial walks you through downloading your first electricity market data with ISO-DART, from installation to analyzing your results.</p>
+<p><strong>Time Required</strong>: 15 minutes</p>
+<p><strong>What You’ll Learn</strong>:</p>
+<ul class="simple">
+<li><p>How to download CAISO Day-Ahead LMP data</p></li>
+<li><p>How to verify your download succeeded</p></li>
+<li><p>How to load and explore the data with pandas</p></li>
+<li><p>How to create a simple price visualization</p></li>
+</ul>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<p>Before starting, ensure you have:</p>
+<ul class="simple">
+<li><p>Python 3.10 or higher installed</p></li>
+<li><p>ISO-DART installed (<a class="reference internal" href="../../getting-started/installation.html"><span class="doc">Installation Guide</span></a>)</p></li>
+<li><p>A text editor or IDE</p></li>
+<li><p>Basic familiarity with Python (helpful but not required)</p></li>
+</ul>
+</section>
+<section id="step-1-choose-your-data">
+<h2>Step 1: Choose Your Data<a class="headerlink" href="#step-1-choose-your-data" title="Link to this heading"></a></h2>
+<p>For this tutorial, we’ll download <strong>CAISO Day-Ahead LMP</strong> (Locational Marginal Prices) data because:</p>
+<ul class="simple">
+<li><p>CAISO requires no API keys</p></li>
+<li><p>Day-Ahead market data is stable and complete</p></li>
+<li><p>LMP is a fundamental electricity market metric</p></li>
+<li><p>The data is easy to understand and visualize</p></li>
+</ul>
+<p><strong>What is LMP?</strong></p>
+<p>Locational Marginal Price (LMP) is the cost to deliver one additional megawatt-hour (MWh) of electricity at a specific location. It reflects:</p>
+<ul class="simple">
+<li><p>Energy costs</p></li>
+<li><p>Transmission congestion</p></li>
+<li><p>Line losses</p></li>
+</ul>
+<p>Higher LMP = electricity is more expensive at that location</p>
+</section>
+<section id="step-2-download-the-data">
+<h2>Step 2: Download the Data<a class="headerlink" href="#step-2-download-the-data" title="Link to this heading"></a></h2>
+<p>Choose one of three methods:</p>
+<section id="method-1-interactive-mode-recommended-for-first-time">
+<h3>Method 1: Interactive Mode (Recommended for First Time)<a class="headerlink" href="#method-1-interactive-mode-recommended-for-first-time" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run interactive mode</span>
+python<span class="w"> </span>isodart.py
+</pre></div>
+</div>
+<p>Then follow the prompts:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>What type of data? → (1) ISO Data
+Which ISO? → (1) CAISO
+What type of CAISO data? → (1) Pricing Data
+What type of pricing? → (1) LMP
+Which market? → (1) Day-Ahead Market
+Year: 2024
+Month: 1
+Day: 1
+Duration: 7
+</pre></div>
+</div>
+<p><strong>Result</strong>: Data for January 1-7, 2024 downloads to <code class="docutils literal notranslate"><span class="pre">data/CAISO/</span></code></p>
+</section>
+<section id="method-2-command-line-faster">
+<h3>Method 2: Command Line (Faster)<a class="headerlink" href="#method-2-command-line-faster" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class="w"> </span>caiso<span class="w"> </span>--data-type<span class="w"> </span>lmp<span class="w"> </span>--market<span class="w"> </span>dam<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--start<span class="w"> </span><span class="m">2024</span>-01-01<span class="w"> </span>--duration<span class="w"> </span><span class="m">7</span>
+</pre></div>
+</div>
+<p><strong>Result</strong>: Same data, but with a single command</p>
+</section>
+<section id="method-3-python-script-most-flexible">
+<h3>Method 3: Python Script (Most Flexible)<a class="headerlink" href="#method-3-python-script-most-flexible" title="Link to this heading"></a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">download_first.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+
+<span class="c1"># Initialize client</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+
+<span class="c1"># Download data</span>
+<span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Check result</span>
+<span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Download successful!&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Check data/CAISO/ for your files&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✗ Download failed - check logs&quot;</span><span class="p">)</span>
+
+<span class="c1"># Clean up</span>
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>download_first.py
+</pre></div>
+</div>
+</section>
+</section>
+<section id="step-3-verify-your-download">
+<h2>Step 3: Verify Your Download<a class="headerlink" href="#step-3-verify-your-download" title="Link to this heading"></a></h2>
+<p>Check that files were created:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># List downloaded files</span>
+ls<span class="w"> </span>-lh<span class="w"> </span>data/CAISO/
+
+<span class="c1"># You should see files like:</span>
+<span class="c1"># 20240101_to_20240107_PRC_LMP_TH_NP15_GEN-APND.csv</span>
+<span class="c1"># 20240101_to_20240107_PRC_LMP_TH_SP15_GEN-APND.csv</span>
+<span class="c1"># 20240101_to_20240107_PRC_LMP_TH_ZP26_GEN-APND.csv</span>
+</pre></div>
+</div>
+<p>Each file represents prices at a different location (trading hub):</p>
+<ul class="simple">
+<li><p><strong>NP15</strong>: Northern California (NP = North Path 15)</p></li>
+<li><p><strong>SP15</strong>: Southern California (SP = South Path 15)</p></li>
+<li><p><strong>ZP26</strong>: Kern County (ZP = Zone Path 26)</p></li>
+</ul>
+<p>Quick verification:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Count rows in a file (should be 168 for 7 days × 24 hours)</span>
+wc<span class="w"> </span>-l<span class="w"> </span>data/CAISO/20240101_to_20240107_PRC_LMP_TH_NP15_GEN-APND.csv
+
+<span class="c1"># Output: 169 (168 data rows + 1 header)</span>
+
+<span class="c1"># Peek at the first few lines</span>
+head<span class="w"> </span>-n<span class="w"> </span><span class="m">5</span><span class="w"> </span>data/CAISO/20240101_to_20240107_PRC_LMP_TH_NP15_GEN-APND.csv
+</pre></div>
+</div>
+</section>
+<section id="step-4-load-the-data">
+<h2>Step 4: Load the Data<a class="headerlink" href="#step-4-load-the-data" title="Link to this heading"></a></h2>
+<p>Create <code class="docutils literal notranslate"><span class="pre">analyze_first.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># Load the data</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240107_PRC_LMP_TH_NP15_GEN-APND.csv&#39;</span><span class="p">)</span>
+
+<span class="c1"># Display basic information</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=== Dataset Info ===&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rows: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Column names: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Show first few rows</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== First 5 Rows ===&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># Show data types</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Data Types ===&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Run it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>analyze_first.py
+</pre></div>
+</div>
+<p><strong>Expected Output</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>=== Dataset Info ===
+Rows: 168
+Columns: 10
+
+Column names: [&#39;INTERVALSTARTTIME_GMT&#39;, &#39;INTERVALENDTIME_GMT&#39;,
+               &#39;OPR_DATE&#39;, &#39;INTERVAL_NUM&#39;, &#39;NODE_ID_XML&#39;, &#39;NODE_ID&#39;,
+               &#39;NODE&#39;, &#39;MARKET_RUN_ID&#39;, &#39;DATA_ITEM&#39;, &#39;VALUE&#39;]
+
+=== First 5 Rows ===
+      OPR_DATE  INTERVAL_NUM                    DATA_ITEM   VALUE
+0   2024-01-01             1  TH_NP15_GEN-APND           32.45
+1   2024-01-01             2  TH_NP15_GEN-APND           29.87
+2   2024-01-01             3  TH_NP15_GEN-APND           27.33
+...
+</pre></div>
+</div>
+</section>
+<section id="step-5-explore-the-data">
+<h2>Step 5: Explore the Data<a class="headerlink" href="#step-5-explore-the-data" title="Link to this heading"></a></h2>
+<p>Add to <code class="docutils literal notranslate"><span class="pre">analyze_first.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Summary statistics</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Price Statistics ===&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
+
+<span class="c1"># Find highest and lowest prices</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Price Extremes ===&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Highest price: $</span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Occurred: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(),</span><span class="w"> </span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;Hour </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(),</span><span class="w"> </span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lowest price: $</span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Occurred: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmin</span><span class="p">(),</span><span class="w"> </span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;Hour </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmin</span><span class="p">(),</span><span class="w"> </span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Average price by day</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Daily Average Prices ===&quot;</span><span class="p">)</span>
+<span class="n">daily_avg</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">)[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">date</span><span class="p">,</span> <span class="n">price</span> <span class="ow">in</span> <span class="n">daily_avg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">date</span><span class="si">}</span><span class="s2">: $</span><span class="si">{</span><span class="n">price</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Expected Output</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>=== Price Statistics ===
+count    168.000000
+mean      38.245625
+std       12.438721
+min       18.45
+25%       29.32
+50%       35.67
+75%       45.23
+max       78.92
+
+=== Price Extremes ===
+Highest price: $78.92/MWh
+   Occurred: 2024-01-03, Hour 19
+Lowest price: $18.45/MWh
+   Occurred: 2024-01-02, Hour 4
+
+=== Daily Average Prices ===
+2024-01-01: $36.23/MWh
+2024-01-02: $32.45/MWh
+2024-01-03: $42.67/MWh
+...
+</pre></div>
+</div>
+</section>
+<section id="step-6-create-your-first-visualization">
+<h2>Step 6: Create Your First Visualization<a class="headerlink" href="#step-6-create-your-first-visualization" title="Link to this heading"></a></h2>
+<p>Add to <code class="docutils literal notranslate"><span class="pre">analyze_first.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># Convert date and hour to datetime for plotting</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span> <span class="o">+</span> \
+                 <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create the plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#2E86AB&#39;</span><span class="p">)</span>
+
+<span class="c1"># Customize the plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Price ($/MWh)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;CAISO Day-Ahead LMP - NP15</span><span class="se">\n</span><span class="s1">January 1-7, 2024&#39;</span><span class="p">,</span>
+          <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add average line</span>
+<span class="n">avg_price</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">avg_price</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Average: $</span><span class="si">{</span><span class="n">avg_price</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">/MWh&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="c1"># Save and display</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;first_visualization.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Visualization saved as &#39;first_visualization.png&#39;&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>analyze_first.py
+</pre></div>
+</div>
+<p><strong>Result</strong>: A professional-looking line chart showing price variations over the week!</p>
+</section>
+<section id="understanding-your-results">
+<h2>Understanding Your Results<a class="headerlink" href="#understanding-your-results" title="Link to this heading"></a></h2>
+<section id="what-the-visualization-shows">
+<h3>What the Visualization Shows<a class="headerlink" href="#what-the-visualization-shows" title="Link to this heading"></a></h3>
+<p>Your chart should show:</p>
+<ol class="arabic simple">
+<li><p><strong>Daily Patterns</strong>: Prices typically higher during day (hours 12-20), lower at night</p></li>
+<li><p><strong>Weekly Variation</strong>: Different days may have different patterns</p></li>
+<li><p><strong>Peak Hours</strong>: Usually late afternoon/early evening (hour 18-20)</p></li>
+<li><p><strong>Minimum Hours</strong>: Usually early morning (hours 2-5)</p></li>
+</ol>
+</section>
+<section id="why-do-prices-vary">
+<h3>Why Do Prices Vary?<a class="headerlink" href="#why-do-prices-vary" title="Link to this heading"></a></h3>
+<p>Electricity prices change based on:</p>
+<ul class="simple">
+<li><p><strong>Demand</strong>: Higher demand = higher prices</p></li>
+<li><p><strong>Generation</strong>: More expensive generators needed during peaks</p></li>
+<li><p><strong>Weather</strong>: Hot/cold weather increases demand</p></li>
+<li><p><strong>Renewables</strong>: More solar during day can lower prices</p></li>
+<li><p><strong>Day of week</strong>: Weekday vs. weekend patterns differ</p></li>
+</ul>
+</section>
+<section id="common-patterns">
+<h3>Common Patterns<a class="headerlink" href="#common-patterns" title="Link to this heading"></a></h3>
+<p>You’ll typically see:</p>
+<ul class="simple">
+<li><p><strong>Morning ramp</strong>: Prices rise as people wake up (6-9 AM)</p></li>
+<li><p><strong>Midday plateau</strong>: Stable prices when solar is abundant (10 AM - 2 PM)</p></li>
+<li><p><strong>Evening peak</strong>: Highest prices as demand peaks (5-8 PM)</p></li>
+<li><p><strong>Night valley</strong>: Lowest prices when demand is minimal (1-5 AM)</p></li>
+</ul>
+</section>
+</section>
+<section id="step-7-compare-multiple-locations">
+<h2>Step 7: Compare Multiple Locations<a class="headerlink" href="#step-7-compare-multiple-locations" title="Link to this heading"></a></h2>
+<p>Let’s compare prices across California:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># Load data for three trading hubs</span>
+<span class="n">np15</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240107_PRC_LMP_TH_NP15_GEN-APND.csv&#39;</span><span class="p">)</span>
+<span class="n">sp15</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240107_PRC_LMP_TH_SP15_GEN-APND.csv&#39;</span><span class="p">)</span>
+<span class="n">zp26</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240107_PRC_LMP_TH_ZP26_GEN-APND.csv&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add datetime column to each</span>
+<span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np15</span><span class="p">,</span> <span class="n">sp15</span><span class="p">,</span> <span class="n">zp26</span><span class="p">]:</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span> <span class="o">+</span> \
+                     <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create comparison plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np15</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="n">np15</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;NP15 (Northern CA)&#39;</span><span class="p">,</span>
+         <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sp15</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="n">sp15</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;SP15 (Southern CA)&#39;</span><span class="p">,</span>
+         <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">zp26</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">],</span> <span class="n">zp26</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;ZP26 (Kern County)&#39;</span><span class="p">,</span>
+         <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Price ($/MWh)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;CAISO LMP Comparison Across California</span><span class="se">\n</span><span class="s1">January 1-7, 2024&#39;</span><span class="p">,</span>
+          <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;location_comparison.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Comparison saved as &#39;location_comparison.png&#39;&quot;</span><span class="p">)</span>
+
+<span class="c1"># Calculate price spreads</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Average Prices by Location ===&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NP15 (Northern CA): $</span><span class="si">{</span><span class="n">np15</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SP15 (Southern CA): $</span><span class="si">{</span><span class="n">sp15</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ZP26 (Kern County): $</span><span class="si">{</span><span class="n">zp26</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="issue-filenotfounderror">
+<h3>Issue: “FileNotFoundError”<a class="headerlink" href="#issue-filenotfounderror" title="Link to this heading"></a></h3>
+<p><strong>Symptom</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ne">FileNotFoundError</span><span class="p">:</span> <span class="n">data</span><span class="o">/</span><span class="n">CAISO</span><span class="o">/</span><span class="mi">20240101</span><span class="n">_to_20240107_PRC_LMP_TH_NP15_GEN</span><span class="o">-</span><span class="n">APND</span><span class="o">.</span><span class="n">csv</span>
+</pre></div>
+</div>
+<p><strong>Solution</strong>:</p>
+<ol class="arabic simple">
+<li><p>Check file actually exists: <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">data/CAISO/</span></code></p></li>
+<li><p>Verify filename matches exactly (case-sensitive)</p></li>
+<li><p>Make sure you’re running from the ISO-DART directory</p></li>
+</ol>
+</section>
+<section id="issue-no-module-named-pandas">
+<h3>Issue: “No module named ‘pandas’”<a class="headerlink" href="#issue-no-module-named-pandas" title="Link to this heading"></a></h3>
+<p><strong>Solution</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pandas<span class="w"> </span>matplotlib
+</pre></div>
+</div>
+</section>
+<section id="issue-empty-or-invalid-data">
+<h3>Issue: Empty or Invalid Data<a class="headerlink" href="#issue-empty-or-invalid-data" title="Link to this heading"></a></h3>
+<p><strong>Symptom</strong>: File exists but has no data or all zeros</p>
+<p><strong>Solutions</strong>:</p>
+<ol class="arabic simple">
+<li><p>Check date range isn’t in the future</p></li>
+<li><p>Try a different date range (at least 2 days ago)</p></li>
+<li><p>Verify CAISO OASIS is operational</p></li>
+<li><p>Check logs: <code class="docutils literal notranslate"><span class="pre">cat</span> <span class="pre">logs/isodart.log</span></code></p></li>
+</ol>
+</section>
+<section id="issue-plot-doesn-t-display">
+<h3>Issue: Plot Doesn’t Display<a class="headerlink" href="#issue-plot-doesn-t-display" title="Link to this heading"></a></h3>
+<p><strong>Solutions</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>For scripts</strong>: Add <code class="docutils literal notranslate"><span class="pre">plt.show()</span></code> at the end</p></li>
+<li><p><strong>For Jupyter</strong>: Use <code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> magic</p></li>
+<li><p><strong>On servers</strong>: Use <code class="docutils literal notranslate"><span class="pre">plt.savefig()</span></code> instead of <code class="docutils literal notranslate"><span class="pre">plt.show()</span></code></p></li>
+</ol>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>Congratulations! You’ve completed your first data download and analysis. Here’s what to explore next:</p>
+<ol class="arabic simple">
+<li><p><strong>Try Different Markets</strong></p>
+<ul class="simple">
+<li><p>Download HASP or RTM data (5-minute resolution)</p></li>
+<li><p>Compare day-ahead vs. real-time prices</p></li>
+<li><p><span class="xref std std-doc">../intermediate/comparison</span></p></li>
+</ul>
+</li>
+<li><p><strong>Explore More Data Types</strong></p>
+<ul class="simple">
+<li><p>Load forecasts: <span class="xref std std-doc">../../isos/caiso/load</span></p></li>
+<li><p>Wind and solar: <span class="xref std std-doc">../../isos/caiso/generation</span></p></li>
+<li><p>Ancillary services: <span class="xref std std-doc">../../isos/caiso/market</span></p></li>
+</ul>
+</li>
+<li><p><strong>Try Other ISOs</strong></p>
+<ul class="simple">
+<li><p>MISO: <a class="reference internal" href="../../isos/miso/overview.html"><span class="doc">MISO Data Guide</span></a></p></li>
+<li><p>NYISO: <span class="xref std std-doc">../../isos/nyiso/overview</span></p></li>
+<li><p>SPP: <span class="xref std std-doc">../../isos/spp/overview</span></p></li>
+</ul>
+</li>
+<li><p><strong>Advanced Analysis</strong></p>
+<ul class="simple">
+<li><p><span class="xref std std-doc">../examples/price-forecasting</span></p></li>
+<li><p><span class="xref std std-doc">../examples/weather-impact</span></p></li>
+<li><p><span class="xref std std-doc">../advanced/pipeline</span></p></li>
+</ul>
+</li>
+<li><p><strong>Automate Downloads</strong></p>
+<ul class="simple">
+<li><p><span class="xref std std-doc">../intermediate/automation</span></p></li>
+<li><p>Set up daily downloads</p></li>
+<li><p>Create analysis pipelines</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="practice-exercises">
+<h2>Practice Exercises<a class="headerlink" href="#practice-exercises" title="Link to this heading"></a></h2>
+<p>To reinforce what you’ve learned, try these exercises:</p>
+<section id="exercise-1-different-time-period">
+<h3>Exercise 1: Different Time Period<a class="headerlink" href="#exercise-1-different-time-period" title="Link to this heading"></a></h3>
+<p>Download and analyze data for a different week. Do you see similar patterns?</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Try different dates</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="exercise-2-calculate-volatility">
+<h3>Exercise 2: Calculate Volatility<a class="headerlink" href="#exercise-2-calculate-volatility" title="Link to this heading"></a></h3>
+<p>Calculate price volatility (standard deviation):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">volatility</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Price volatility: $</span><span class="si">{</span><span class="n">volatility</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+
+<span class="c1"># Find hours with highest volatility</span>
+<span class="n">hourly_vol</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">)[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Most volatile hour: Hour </span><span class="si">{</span><span class="n">hourly_vol</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="exercise-3-weekend-vs-weekday">
+<h3>Exercise 3: Weekend vs. Weekday<a class="headerlink" href="#exercise-3-weekend-vs-weekday" title="Link to this heading"></a></h3>
+<p>Compare weekend and weekday prices:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span> <span class="o">+</span> \
+                 <span class="n">pd</span><span class="o">.</span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;dayofweek&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">dayofweek</span>
+
+<span class="c1"># 0-4 = Mon-Fri, 5-6 = Sat-Sun</span>
+<span class="n">weekday</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;dayofweek&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">][</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">weekend</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;dayofweek&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">][</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weekday average: $</span><span class="si">{</span><span class="n">weekday</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weekend average: $</span><span class="si">{</span><span class="n">weekend</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Difference: $</span><span class="si">{</span><span class="n">weekday</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">weekend</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="key-takeaways">
+<h2>Key Takeaways<a class="headerlink" href="#key-takeaways" title="Link to this heading"></a></h2>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><strong>You’ve learned how to</strong>:</p>
+<ul class="simple">
+<li><p>✓ Download electricity market data from CAISO</p></li>
+<li><p>✓ Verify your downloads succeeded</p></li>
+<li><p>✓ Load and explore data with pandas</p></li>
+<li><p>✓ Calculate summary statistics</p></li>
+<li><p>✓ Create professional visualizations</p></li>
+<li><p>✓ Identify price patterns</p></li>
+</ul>
+<p><strong>You now understand</strong>:</p>
+<ul class="simple">
+<li><p>What LMP represents</p></li>
+<li><p>Why electricity prices vary</p></li>
+<li><p>How to interpret price patterns</p></li>
+<li><p>The structure of ISO-DART data files</p></li>
+</ul>
+</div>
+</section>
+<section id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../../getting-started/quickstart.html"><span class="doc">ISO-DART v2.0 Quick Start Guide</span></a> - More quick examples</p></li>
+<li><p><span class="xref std std-doc">../../user-guide/python-api</span> - Complete API reference</p></li>
+<li><p><a class="reference internal" href="../../isos/caiso/overview.html"><span class="doc">CAISO Data Guide</span></a> - CAISO data guide</p></li>
+<li><p><a class="reference internal" href="../examples/index.html"><span class="doc">Analysis Examples</span></a> - Analysis examples</p></li>
+</ul>
+</section>
+<section id="need-help">
+<h2>Need Help?<a class="headerlink" href="#need-help" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Check <span class="xref std std-doc">../../operations/troubleshooting</span></p></li>
+<li><p>Ask on <a class="reference external" href="https://github.com/LLNL/ISO-DART/discussions">GitHub Discussions</a></p></li>
+<li><p>Report bugs at <a class="reference external" href="https://github.com/LLNL/ISO-DART/issues">GitHub Issues</a></p></li>
+</ul>
+<p>Great job completing this tutorial! You’re now ready to explore more advanced features of ISO-DART.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Basic Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../intermediate/index.html" class="btn btn-neutral float-right" title="Intermediate Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Lawrence Livermore National Laboratory.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
