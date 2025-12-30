@@ -962,24 +962,22 @@ def test_getters_return_false_when_extract_zip_returns_none(client, method_name,
 def test_getters_return_false_when_xml_to_csv_returns_false(client, method_name, args, kwargs):
     """Covers the `if not _xml_to_csv(...): return False` branches across getters."""
     dummy_xml = Path("dummy.xml")
-    with (
-        patch.object(client, "_make_request", return_value=b"content"),
-        patch.object(client, "_extract_zip", return_value=dummy_xml),
-        patch.object(client, "_xml_to_csv", return_value=False) as mock_xml,
-    ):
-        assert getattr(client, method_name)(*args, **kwargs) is False
-        assert mock_xml.called
+
+    with patch.object(client, "_make_request", return_value=b"content"):
+        with patch.object(client, "_extract_zip", return_value=dummy_xml):
+            with patch.object(client, "_xml_to_csv", return_value=False) as mock_xml:
+                assert getattr(client, method_name)(*args, **kwargs) is False
+                assert mock_xml.call_count == 1
 
 
 def test_get_load_forecast_adds_execution_type_for_rtm(client):
     """Covers the RTM execution_type branch in get_load_forecast."""
-    with (
-        patch.object(client, "_build_params", return_value={}),
-        patch.object(client, "_make_request", return_value=None) as mock_req,
-    ):
-        assert client.get_load_forecast(Market.RTM, date(2024, 1, 1), date(2024, 1, 2)) is False
-        params_sent = mock_req.call_args[0][0]
-        assert params_sent["execution_type"] == "RTD"
+    with patch.object(client, "_build_params", return_value={}):
+        with patch.object(client, "_make_request", return_value=None) as mock_req:
+            assert client.get_load_forecast(Market.RTM, date(2024, 1, 1), date(2024, 1, 2)) is False
+
+            params_sent = mock_req.call_args[0][0]
+            assert params_sent["execution_type"] == "RTD"
 
 
 def test_get_ancillary_services_prices_rejects_invalid_market(client):
