@@ -1,0 +1,43 @@
+name: Build and Deploy Docs
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r docs/requirements-docs.txt
+          pip install -r requirements.txt
+
+      - name: Build docs
+        run: |
+          cd docs
+          make html
+
+      - name: Check for broken links
+        run: |
+          cd docs
+          make linkcheck
+        continue-on-error: true
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+          cname: isodart.yourdomain.com  # Optional: your custom domain
