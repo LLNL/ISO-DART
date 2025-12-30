@@ -4,7 +4,9 @@ MISO Data Guide
 Overview
 --------
 
-The Midcontinent Independent System Operator (MISO) operates one of the world's largest energy markets, serving 45 million people across 15 U.S. states and Manitoba, Canada. ISO-DART provides comprehensive access to MISO's Data Exchange REST API for pricing, load, generation, and market operations data.
+The Midcontinent Independent System Operator (MISO) operates one of the world's largest energy markets, serving 45
+million people across 15 U.S. states and Manitoba, Canada. ISO-DART provides comprehensive access to MISO's Data
+Exchange REST API for pricing, load, generation, and market operations data.
 
 Quick Reference
 ---------------
