@@ -883,5 +883,102 @@ def test_get_outages_invalid_type_returns_empty(client, caplog):
     assert "Invalid outage type" in caplog.text
 
 
+def test_config_from_ini_file_warns_when_no_file(tmp_path, monkeypatch, caplog):
+    # Ensure search paths contain no config files
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    caplog.set_level(logging.WARNING)
+
+    cfg = MISOConfig.from_ini_file()
+
+    assert "No config file found." in caplog.text
+    # Should fall back to defaults
+    assert cfg.pricing_base_url == MISOConfig().pricing_base_url
+    assert cfg.lgi_base_url == MISOConfig().lgi_base_url
+
+
+def test_config_from_ini_file_warns_when_no_miso_section(tmp_path, monkeypatch, caplog):
+    # Create a config file that does not contain a [miso] section
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    (tmp_path / "config.ini").write_text("[other]\nfoo=bar\n")
+
+    caplog.set_level(logging.WARNING)
+    cfg = MISOConfig.from_ini_file()
+
+    assert "No [miso] section found in config file" in caplog.text
+    assert cfg.pricing_api_key is None
+    assert cfg.lgi_api_key is None
+
+
+def test_rate_limit_sleeps_when_called_too_fast(monkeypatch, tmp_path):
+    # Use a non-zero rate_limit_delay so _rate_limit has to sleep
+    cfg = MISOConfig(
+        pricing_api_key="PRICING_KEY",
+        lgi_api_key="LGI_KEY",
+        data_dir=tmp_path,
+        rate_limit_delay=1.0,
+        retry_delay=0,
+    )
+    c = MISOClient(config=cfg)
+    c._last_request_time = 100.0  # simulate a recent request
+
+    calls = {"slept": None}
+    monkeypatch.setattr(miso.time, "sleep", lambda s: calls.update({"slept": s}))
+
+    # time.time is called twice inside _rate_limit: once for elapsed, once to set _last_request_time
+    times = iter([100.2, 100.2])
+    monkeypatch.setattr(miso.time, "time", lambda: next(times))
+
+    c._rate_limit()
+
+    assert calls["slept"] == pytest.approx(0.8, rel=1e-6)
+    assert c._last_request_time == pytest.approx(100.2, rel=1e-6)
+
+
+def test_make_request_success_uses_lgi_api_key(client, monkeypatch):
+    called = {}
+
+    class FakeResponse:
+        def __init__(self, status_code, json_data=None, text=""):
+            self.status_code = status_code
+            self._json_data = json_data or {}
+            self.text = text
+
+        def json(self):
+            return self._json_data
+
+    def fake_get(url, params=None, headers=None, timeout=None):
+        called["url"] = url
+        called["headers"] = dict(headers or {})
+        called["timeout"] = timeout
+        return FakeResponse(status_code=200, json_data={"data": ["ok"]}, text="OK")
+
+    # IMPORTANT: patch the session used by the client
+    monkeypatch.setattr(client.session, "get", fake_get)
+
+    result = client._make_request(client.config.lgi_base_url, "market/2025-01-01/some-endpoint")
+
+    assert result == {"data": ["ok"]}
+    assert called["headers"].get("Ocp-Apim-Subscription-Key") == client.config.lgi_api_key
+
+
+def test_get_binding_constraints_includes_interval_filter(client, monkeypatch):
+    captured = {}
+
+    def fake_download_data(base_url, endpoint_template, start_date, duration, **filters):
+        captured["base_url"] = base_url
+        captured["endpoint"] = endpoint_template
+        captured["filters"] = dict(filters)
+        return {}
+
+    monkeypatch.setattr(client, "_download_data", fake_download_data)
+
+    client.get_binding_constraints(date(2025, 1, 1), duration=1, interval="5min")
+
+    assert captured["base_url"] == client.config.lgi_base_url
+    assert captured["filters"]["interval"] == "5min"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
