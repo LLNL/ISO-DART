@@ -5,6 +5,4 @@ Basic Tutorials
    :maxdepth: 2
 
    first-download
-   csv-files
-   dates-timezones
-   error-handling
+   automation
