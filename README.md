@@ -11,7 +11,7 @@
 
 *A modern Python toolkit for downloading and analyzing electricity market data from US Independent System Operators*
 
-[Quick Start](#-quick-start) • [Documentation](docs/) • [Examples](#-examples) • [Contributing](#-contributing)
+[Quick Start](#-quick-start) • [Documentation](http://software.llnl.gov/ISO-DART/) • [Examples](#-examples) • [Contributing](#-contributing)
 
 </div>
 
