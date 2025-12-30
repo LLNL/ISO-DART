@@ -881,3 +881,7 @@ def test_get_outages_invalid_type_returns_empty(client, caplog):
 
     assert result == {}
     assert "Invalid outage type" in caplog.text
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

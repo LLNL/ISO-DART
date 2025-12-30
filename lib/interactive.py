@@ -2295,6 +2295,252 @@ def run_pjm_outages():
 
 
 # ============================================================================
+# ISO-NE MODE
+# ============================================================================
+
+
+def run_isone_mode():
+    """Interactive mode for ISO-NE data."""
+    from lib.iso.isone import ISONEClient
+
+    print("\n" + "=" * 60)
+    print("ISO-NE DATA SELECTION")
+    print("=" * 60)
+
+    print("\nWhat type of data?")
+    print("  (1) Locational Marginal Prices (LMP)")
+    print("  (2) Ancillary Services")
+    print("  (3) Demand/Load Data")
+
+    while True:
+        try:
+            data_type = int(input("\nYour choice (1-3): "))
+            if data_type in range(1, 4):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 3")
+
+    if data_type == 1:
+        run_isone_lmp()
+    elif data_type == 2:
+        run_isone_ancillary()
+    else:
+        run_isone_demand()
+
+
+def run_isone_lmp():
+    """ISO-NE LMP data selection (updated for new ISONEClient)."""
+    from lib.iso.isone import ISONEClient
+
+    print("\n" + "=" * 60)
+    print("ISO-NE LOCATIONAL MARGINAL PRICES")
+    print("=" * 60)
+
+    print("\nWhat type of LMP?")
+    print("  (1) Day-Ahead Hourly LMPs (REST)")
+    print("  (2) Real-Time Five-Minute LMPs (REST)")
+
+    while True:
+        try:
+            lmp_type = int(input("\nYour choice (1-2): "))
+            if lmp_type in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    start_date, duration = get_date_input()
+    end_excl = start_date + timedelta(days=duration)
+
+    client = ISONEClient()
+
+    def _yyyymmdd(d: date) -> str:
+        return d.strftime("%Y%m%d")
+
+    def _download_fivemin_lmp(location_id=None):
+        out_paths = []
+        for i in range(duration):
+            d = start_date + timedelta(days=i)
+            day_str = _yyyymmdd(d)
+            loc = int(location_id) if location_id is not None else 4000  # ISO-NE Internal Hub
+            path = f"fiveminutelmp/day/{day_str}/location/{loc}"
+            payload = client._request_json(path, authenticated=True)
+            suffix = f"_loc{int(location_id)}" if location_id is not None else ""
+            out_path = client.config.data_dir / f"fiveminutelmp_{day_str}{suffix}.json"
+            client._save_json(payload, out_path)
+            out_paths.append(out_path)
+        return out_paths
+
+    try:
+        if lmp_type == 1:
+            print("\n📥 Downloading Day-Ahead Hourly LMPs (REST)...")
+            print(f"   Date range: {start_date} to {end_excl}")
+            print("   This may take a moment...\n")
+
+            paths = client.get_hourly_lmp(start_date, end_excl, market="da", report="final")
+            success = bool(paths)
+
+        else:  # lmp_type == 2
+            print("\n📥 Downloading Real-Time 5-Minute LMPs (REST)...")
+            print(f"   Date range: {start_date} to {end_excl}")
+            loc = input("   Optional: location id (press Enter for ALL locations): ").strip()
+            location_id = int(loc) if loc else None
+            print("   This may take a bit (large payloads if ALL locations)...\n")
+
+            paths = _download_fivemin_lmp(location_id=location_id)
+            success = bool(paths)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: {client.config.data_dir}/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_isone_ancillary():
+    """ISO-NE ancillary services data selection (updated for new ISONEClient)."""
+    from lib.iso.isone import ISONEClient
+
+    print("\n" + "=" * 60)
+    print("ISO-NE ANCILLARY SERVICES")
+    print("=" * 60)
+
+    print("\nWhat type of ancillary services data?")
+    print("  (1) Five-Minute Regulation Clearing Prices (Final) (REST)")
+    print("  (2) Hourly Regulation Clearing Prices (Final) (REST)")
+    print("  (3) Real-Time Hourly Operating Reserve (REST)")
+    print("  (4) Day-Ahead Hourly Operating Reserve (REST)")
+
+    while True:
+        try:
+            anc_type = int(input("\nYour choice (1-4): "))
+            if anc_type in [1, 2, 3, 4]:
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 4")
+
+    start_date, duration = get_date_input()
+    end_excl = start_date + timedelta(days=duration)
+
+    client = ISONEClient()
+
+    def _yyyymmdd(d: date) -> str:
+        return d.strftime("%Y%m%d")
+
+    def _download_hourly_rcp_final():
+        out_paths = []
+        for i in range(duration):
+            d = start_date + timedelta(days=i)
+            day_str = _yyyymmdd(d)
+            path = f"hourlyrcp/final/day/{day_str}"
+            payload = client._request_json(path, authenticated=True)
+            out_path = client.config.data_dir / f"hourlyrcp_final_{day_str}.json"
+            client._save_json(payload, out_path)
+            out_paths.append(out_path)
+        return out_paths
+
+    try:
+        if anc_type == 1:
+            print("\n📥 Downloading 5-Minute Regulation Clearing Prices (Final)...")
+            paths = client.get_5min_regulation_prices(start_date, end_excl)
+            success = bool(paths)
+
+        elif anc_type == 2:
+            print("\n📥 Downloading Hourly Regulation Clearing Prices (Final)...")
+            paths = _download_hourly_rcp_final()
+            success = bool(paths)
+
+        elif anc_type == 3:
+            loc = input(
+                "   Location id for Operating Reserve (default 7000 = REST OF SYSTEM): "
+            ).strip()
+            location_id = int(loc) if loc else 7000
+            print(
+                f"\n📥 Downloading Real-Time Hourly Operating Reserve (location {location_id})..."
+            )
+            paths = client.get_real_time_hourly_operating_reserve(
+                start_date, end_excl, location_id=location_id
+            )
+            success = bool(paths)
+
+        else:  # anc_type == 4
+            loc = input(
+                "   Location id for Operating Reserve (default 7000 = REST OF SYSTEM): "
+            ).strip()
+            location_id = int(loc) if loc else 7000
+            print(
+                f"\n📥 Downloading Day-Ahead Hourly Operating Reserve (location {location_id})..."
+            )
+            paths = client.get_day_ahead_hourly_operating_reserve(
+                start_date, end_excl, location_id=location_id
+            )
+            success = bool(paths)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: {client.config.data_dir}/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_isone_demand():
+    """ISO-NE demand/load data selection (updated for new ISONEClient)."""
+    from lib.iso.isone import ISONEClient
+
+    print("\n" + "=" * 60)
+    print("ISO-NE DEMAND / LOAD DATA")
+    print("=" * 60)
+
+    print("\nWhat type of demand data?")
+    print("  (1) Five-Minute System Demand (REST)")
+    print("  (2) Day-Ahead Hourly Demand (REST)")
+
+    while True:
+        try:
+            demand_type = int(input("\nYour choice (1-2): "))
+            if demand_type in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    start_date, duration = get_date_input()
+    end_excl = start_date + timedelta(days=duration)
+
+    client = ISONEClient()
+
+    try:
+        if demand_type == 1:
+            print("\n📥 Downloading 5-Minute System Demand...")
+            paths = client.get_5min_system_demand(start_date, end_excl)
+            success = bool(paths)
+        else:
+            print("\n📥 Downloading Day-Ahead Hourly Demand...")
+            paths = client.get_day_ahead_hourly_demand(start_date, end_excl)
+            success = bool(paths)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: {client.config.data_dir}/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+# ============================================================================
 # WEATHER MODE
 # ============================================================================
 

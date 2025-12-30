@@ -638,6 +638,140 @@ def handle_pjm(args):
         client.cleanup()
 
 
+def handle_isone(args):
+    """Handle ISO-NE-specific data download logic (updated for new ISONEClient)."""
+    from lib.iso.isone import ISONEClient
+
+    logger.info(f"Processing ISO-NE data request: {args.data_type}")
+
+    client = ISONEClient()
+    start = args.start
+    end_excl = start + timedelta(days=args.duration)
+    success = False
+
+    def _yyyymmdd(d: date) -> str:
+        return d.strftime("%Y%m%d")
+
+    def _download_fivemin_lmp(location_id=None):
+        """Download 5-minute RT LMPs via REST (/fiveminutelmp). Saves one JSON per day."""
+        out_paths = []
+        for d in (start + timedelta(days=i) for i in range(args.duration)):
+            day_str = _yyyymmdd(d)
+            loc = int(location_id) if location_id is not None else 4000  # ISO-NE Internal Hub
+            path = f"fiveminutelmp/day/{day_str}/location/{loc}"
+            payload = client._request_json(path, authenticated=True)
+            suffix = f"_loc{int(location_id)}" if location_id is not None else ""
+            out_path = client.config.data_dir / f"fiveminutelmp_{day_str}{suffix}.json"
+            client._save_json(payload, out_path)
+            out_paths.append(out_path)
+        return out_paths
+
+    def _download_hourly_rcp_final():
+        """Download hourly final regulation clearing prices via REST (/hourlyrcp/final)."""
+        out_paths = []
+        for d in (start + timedelta(days=i) for i in range(args.duration)):
+            day_str = _yyyymmdd(d)
+            path = f"hourlyrcp/final/day/{day_str}"
+            payload = client._request_json(path, authenticated=True)
+            out_path = client.config.data_dir / f"hourlyrcp_final_{day_str}.json"
+            client._save_json(payload, out_path)
+            out_paths.append(out_path)
+        return out_paths
+
+    try:
+        if args.data_type == "lmp":
+            # LMP types: da_hourly, rt_5min
+            lmp_type = getattr(args, "lmp_type", "da_hourly")
+
+            if lmp_type == "da_hourly":
+                logger.info("Downloading ISO-NE Day-Ahead Hourly LMP (REST)...")
+                paths = client.get_hourly_lmp(start, end_excl, market="da", report="final")
+                success = bool(paths)
+
+            elif lmp_type == "rt_5min":
+                logger.info("Downloading ISO-NE Real-Time 5-Minute LMP (REST)...")
+                location_id = getattr(args, "location_id", None)
+                paths = _download_fivemin_lmp(location_id=location_id)
+                success = bool(paths)
+
+            else:
+                logger.error(f"Invalid LMP type: {lmp_type}")
+                return False
+
+        elif args.data_type == "ancillary":
+            # Ancillary types: 5min_reg, hourly_reg, 5min_reserves, hourly_reserves
+            anc_type = getattr(args, "anc_type", "5min_reg")
+
+            if anc_type == "5min_reg":
+                logger.info("Downloading ISO-NE 5-Minute Regulation Clearing Prices (Final)...")
+                paths = client.get_5min_regulation_prices(start, end_excl)
+                success = bool(paths)
+
+            elif anc_type == "hourly_reg":
+                logger.info("Downloading ISO-NE Hourly Regulation Clearing Prices (Final)...")
+                paths = _download_hourly_rcp_final()
+                success = bool(paths)
+
+            elif anc_type == "5min_reserves":
+                # Closest supported feed in the new client: Real-Time Hourly Operating Reserve
+                location_id = getattr(args, "location_id", 7000)
+                logger.info(
+                    f"Downloading ISO-NE Real-Time Hourly Operating Reserve (location {location_id})..."
+                )
+                paths = client.get_real_time_hourly_operating_reserve(
+                    start, end_excl, location_id=location_id
+                )
+                success = bool(paths)
+
+            elif anc_type == "hourly_reserves":
+                location_id = getattr(args, "location_id", 7000)
+                logger.info(
+                    f"Downloading ISO-NE Day-Ahead Hourly Operating Reserve (location {location_id})..."
+                )
+                paths = client.get_day_ahead_hourly_operating_reserve(
+                    start, end_excl, location_id=location_id
+                )
+                success = bool(paths)
+
+            else:
+                logger.error(f"Invalid ancillary type: {anc_type}")
+                return False
+
+        elif args.data_type == "demand":
+            # Demand types: 5min, hourly_da
+            demand_type = getattr(args, "demand_type", "5min")
+
+            if demand_type == "5min":
+                logger.info("Downloading ISO-NE 5-Minute System Demand (REST)...")
+                paths = client.get_5min_system_demand(start, end_excl)
+                success = bool(paths)
+
+            elif demand_type == "hourly_da":
+                logger.info("Downloading ISO-NE Day-Ahead Hourly Demand (REST)...")
+                paths = client.get_day_ahead_hourly_demand(start, end_excl)
+                success = bool(paths)
+
+            else:
+                logger.error(f"Invalid demand type: {demand_type}")
+                return False
+
+        else:
+            logger.error(f"Unknown ISO-NE data type: {args.data_type}")
+            logger.info("Available types: lmp, ancillary, demand")
+            return False
+
+        if success:
+            logger.info("✅ ISO-NE data downloaded successfully.")
+        else:
+            logger.error("❌ Failed to download ISO-NE data.")
+
+        return success
+
+    except Exception as e:
+        logger.error(f"Error processing ISO-NE data: {e}", exc_info=True)
+        return False
+
+
 def handle_weather(args):
     """Handle weather data download logic."""
     from lib.weather.client import WeatherClient
@@ -712,7 +846,7 @@ Examples:
 
     parser.add_argument(
         "--iso",
-        choices=["caiso", "miso", "nyiso", "bpa", "spp", "pjm"],
+        choices=["caiso", "miso", "nyiso", "bpa", "spp", "pjm", "isone"],
         help="Independent System Operator",
     )
 
@@ -761,7 +895,7 @@ Examples:
             "rt_5min",
             "rt_hourly",
         ],
-        help="For MISO and PJM LMP: type of LMP data to download",
+        help="For MISO, PJM, and ISO-NE LMP: type of LMP data to download",
     )
 
     parser.add_argument(
@@ -865,6 +999,24 @@ Examples:
     )
 
     parser.add_argument(
+        "--anc-type",
+        choices=["5min_reg", "hourly_reg", "5min_reserves", "hourly_reserves"],
+        help="For ISO-NE Ancillary Services: type of AS data",
+    )
+
+    parser.add_argument(
+        "--demand-type",
+        choices=["5min", "hourly_da"],
+        help="For ISO-NE Demand data: type of demand data",
+    )
+
+    parser.add_argument(
+        "--location-id",
+        type=int,
+        help="For ISO-NE location ID: Needed for full day 5min data",
+    )
+
+    parser.add_argument(
         "--include-solar",
         action="store_true",
         help="Include solar data with weather download",
@@ -927,6 +1079,7 @@ Examples:
         "bpa": handle_bpa,
         "spp": handle_spp,
         "pjm": handle_pjm,
+        "isone": handle_isone,
     }
 
     handler = handlers.get(args.iso)

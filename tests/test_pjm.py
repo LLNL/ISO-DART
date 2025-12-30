@@ -1204,3 +1204,7 @@ def test_concurrent_downloads_use_different_filenames(client, monkeypatch):
     assert file1.exists()
     assert file2.exists()
     assert call_count["count"] == 2
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
