@@ -778,5 +778,236 @@ class TestCAISOCleanup:
         client.cleanup()
 
 
+class TestCoverageMissingBranches:
+    """Targeted tests to increase branch/line coverage for CAISO client."""
+
+    @patch("requests.Session.get")
+    def test_make_request_handles_request_exception_and_returns_none(self, mock_get, client):
+        """_make_request should catch RequestException and return None after retries."""
+        import requests
+
+        # Force a single attempt so we hit the final `return None`
+        client.config.max_retries = 1
+        mock_get.side_effect = requests.RequestException("boom")
+
+        assert client._make_request({"q": "x"}) is None
+        assert mock_get.call_count == 1
+
+    def test_extract_zip_bad_zipfile_returns_none(self, client):
+        """_extract_zip should gracefully handle invalid ZIP bytes."""
+        assert client._extract_zip(b"not-a-zip", "TEST") is None
+
+    def test_xml_to_csv_detects_data_error_and_returns_false(self, client, tmp_path):
+        """_xml_to_csv should return False when CAISO returns an ERR_CODE payload."""
+        ns = ReportVersion.V1.namespace
+
+        # Build a minimal XML tree such that root[1][0][2][0] exists and is ERR_CODE
+        root = ET.Element("ROOT")
+        ET.SubElement(root, "IGNORED_0")
+
+        lvl1 = ET.SubElement(root, "IGNORED_1")
+        lvl2 = ET.SubElement(lvl1, "A")
+        ET.SubElement(lvl2, "B0")
+        ET.SubElement(lvl2, "B1")
+        b2 = ET.SubElement(lvl2, "B2")
+        err = ET.SubElement(b2, f"{ns}ERR_CODE")
+        err.text = "999"
+
+        xml_path = tmp_path / "err.xml"
+        ET.ElementTree(root).write(xml_path)
+
+        csv_path = tmp_path / "out.csv"
+        assert client._xml_to_csv(xml_path, csv_path) is False
+
+    def test_xml_to_csv_handles_parse_error_and_returns_false(self, client, tmp_path):
+        """_xml_to_csv should return False on parse errors/exceptions."""
+        missing_xml_path = tmp_path / "does_not_exist.xml"
+        csv_path = tmp_path / "out.csv"
+        assert client._xml_to_csv(missing_xml_path, csv_path) is False
+
+    def test_process_csv_sorts_wind_solar_summary_by_opr_date(self, client, tmp_path):
+        """_process_csv should use the wind/solar sort path when filename matches."""
+        csv_path = tmp_path / "ENE_WIND_SOLAR_SUMMARY.csv"
+        csv_path.write_text("OPR_DATE,DATA_ITEM,VAL\n" "2024-01-02,FOO,2\n" "2024-01-01,FOO,1\n")
+        out_dir = tmp_path / "out"
+        out_dir.mkdir()
+
+        client._process_csv(csv_path, out_dir)
+
+        outputs = list(out_dir.glob("*.csv"))
+        assert len(outputs) == 1
+        df_out = pd.read_csv(outputs[0])
+        assert list(df_out["OPR_DATE"]) == ["2024-01-01", "2024-01-02"]
+
+    def test_process_csv_without_data_item_uses_copy_rename_path(self, client, tmp_path):
+        """_process_csv should hit the copy/rename branch when DATA_ITEM is missing."""
+        csv_path = tmp_path / "SOME_REPORT.csv"
+        csv_path.write_text("OPR_DATE,VAL\n2024-01-01,1\n2024-01-02,2\n")
+        out_dir = tmp_path / "out"
+        out_dir.mkdir()
+
+        client._process_csv(csv_path, out_dir, separate_by_item=True)
+
+        outputs = list(out_dir.glob("*.csv"))
+        assert len(outputs) == 1
+        assert outputs[0].name.startswith("2024-01-01_to_2024-01-02_SOME_REPORT")
+
+
+@pytest.mark.parametrize(
+    "method_name,args,kwargs",
+    [
+        ("get_load_forecast", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_ancillary_services_prices", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_fuel_prices", (date(2024, 1, 1), date(2024, 1, 2)), {"region": "ALL"}),
+        ("get_wind_solar_summary", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_ghg_allowance_prices", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_intertie_constraint_shadow_prices", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_system_load", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_market_power_mitigation", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_flex_ramp_requirements", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_flex_ramp_awards", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_flex_ramp_demand_curve", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_eim_transfer", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_eim_transfer_limits", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        (
+            "get_ancillary_services_requirements",
+            (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)),
+            {"anc_type": "ALL", "anc_region": "ALL"},
+        ),
+        (
+            "get_ancillary_services_results",
+            (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)),
+            {"anc_type": "ALL", "anc_region": "ALL"},
+        ),
+        ("get_operating_reserves", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_scheduling_point_tie_prices", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+    ],
+)
+def test_getters_return_false_when_request_returns_none(client, method_name, args, kwargs):
+    """Covers the `if not content: return False` branches across getters."""
+    with patch.object(client, "_make_request", return_value=None):
+        assert getattr(client, method_name)(*args, **kwargs) is False
+
+
+@pytest.mark.parametrize(
+    "method_name,args,kwargs",
+    [
+        ("get_load_forecast", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_ancillary_services_prices", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_fuel_prices", (date(2024, 1, 1), date(2024, 1, 2)), {"region": "ALL"}),
+        ("get_wind_solar_summary", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_ghg_allowance_prices", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_intertie_constraint_shadow_prices", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_system_load", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_market_power_mitigation", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_flex_ramp_requirements", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_flex_ramp_awards", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_flex_ramp_demand_curve", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_eim_transfer", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_eim_transfer_limits", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        (
+            "get_ancillary_services_requirements",
+            (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)),
+            {"anc_type": "ALL", "anc_region": "ALL"},
+        ),
+        (
+            "get_ancillary_services_results",
+            (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)),
+            {"anc_type": "ALL", "anc_region": "ALL"},
+        ),
+        ("get_operating_reserves", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_scheduling_point_tie_prices", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+    ],
+)
+def test_getters_return_false_when_extract_zip_returns_none(client, method_name, args, kwargs):
+    """Covers the `if not xml_path: return False` branches across getters."""
+    with (
+        patch.object(client, "_make_request", return_value=b"content"),
+        patch.object(client, "_extract_zip", return_value=None),
+    ):
+        assert getattr(client, method_name)(*args, **kwargs) is False
+
+
+@pytest.mark.parametrize(
+    "method_name,args,kwargs",
+    [
+        ("get_lmp", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_load_forecast", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_ancillary_services_prices", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_fuel_prices", (date(2024, 1, 1), date(2024, 1, 2)), {"region": "ALL"}),
+        ("get_wind_solar_summary", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_ghg_allowance_prices", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_intertie_constraint_shadow_prices", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_system_load", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_market_power_mitigation", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_flex_ramp_requirements", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_flex_ramp_awards", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_flex_ramp_demand_curve", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_eim_transfer", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        ("get_eim_transfer_limits", (date(2024, 1, 1), date(2024, 1, 2)), {"baa_group": "ALL"}),
+        (
+            "get_ancillary_services_requirements",
+            (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)),
+            {"anc_type": "ALL", "anc_region": "ALL"},
+        ),
+        (
+            "get_ancillary_services_results",
+            (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)),
+            {"anc_type": "ALL", "anc_region": "ALL"},
+        ),
+        ("get_operating_reserves", (date(2024, 1, 1), date(2024, 1, 2)), {}),
+        ("get_scheduling_point_tie_prices", (Market.DAM, date(2024, 1, 1), date(2024, 1, 2)), {}),
+    ],
+)
+def test_getters_return_false_when_xml_to_csv_returns_false(client, method_name, args, kwargs):
+    """Covers the `if not _xml_to_csv(...): return False` branches across getters."""
+    dummy_xml = Path("dummy.xml")
+    with (
+        patch.object(client, "_make_request", return_value=b"content"),
+        patch.object(client, "_extract_zip", return_value=dummy_xml),
+        patch.object(client, "_xml_to_csv", return_value=False) as mock_xml,
+    ):
+        assert getattr(client, method_name)(*args, **kwargs) is False
+        assert mock_xml.called
+
+
+def test_get_load_forecast_adds_execution_type_for_rtm(client):
+    """Covers the RTM execution_type branch in get_load_forecast."""
+    with (
+        patch.object(client, "_build_params", return_value={}),
+        patch.object(client, "_make_request", return_value=None) as mock_req,
+    ):
+        assert client.get_load_forecast(Market.RTM, date(2024, 1, 1), date(2024, 1, 2)) is False
+        params_sent = mock_req.call_args[0][0]
+        assert params_sent["execution_type"] == "RTD"
+
+
+def test_get_ancillary_services_prices_rejects_invalid_market(client):
+    """Covers invalid market guard clause in get_ancillary_services_prices."""
+    assert (
+        client.get_ancillary_services_prices(Market.HASP, date(2024, 1, 1), date(2024, 1, 2))
+        is False
+    )
+
+
+def test_get_advisory_demand_forecast_continues_when_extract_fails(client):
+    """Covers continue-path when zip extraction fails for advisory forecast."""
+    with (
+        patch.object(client, "_make_request", return_value=b"content"),
+        patch.object(client, "_extract_zip", return_value=None),
+    ):
+        assert client.get_advisory_demand_forecast(date(2024, 1, 1), date(2024, 1, 2)) is False
+
+
+def test_get_advisory_demand_forecast_continues_when_xml_to_csv_fails(client):
+    """Covers continue-path when XML->CSV conversion fails for advisory forecast."""
+    with (
+        patch.object(client, "_make_request", return_value=b"content"),
+        patch.object(client, "_extract_zip", return_value=Path("dummy.xml")),
+        patch.object(client, "_xml_to_csv", return_value=False),
+    ):
+        assert client.get_advisory_demand_forecast(date(2024, 1, 1), date(2024, 1, 2)) is False
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
