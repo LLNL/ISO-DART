@@ -5,7 +5,7 @@ Run with: pytest tests/test_weather.py -v
 """
 
 import pytest
-from datetime import date, datetime, timedelta
+from datetime import date, datetime as real_datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
 import pandas as pd
@@ -39,8 +39,8 @@ def mock_stations_df():
             "latitude": [37.62, 37.72, 37.36],
             "longitude": [-122.38, -122.22, -121.93],
             "elevation": [4, 3, 18],
-            "daily_start": [datetime(2020, 1, 1)] * 3,
-            "daily_end": [datetime(2024, 12, 31)] * 3,
+            "daily_start": [real_datetime(2020, 1, 1)] * 3,
+            "daily_end": [real_datetime(2024, 12, 31)] * 3,
         }
     )
 
@@ -115,14 +115,14 @@ class TestWeatherFindStations:
                 "longitude": [-122.0, -122.5, -123.0],
                 "elevation": [10, 20, 30],
                 "daily_start": [
-                    datetime(2020, 1, 1),
-                    datetime(2025, 1, 1),  # No data for requested range
-                    datetime(2020, 1, 1),
+                    real_datetime(2020, 1, 1),
+                    real_datetime(2025, 1, 1),  # No data for requested range
+                    real_datetime(2020, 1, 1),
                 ],
                 "daily_end": [
-                    datetime(2024, 12, 31),
-                    datetime(2025, 12, 31),
-                    datetime(2024, 12, 31),
+                    real_datetime(2024, 12, 31),
+                    real_datetime(2025, 12, 31),
+                    real_datetime(2024, 12, 31),
                 ],
             }
         )
@@ -212,9 +212,9 @@ class TestWeatherDownload:
 
         assert not success
 
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Stations")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
     def test_download_weather_data_empty_result(
         self, mock_point, mock_stations_class, mock_hourly_class, client, mock_stations_df
     ):
@@ -233,7 +233,7 @@ class TestWeatherDownload:
             state="CA", start_date=date(2024, 1, 1), duration=1, interactive=False
         )
 
-        assert success
+        assert success is False
 
     @patch("meteostat.Hourly")
     @patch("meteostat.Stations")
@@ -314,6 +314,51 @@ class TestWeatherDownload:
         assert df["weather_condition"].iloc[0] == "Cloudy"
         assert df["weather_condition"].iloc[1] == "Cloudy"
         assert df["weather_condition"].iloc[2] == "Fair"
+
+    @patch("builtins.input")
+    @patch("meteostat.Hourly")
+    @patch("meteostat.Point")
+    def test_download_weather_data_interactive_selection_invalid_then_valid(
+        self, mock_point, mock_hourly_class, mock_input, client, temp_dir, capsys
+    ):
+        # >20 stations to trigger the " ... and N more" branch
+        stations_df = pd.DataFrame(
+            {
+                "name": [f"Station {i}" for i in range(1, 26)],
+                "latitude": [37.0] * 25,
+                "longitude": [-122.0] * 25,
+                "elevation": [10] * 25,
+                "daily_start": [real_datetime(2020, 1, 1)] * 25,
+                "daily_end": [real_datetime(2026, 12, 31)] * 25,
+            }
+        )
+
+        # bypass find_stations internals; we’re testing selection loop here
+        client.find_stations = Mock(return_value=stations_df)
+
+        # invalid -> invalid range -> valid
+        mock_input.side_effect = ["not-an-int", "0", "2"]
+
+        # minimal hourly data
+        dates = pd.date_range("2024-01-01", periods=3, freq="h")
+        weather_data = pd.DataFrame({"temp": [50, 51, 52]}, index=dates)
+
+        mock_hourly = Mock()
+        mock_hourly.convert.return_value = mock_hourly
+        mock_hourly.fetch.return_value = weather_data
+        mock_hourly_class.return_value = mock_hourly
+
+        success = client.download_weather_data(
+            state="CA", start_date=date(2024, 1, 1), duration=1, interactive=True
+        )
+        assert success is True
+
+        # sanity: choice "2" selects index 1 (Station 2)
+        assert client.selected_station["name"] == "Station 2"
+
+        out = capsys.readouterr().out
+        assert "Invalid selection" in out
+        assert "... and 5 more" in out
 
 
 class TestSolarDataDownload:
@@ -399,6 +444,45 @@ class TestSolarDataDownload:
                     # Check that config write was attempted
                     assert mock_write.called or mock_browser.called
 
+    @patch("lib.weather.client.pd.read_csv")
+    @patch("lib.weather.client.datetime")
+    def test_download_solar_defaults_year_non_leap_and_saves(
+        self, mock_datetime, mock_read_csv, client, temp_dir
+    ):
+        # selected_location must have _lat/_lon (client uses private attrs)
+        client.selected_location = Mock(_lat=37.62, _lon=-122.38)
+        client.selected_station = {"name": "Test/Station Name"}
+
+        # Make datetime.now().year == 2023 (non-leap)
+        mock_datetime.now.return_value = real_datetime(2023, 1, 1)
+
+        # Ensure row count matches periods=8760 for non-leap year
+        mock_read_csv.return_value = pd.DataFrame({"ghi": [0] * 8760})
+
+        # Provide config via fake file read (configparser reads from disk)
+        mock_config = Mock()
+        mock_config.__getitem__ = Mock(
+            side_effect=lambda x: {
+                "API": {"api_key": "k"},
+                "USER_INFO": {
+                    "first_name": "A",
+                    "last_name": "B",
+                    "affiliation": "Org",
+                    "email": "a@b.com",
+                },
+            }[x]
+        )
+
+        with (
+            patch.object(Path, "exists", return_value=True),
+            patch("lib.weather.client.configparser.ConfigParser", return_value=mock_config),
+        ):
+            success = client.download_solar_data(year=None, config_file=Path("user_config.ini"))
+
+        assert success is True
+        output_files = list(temp_dir["solar_dir"].glob("solar_data_*.csv"))
+        assert len(output_files) == 1
+
 
 class TestWeatherUtilityMethods:
     """Test utility methods."""
@@ -458,8 +542,8 @@ class TestWeatherFilenameGeneration:
                 "latitude": [37.62],
                 "longitude": [-122.38],
                 "elevation": [4],
-                "daily_start": [datetime(2020, 1, 1)],
-                "daily_end": [datetime(2024, 12, 31)],
+                "daily_start": [real_datetime(2020, 1, 1)],
+                "daily_end": [real_datetime(2024, 12, 31)],
             }
         )
 

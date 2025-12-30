@@ -84,7 +84,7 @@ def run_interactive_mode():
 
     # Main data type selection
     print("\nWhat type of data do you want to download?")
-    print("  (1) ISO Data (CAISO, MISO, NYISO, SPP, BPA)")
+    print("  (1) ISO Data (CAISO, MISO, NYISO, SPP, BPA, PJM, ISO-NE)")
     print("  (2) Weather Data")
 
     while True:
@@ -120,13 +120,15 @@ def run_iso_mode():
     print("  (3) NYISO - New York Independent System Operator")
     print("  (4) SPP - Southwest Power Pool")
     print("  (5) BPA - Bonneville Power Administration")
+    print("  (6) PJM - Pennsylvania, New Jersey, Maryland Interconnection")
+    print("  (7) ISO-NE - New England Independent System Operator")
 
     while True:
         try:
-            iso_choice = int(input("\nYour choice (1-5): "))
-            if iso_choice in range(1, 6):
+            iso_choice = int(input("\nYour choice (1-7): "))
+            if iso_choice in range(1, 8):
                 break
-            print("Please enter 1, 2, 3, 4, or 5")
+            print("Please enter 1, 2, 3, 4, 5, 6, or 7")
         except ValueError:
             print("Please enter a valid number")
 
@@ -138,8 +140,12 @@ def run_iso_mode():
         run_nyiso_mode()
     elif iso_choice == 4:
         run_spp_mode()
-    else:
+    elif iso_choice == 5:
         run_bpa_mode()
+    elif iso_choice == 6:
+        run_pjm_mode()
+    else:
+        run_isone_mode()
 
 
 # ============================================================================
