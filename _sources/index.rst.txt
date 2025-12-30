@@ -17,6 +17,10 @@ Welcome to the comprehensive documentation for **ISO-DART v2.0** - the Independe
    :target: https://github.com/psf/black
    :alt: Code style: black
 
+.. image:: https://codecov.io/github/LLNL/ISO-DART/branch/dev/graph/badge.svg
+   :target: https://codecov.io/github/LLNL/ISO-DART
+   :alt: Codecov
+
 ----
 
 Quick Links
