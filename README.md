@@ -7,6 +7,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![codecov](https://codecov.io/github/LLNL/ISO-DART/branch/dev/graph/badge.svg)](https://codecov.io/github/LLNL/ISO-DART)
 
 *A modern Python toolkit for downloading and analyzing electricity market data from US Independent System Operators*
 
@@ -189,8 +190,8 @@ plt.savefig('lmp_analysis.png')
 
 ### Essential Guides
 
-- **[Quick Start Guide](QUICKSTART.md)** - Get running in 5 minutes
-- **[Migration Guide](MIGRATION_GUIDE.md)** - Upgrading from v1.x
+- **[Quick Start Guide](docs/source/getting-started/QUICKSTART.md)** - Get running in 5 minutes
+- **[Migration Guide](docs/source/getting-started/MIGRATION_GUIDE.md)** - Upgrading from v1.x
 - **[API Reference](docs/api/)** - Complete function documentation
 - **[Examples Gallery](examples/)** - Jupyter notebooks and scripts
 
