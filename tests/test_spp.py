@@ -1240,5 +1240,384 @@ class TestSPPDataQuality:
         assert "LMP" in df.columns
 
 
+class TestSPPCoverageGaps:
+    """Extra tests to cover coverage-gaps branches in spp.py."""
+
+    def test_download_ftp_file_permission_error_non_550(self, client, mock_ftp, caplog):
+        """Covers spp.py line 272: error_perm branch without '550'."""
+        caplog.set_level("DEBUG")
+        mock_ftp.retrbinary.side_effect = ftplib.error_perm("530 Not logged in")
+
+        content = client._download_ftp_file(mock_ftp, "/test/path", "test.csv")
+
+        assert content is None
+        assert any("FTP permission error" in rec.message for rec in caplog.records)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    def test_test_ftp_connection_success_with_path_checks(self, mock_connect, client, capsys):
+        """Covers spp.py lines 287-327 (success path, path loop, quit)."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+
+        # >20 items triggers "... and N more items"
+        mock_ftp.nlst.return_value = [f"item{i:02d}" for i in range(25)]
+
+        # Make one test path fail to hit the ✗ branch
+        def cwd_side_effect(path):
+            if path == "Markets/RTBM/OR":
+                raise Exception("no access")
+            return None
+
+        mock_ftp.cwd.side_effect = cwd_side_effect
+        mock_connect.return_value = mock_ftp
+
+        ok = client.test_ftp_connection()
+        out = capsys.readouterr().out
+
+        assert ok is True
+        assert "=== SPP FTP Root Directory ===" in out
+        assert "... and 5 more items" in out
+        assert "✗ Markets/RTBM/OR" in out
+        mock_ftp.quit.assert_called_once()
+
+    @patch.object(SPPClient, "_connect_ftp")
+    def test_test_ftp_connection_handles_exception_and_quits(self, mock_connect, client):
+        """Covers spp.py exception path in test_ftp_connection + finally quit."""
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_ftp.cwd.side_effect = Exception("boom")
+        mock_connect.return_value = mock_ftp
+
+        ok = client.test_ftp_connection()
+
+        assert ok is False
+        mock_ftp.quit.assert_called_once()
+
+    @patch.object(SPPClient, "_connect_ftp", return_value=None)
+    @pytest.mark.parametrize(
+        "method,args",
+        [
+            ("get_mcp", (SPPMarket.DAM, date(2024, 1, 1), date(2024, 1, 1))),  # 435
+            ("get_operating_reserves", (date(2024, 1, 1), date(2024, 1, 1))),  # 496
+            ("get_binding_constraints", (SPPMarket.DAM, date(2024, 1, 1), date(2024, 1, 1))),  # 619
+            ("get_fuel_on_margin", (date(2024, 1, 1), date(2024, 1, 1))),  # 665
+            ("get_market_clearing", (date(2024, 1, 1), date(2024, 1, 1))),  # 1114
+            ("get_virtual_clearing", (date(2024, 1, 1), date(2024, 1, 1))),  # 1160
+        ],
+    )
+    def test_methods_return_false_when_ftp_unavailable(self, _mock_connect, client, method, args):
+        """Covers early return False when _connect_ftp() fails."""
+        fn = getattr(client, method)
+        assert fn(*args) is False
+
+    def test_get_load_forecast_invalid_type(self, client, caplog):
+        """Covers spp.py 719-720."""
+        caplog.set_level("DEBUG")
+        ok = client.get_load_forecast(date(2024, 1, 1), date(2024, 1, 1), forecast_type="nope")
+        assert ok is False
+        assert any(
+            "forecast_type must be 'stlf' or 'mtlf'" in rec.message for rec in caplog.records
+        )
+
+    @patch.object(SPPClient, "_connect_ftp", return_value=None)
+    def test_get_load_forecast_no_ftp(self, _mock_connect, client):
+        """Covers spp.py 726."""
+        assert (
+            client.get_load_forecast(date(2024, 1, 1), date(2024, 1, 1), forecast_type="mtlf")
+            is False
+        )
+
+    def test_get_resource_forecast_invalid_type(self, client, caplog):
+        """Covers spp.py 925-926."""
+        caplog.set_level("DEBUG")
+        ok = client.get_resource_forecast(date(2024, 1, 1), date(2024, 1, 1), forecast_type="nope")
+        assert ok is False
+        assert any(
+            "forecast_type must be 'strf' or 'mtrf'" in rec.message for rec in caplog.records
+        )
+
+    @patch.object(SPPClient, "_connect_ftp", return_value=None)
+    def test_get_resource_forecast_no_ftp(self, _mock_connect, client):
+        """Covers spp.py 932."""
+        assert (
+            client.get_resource_forecast(date(2024, 1, 1), date(2024, 1, 1), forecast_type="mtrf")
+            is False
+        )
+
+    # --- Parse-error branches for the "all_data empty -> return False" paths ---
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_get_lmp_parsing_error_logs_warning(
+        self, mock_read_csv, mock_download, mock_connect, client, caplog
+    ):
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = b"not,a,csv"
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        ok = client.get_lmp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing LMP data" in rec.message for rec in caplog.records)
+        mock_ftp.quit.assert_called_once()
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_get_mcp_parsing_error_and_no_data(
+        self, mock_read_csv, mock_download, mock_connect, client, caplog
+    ):
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = b"not,a,csv"
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        ok = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing MCP data" in rec.message for rec in caplog.records)
+        assert any("No MCP data retrieved" in rec.message for rec in caplog.records)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_get_binding_constraints_parsing_error_and_no_data(
+        self, mock_read_csv, mock_download, mock_connect, client, caplog
+    ):
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = b"not,a,csv"
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        ok = client.get_binding_constraints(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing constraints" in rec.message for rec in caplog.records)
+        assert any("No binding constraints data retrieved" in rec.message for rec in caplog.records)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_get_fuel_on_margin_parsing_error_and_no_data(
+        self, mock_read_csv, mock_download, mock_connect, client, caplog
+    ):
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = b"not,a,csv"
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        ok = client.get_fuel_on_margin(date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing fuel data" in rec.message for rec in caplog.records)
+        assert any("No fuel on margin data retrieved" in rec.message for rec in caplog.records)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_get_market_clearing_parsing_error_and_no_data(
+        self, mock_read_csv, mock_download, mock_connect, client, caplog
+    ):
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = b"not,a,csv"
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        ok = client.get_market_clearing(date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing market clearing" in rec.message for rec in caplog.records)
+        assert any("No market clearing data retrieved" in rec.message for rec in caplog.records)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_get_virtual_clearing_parsing_error_and_no_data(
+        self, mock_read_csv, mock_download, mock_connect, client, caplog
+    ):
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+        mock_download.return_value = b"not,a,csv"
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        ok = client.get_virtual_clearing(date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing virtual clearing" in rec.message for rec in caplog.records)
+        assert any("No virtual clearing data retrieved" in rec.message for rec in caplog.records)
+
+    # --- Operating Reserves debug + outer exception ---
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_get_operating_reserves_missing_and_parse_errors(
+        self, mock_read_csv, mock_download, mock_connect, client, caplog
+    ):
+        """Covers spp.py 541-542, 565-568, 578, 581-582."""
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+
+        def download_side_effect(_ftp, _path, filename):
+            if filename.endswith("0000.csv"):
+                return b"bad"
+            if filename.endswith("0005.csv"):
+                return b"bad2"
+            return None
+
+        mock_download.side_effect = download_side_effect
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        ok = client.get_operating_reserves(date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        msgs = [rec.message for rec in caplog.records]
+        assert any("Error parsing" in m for m in msgs)
+        assert any("No OR data found" in m for m in msgs)
+        assert any("No Operating Reserves data retrieved" in m for m in msgs)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file", side_effect=RuntimeError("boom"))
+    def test_get_operating_reserves_outer_exception(
+        self, _mock_download, mock_connect, client, caplog
+    ):
+        """Covers spp.py 599-601."""
+        caplog.set_level("DEBUG")
+        mock_ftp = Mock()
+        mock_ftp.quit = Mock()
+        mock_connect.return_value = mock_ftp
+
+        ok = client.get_operating_reserves(date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error in get_operating_reserves" in rec.message for rec in caplog.records)
+        mock_ftp.quit.assert_called_once()
+
+    # --- Forecast helper no-data branches (787-788, 876-877, 993-994, 1082-1083) ---
+
+    @patch.object(SPPClient, "_download_ftp_file", return_value=None)
+    def test_forecast_helpers_no_data(self, _mock_download, client, caplog):
+        caplog.set_level("DEBUG")
+        ftp = Mock()
+
+        assert client._get_mtlf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+        assert any("No MTLF data retrieved" in r.message for r in caplog.records)
+
+        caplog.clear()
+        assert client._get_stlf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+        assert any("No STLF data retrieved" in r.message for r in caplog.records)
+
+        caplog.clear()
+        assert client._get_mtrf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+        assert any("No MTRF data retrieved" in r.message for r in caplog.records)
+
+        caplog.clear()
+        assert client._get_strf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+        assert any("No STRF data retrieved" in r.message for r in caplog.records)
+
+    # --- Forecast helper parse-error + file-not-found debug branches ---
+
+    @patch.object(SPPClient, "_download_ftp_file")
+    @patch("lib.iso.spp.pd.read_csv")
+    def test_forecast_helpers_cover_parse_error_and_file_not_found(
+        self, mock_read_csv, mock_download, client, caplog
+    ):
+        """Covers debug branches: 776-779, 865-868, 982-985, 1071-1074 (and file-not-found lines)."""
+        caplog.set_level("DEBUG")
+        ftp = Mock()
+
+        # First call returns content (parse error), rest missing
+        mock_download.side_effect = [b"bad"] + [None] * 2000
+        mock_read_csv.side_effect = ValueError("bad csv")
+
+        assert client._get_mtlf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+        assert client._get_mtrf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+        assert client._get_stlf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+        assert client._get_strf(ftp, date(2024, 1, 15), date(2024, 1, 15)) is False
+
+        msgs = [r.message for r in caplog.records]
+        assert any("Error parsing" in m for m in msgs)
+        assert any("File not found" in m for m in msgs)
+
+
+class TestSPPFinalCoverageBits:
+    @patch.object(SPPClient, "_connect_ftp", return_value=None)
+    def test_test_ftp_connection_connect_fails_hits_291_292(self, _mock_connect, client, caplog):
+        """Covers spp.py 291-292."""
+        caplog.set_level("DEBUG")
+        ok = client.test_ftp_connection()
+        assert ok is False
+        assert any("Failed to connect to FTP server" in r.message for r in caplog.records)
+
+    @patch.object(SPPClient, "_connect_ftp")
+    @patch.object(SPPClient, "_download_ftp_file", return_value=None)
+    def test_operating_reserves_file_not_found_hits_568(
+        self, _mock_download, mock_connect, client, caplog
+    ):
+        """Covers spp.py 568 (OR loop: content is falsy -> 'File not found')."""
+        caplog.set_level("DEBUG")
+        ftp = Mock()
+        ftp.quit = Mock()
+        mock_connect.return_value = ftp
+
+        ok = client.get_operating_reserves(date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("File not found:" in r.message for r in caplog.records)
+        ftp.quit.assert_called_once()
+
+    @patch.object(SPPClient, "_download_ftp_file", return_value=b"bad,csv")
+    @patch("lib.iso.spp.pd.read_csv", side_effect=ValueError("bad csv"))
+    def test_stlf_parse_error_hits_865_866(self, _mock_read_csv, _mock_download, client, caplog):
+        """Covers spp.py 865-866 (STLF helper parse-except)."""
+        caplog.set_level("DEBUG")
+        ftp = Mock()
+
+        ok = client._get_stlf(ftp, date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing" in r.message for r in caplog.records)
+
+    @patch.object(SPPClient, "_download_ftp_file", return_value=b"bad,csv")
+    @patch("lib.iso.spp.pd.read_csv", side_effect=ValueError("bad csv"))
+    def test_mtrf_parse_error_hits_982_983(self, _mock_read_csv, _mock_download, client, caplog):
+        """Covers spp.py 982-983 (MTRF helper parse-except)."""
+        caplog.set_level("DEBUG")
+        ftp = Mock()
+
+        ok = client._get_mtrf(ftp, date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing" in r.message for r in caplog.records)
+
+    @patch.object(SPPClient, "_download_ftp_file", return_value=b"bad,csv")
+    @patch("lib.iso.spp.pd.read_csv", side_effect=ValueError("bad csv"))
+    def test_strf_parse_error_hits_1071_1072(self, _mock_read_csv, _mock_download, client, caplog):
+        """Covers spp.py 1071-1072 (STRF helper parse-except)."""
+        caplog.set_level("DEBUG")
+        ftp = Mock()
+
+        ok = client._get_strf(ftp, date(2024, 1, 15), date(2024, 1, 15))
+
+        assert ok is False
+        assert any("Error parsing" in r.message for r in caplog.records)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
