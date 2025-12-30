@@ -633,5 +633,56 @@ class TestNYISOIntegration:
         assert len(output_files) > 0
 
 
+class TestNYISOAdditionalCoverage:
+    def test_merge_csvs_exception_path_logs_and_returns_false(self, client, temp_dir):
+        raw_path = temp_dir.raw_dir / "damlbmp" / "zone"
+        raw_path.mkdir(parents=True, exist_ok=True)
+
+        (raw_path / "20240101damlbmp_zone.csv").write_text("a,b\n1,2\n")
+
+        with patch("lib.iso.nyiso.pd.read_csv", side_effect=Exception("boom")):
+            with patch("lib.iso.nyiso.logger.error") as mock_err:
+                ok = client._merge_csvs(raw_path, "damlbmp", date(2024, 1, 1), 1, "zone")
+
+        assert ok is False
+        assert mock_err.called
+
+
+@pytest.mark.parametrize(
+    "method_name,args,kwargs",
+    [
+        # Covers line 207
+        ("get_lbmp", (NYISOMarket.DAM, "zonal", date(2024, 1, 1), 1), {}),
+        # Covers line 241
+        ("get_ancillary_services_prices", (NYISOMarket.DAM, date(2024, 1, 1), 1), {}),
+        # Covers line 279
+        ("get_constraints", (NYISOMarket.DAM, date(2024, 1, 1), 1), {}),
+        # Covers line 326 (note: get_bid_data always returns True; still logs warning on failure)
+        ("get_bid_data", ("generator", date(2024, 1, 1), 1), {}),
+        # Covers line 369
+        ("get_fuel_mix", (date(2024, 1, 1), 1), {}),
+        # Covers line 403
+        ("get_interface_flows", (date(2024, 1, 1), 1), {}),
+        # Covers line 437
+        ("get_btm_solar", (date(2024, 1, 1), 1), {}),
+        # Covers line 491
+        ("get_load_data", ("actual", date(2024, 1, 1), 1), {}),
+        # Covers line 544
+        ("get_outages", (NYISOMarket.DAM,), {"start_date": date(2024, 1, 1), "duration": 1}),
+    ],
+)
+def test_failed_download_logs_warning(client, method_name, args, kwargs):
+    with (
+        patch("lib.iso.nyiso.NYISOClient._make_request", return_value=False),
+        patch("lib.iso.nyiso.NYISOClient._merge_csvs", return_value=True),
+    ):
+
+        with patch("lib.iso.nyiso.logger.warning") as mock_warn:
+            result = getattr(client, method_name)(*args, **kwargs)
+
+    assert mock_warn.called
+    assert isinstance(result, bool)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
