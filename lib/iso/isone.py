@@ -18,11 +18,13 @@ import json
 import logging
 import os
 import time
+import configparser
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Union
 
+import pandas as pd
 import requests
 
 
@@ -89,6 +91,50 @@ class ISONEConfig:
     max_retries: int = 3
     retry_backoff_s: float = 1.5
 
+    @classmethod
+    def from_ini_file(cls, config_path: Optional[Path] = None) -> "ISONEConfig":
+        config = configparser.ConfigParser()
+
+        search_paths = []
+        if config_path:
+            search_paths.append(config_path)
+
+        # Mirror MISO/PJM search order style
+        search_paths.extend(
+            [
+                Path("user_config.ini"),
+                Path("config.ini"),
+                Path.home() / ".isone" / "config.ini",
+            ]
+        )
+
+        config_file = next((p for p in search_paths if p.exists()), None)
+        if not config_file:
+            return cls()  # nothing found
+
+        config.read(config_file)
+        if "isone" not in config:
+            return cls()
+
+        s = config["isone"]
+        kwargs = {}
+
+        if s.get("username"):
+            kwargs["username"] = s.get("username")
+        if s.get("password"):
+            kwargs["password"] = s.get("password")
+
+        if s.get("data_dir"):
+            kwargs["data_dir"] = Path(s.get("data_dir"))
+        if s.get("timeout"):
+            kwargs["timeout"] = int(s.get("timeout"))
+        if s.get("max_retries"):
+            kwargs["max_retries"] = int(s.get("max_retries"))
+        if s.get("retry_backoff_s"):
+            kwargs["retry_backoff_s"] = float(s.get("retry_backoff_s"))
+
+        return cls(**kwargs)
+
     @staticmethod
     def from_env() -> "ISONEConfig":
         data_dir = Path(os.getenv("ISONE_DATA_DIR", "data/ISONE"))
@@ -101,10 +147,56 @@ class ISONEConfig:
             retry_backoff_s=float(os.getenv("ISONE_RETRY_BACKOFF_S", "1.5")),
         )
 
+    @classmethod
+    def load(cls, config_path: Optional[Path] = None) -> "ISONEConfig":
+        """
+        Preferred: INI, fallback: env, final fallback: defaults.
+        """
+        ini_cfg = cls.from_ini_file(config_path)
+        # If INI provided creds, use it; otherwise fall back to env (so old behavior still works)
+        if ini_cfg.username and ini_cfg.password:
+            return ini_cfg
+
+        env_cfg = cls.from_env()
+        # Merge: use INI for non-secret settings if present, but allow env creds
+        return cls(
+            username=env_cfg.username or ini_cfg.username,
+            password=env_cfg.password or ini_cfg.password,
+            data_dir=ini_cfg.data_dir,
+            timeout=ini_cfg.timeout,
+            max_retries=ini_cfg.max_retries,
+            retry_backoff_s=ini_cfg.retry_backoff_s,
+        )
+
+    @classmethod
+    def create_template_ini(cls, output_path: Path = Path("user_config.ini")):
+        """Create a template INI file for users to fill in."""
+        template = """[isone]
+# ISO-NE Web Services (Basic Auth)
+# Sign Up at https://www.iso-ne.com/ to get your credentials
+username = username@example.com
+password = your-password-here
+
+# Optional overrides
+data_dir = data/ISONE
+timeout = 30
+max_retries = 3
+retry_backoff_s = 1.5
+    """
+
+        if output_path.exists():
+            # Append to existing file
+            with open(output_path, "a") as f:
+                f.write("\n" + template)
+            logger.info(f"Appended ISO-NE config to: {output_path}")
+        else:
+            output_path.write_text(template)
+            logger.info(f"Created template config file at: {output_path}")
+
 
 class ISONEClient:
     def __init__(self, config: Optional[ISONEConfig] = None):
-        self.config = config or ISONEConfig.from_env()
+        self.config = config or ISONEConfig.load()
         self.config.data_dir.mkdir(parents=True, exist_ok=True)
 
         self.session = requests.Session()
@@ -385,3 +477,58 @@ class ISONEClient:
             self._save_json(payload, out_path)
             saved.append(out_path)
         return saved
+
+
+# Example usage
+if __name__ == "__main__":
+    """
+    Example usage of the ISONE client.
+
+    Credentials are loaded in the following order:
+      1. user_config.ini [isone] section
+      2. Environment variables (ISONE_USERNAME / ISONE_PASSWORD)
+    """
+    # Create template if needed
+    if not Path("user_config.ini").exists():
+        ISONEConfig.create_template_ini()
+        print("\nPlease edit user_config.ini with your ISO-NE credentials, then run again.")
+        exit(0)
+
+    # Load configuration (INI preferred, env fallback)
+    config = ISONEConfig.load()
+
+    if not config.username or not config.password:
+        raise RuntimeError(
+            "ISO-NE credentials not found. "
+            "Set them in user_config.ini [isone] or via environment variables."
+        )
+
+    # Create client
+    client = ISONEClient(config)
+
+    # Ensure output directory exists
+    config.data_dir.mkdir(parents=True, exist_ok=True)
+
+    # -------------------------
+    # Example 1: Simple API call
+    # -------------------------
+    try:
+        example_start_date = date.today() - timedelta(days=7)
+        example_end_date = date.today() - timedelta(days=6)
+        saved = client.get_hourly_lmp(
+            start_date=example_start_date, end_date_exclusive=example_end_date
+        )
+
+        print(f"Saved hourly LMP data to {saved}")
+
+        # Load the JSON file
+        with open(saved[0]) as f:
+            data = json.load(f)
+
+        # Flatten into a DataFrame
+        df = pd.json_normalize(data["HourlyLmps"])
+
+        print(df.head())
+
+    except Exception as exc:
+        print(f"Error fetching ISO-NE data: {exc}")
