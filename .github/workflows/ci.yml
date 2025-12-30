@@ -54,6 +54,7 @@ jobs:
         pytest tests/ -v --cov=lib --cov-branch --cov-report=xml --cov-report=term-missing -m "not integration"
         
     - name: Upload coverage to Codecov
+      if: matrix.os == 'macos-latest' && matrix.python-version == '3.12'
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
