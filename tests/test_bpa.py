@@ -8,6 +8,8 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from io import BytesIO
 from typing import Dict, Any
+import logging
+import requests
 
 import pandas as pd
 import pytest
@@ -168,6 +170,21 @@ class TestMakeRequest:
         # should have tried max_retries times
         assert client.session.get.call_count == client.config.max_retries
 
+    def test_make_request_handles_request_exception(self, client, caplog):
+        client.config.max_retries = 2
+
+        # avoid real sleep between retries
+        with patch("time.sleep", autospec=True) as _sleep:
+            client.session.get = Mock(side_effect=requests.RequestException("boom"))  # type: ignore[assignment]
+
+            caplog.set_level(logging.ERROR)
+            content = client._make_request("https://example.com/file.xlsx")
+
+        assert content is None
+        assert "Request error:" in caplog.text
+        assert client.session.get.call_count == 2
+        _sleep.assert_called_once()  # since retries=2 => one sleep between attempts
+
 
 # ---------------------------------------------------------------------------
 # Excel parsing tests
@@ -215,6 +232,21 @@ class TestParseExcelFile:
         """
         df = client._parse_excel_file(b"not-an-excel-file", BPADataType.WIND_GEN_TOTAL_LOAD)
         assert df is None
+
+    def test_parse_excel_file_datetime_parse_exception_logs_warning(self, client, caplog):
+        # Build a simple df that _parse_excel_file will produce after read_excel
+        df = pd.DataFrame({"Date": ["2024-01-01"], "Time": ["00:05"], "Value": [1.0]})
+
+        caplog.set_level(logging.WARNING)
+
+        with (
+            patch("lib.iso.bpa.pd.read_excel", return_value=df),
+            patch("lib.iso.bpa.pd.to_datetime", side_effect=Exception("bad dt")),
+        ):
+            out = client._parse_excel_file(b"fake-excel-bytes", data_type=None)  # type: ignore[arg-type]
+
+        assert isinstance(out, pd.DataFrame)
+        assert "Could not parse datetime column" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -319,6 +351,40 @@ class TestWindGenTotalLoad:
         output_file = client.config.data_dir / "2024_BPA_WindGenTotalLoad.csv"
         assert not output_file.exists()
 
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file", return_value=pd.DataFrame())
+    def test_wind_parse_returns_empty_df_returns_false(
+        self, mock_parse, mock_req, client, tmp_path
+    ):
+        client.config.data_dir = tmp_path
+        assert client.get_wind_gen_total_load(2024) is False
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file", return_value=None)
+    def test_wind_parse_returns_none_returns_false(self, mock_parse, mock_req, client, tmp_path):
+        client.config.data_dir = tmp_path
+        assert client.get_wind_gen_total_load(2024) is False
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file")
+    @patch.object(BPAClient, "_filter_by_date_range", return_value=pd.DataFrame())
+    def test_wind_date_filter_makes_empty_returns_false(
+        self, mock_filter, mock_parse, mock_req, client, tmp_path
+    ):
+        client.config.data_dir = tmp_path
+        mock_parse.return_value = pd.DataFrame(
+            {"DateTime": pd.date_range("2024-01-01", periods=3, freq="h"), "Value": [1, 2, 3]}
+        )
+
+        assert client.get_wind_gen_total_load(2024, start_date=date(2024, 1, 2)) is False
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file", side_effect=RuntimeError("boom"))
+    def test_wind_processing_exception_returns_false(self, mock_parse, mock_req, client, caplog):
+        caplog.set_level(logging.ERROR)
+        assert client.get_wind_gen_total_load(2024) is False
+        assert "Error processing data:" in caplog.text
+
 
 class TestReservesDeployed:
     @patch.object(BPAClient, "_make_request")
@@ -360,6 +426,34 @@ class TestReservesDeployed:
 
         output_file = client.config.data_dir / "2024_BPA_Reserves_Deployed.csv"
         assert not output_file.exists()
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file", return_value=pd.DataFrame())
+    def test_reserves_parse_empty_returns_false(self, mock_parse, mock_req, client, tmp_path):
+        client.config.data_dir = tmp_path
+        assert client.get_reserves_deployed(2024) is False
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file")
+    @patch.object(BPAClient, "_filter_by_date_range", return_value=pd.DataFrame())
+    def test_reserves_date_filter_makes_empty_returns_false(
+        self, mock_filter, mock_parse, mock_req, client, tmp_path
+    ):
+        client.config.data_dir = tmp_path
+        mock_parse.return_value = pd.DataFrame(
+            {"DateTime": pd.date_range("2024-01-01", periods=3, freq="h"), "Value": [1, 2, 3]}
+        )
+
+        assert client.get_reserves_deployed(2024, start_date=date(2024, 1, 2)) is False
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file", side_effect=RuntimeError("boom"))
+    def test_reserves_processing_exception_returns_false(
+        self, mock_parse, mock_req, client, caplog
+    ):
+        caplog.set_level(logging.ERROR)
+        assert client.get_reserves_deployed(2024) is False
+        assert "Error processing data:" in caplog.text
 
 
 class TestGetAllData:
