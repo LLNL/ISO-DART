@@ -344,5 +344,240 @@ def test_get_day_ahead_hourly_demand_saves_and_calls_expected_url(tmp_path):
     )
 
 
+# -----------------------------
+# Config-from-env coverage
+# -----------------------------
+def test_config_from_env_reads_values(monkeypatch):
+    monkeypatch.setenv("ISONE_USERNAME", "env_user")
+    monkeypatch.setenv("ISONE_PASSWORD", "env_pass")
+    monkeypatch.setenv("ISONE_DATA_DIR", "data/ENV_ISONE")
+    monkeypatch.setenv("ISONE_TIMEOUT", "12")
+    monkeypatch.setenv("ISONE_MAX_RETRIES", "7")
+    monkeypatch.setenv("ISONE_RETRY_BACKOFF_S", "2.25")
+
+    cfg = ISONEConfig.from_env()
+    assert cfg.username == "env_user"
+    assert cfg.password == "env_pass"
+    assert str(cfg.data_dir).endswith("data/ENV_ISONE")
+    assert cfg.timeout == 12
+    assert cfg.max_retries == 7
+    assert cfg.retry_backoff_s == 2.25
+
+
+def test_client_init_uses_from_env(monkeypatch):
+    # Force env values
+    monkeypatch.setenv("ISONE_USERNAME", "u")
+    monkeypatch.setenv("ISONE_PASSWORD", "p")
+    monkeypatch.setenv("ISONE_MAX_RETRIES", "5")
+
+    # If your client now prefers INI via ISONEConfig.load(), force it to use env for this test
+    monkeypatch.setattr(isone.ISONEConfig, "load", staticmethod(isone.ISONEConfig.from_env))
+
+    c = ISONEClient()  # no config passed
+    assert c.config.username == "u"
+    assert c.config.password == "p"
+    assert c.config.max_retries == 5
+
+
+# -----------------------------
+# _request_json coverage
+# -----------------------------
+def test_request_json_requires_credentials_when_authenticated():
+    cfg = ISONEConfig(api_base="https://x", username=None, password=None, max_retries=1)
+    c = ISONEClient(cfg)
+
+    with pytest.raises(RuntimeError, match="requires ISO-NE Web Services credentials"):
+        c._request_json("fiveminutesystemload/current", authenticated=True)
+
+
+def test_request_json_raises_after_max_retries(monkeypatch):
+    # Covers lines 160-162: break + raise last_err
+    cfg = ISONEConfig(api_base="https://x", username="u", password="p", max_retries=2, retry_backoff_s=0.5)
+    c = ISONEClient(cfg)
+
+    c.session = FakeSession(
+        [
+            FakeResponse(500, json_obj={"err": 1}),
+            FakeResponse(500, json_obj={"err": 2}),
+        ]
+    )
+
+    sleeps = []
+    monkeypatch.setattr(isone.time, "sleep", lambda s: sleeps.append(s))
+
+    with pytest.raises(RuntimeError, match="HTTP 500"):
+        c._request_json("fiveminutesystemload/current", authenticated=True)
+
+    # Sleep happens only after the first failure (attempt 1), not after the last attempt
+    assert sleeps == [0.5]
+
+
+def test_client_sets_default_headers():
+    cfg = ISONEConfig(api_base="https://x", username="u", password="p")
+    c = ISONEClient(cfg)
+
+    assert c.session.headers.get("Accept") == "application/json"
+    assert "isone-client" in c.session.headers.get("User-Agent", "")
+
+
+def test_config_from_env_parses_max_retries(monkeypatch):
+    monkeypatch.setenv("ISONE_USERNAME", "env_user")
+    monkeypatch.setenv("ISONE_PASSWORD", "env_pass")
+    monkeypatch.setenv("ISONE_MAX_RETRIES", "9")
+
+    cfg = ISONEConfig.from_env()
+    assert cfg.max_retries == 9
+
+
+def test_request_json_breaks_and_raises_last_err_when_retries_exhausted():
+    cfg = ISONEConfig(api_base="https://x", username="u", password="p", max_retries=1)
+    c = ISONEClient(cfg)
+
+    c.session = FakeSession([FakeResponse(500, json_obj={"err": True})])
+
+    with pytest.raises(RuntimeError, match="HTTP 500"):
+        c._request_json("fiveminutesystemload/current", authenticated=True)
+
+
+def test_get_public_lmp_csv_success_builds_url_and_returns_bytes():
+    cfg = ISONEConfig(hist_url="https://hist/", timeout=11)
+    c = ISONEClient(cfg)
+
+    payload = b"col1,col2\n1,2\n"
+    c.session = FakeSession([FakeResponse(200, content=payload)])
+
+    out = c.get_public_lmp_csv("da_lmp", "2024-01-02")
+    assert out == payload
+
+    assert len(c.session.calls) == 1
+    called_url = c.session.calls[0]["url"]
+    assert "WW_DALMP_ISO_20240102.csv" in called_url
+
+
+def test_from_ini_file_reads_isone_section(tmp_path):
+    ini = tmp_path / "user_config.ini"
+    ini.write_text(
+        "\n".join(
+            [
+                "[isone]",
+                "username = ini_user",
+                "password = ini_pass",
+                "data_dir = data/INI_ISONE",
+                "timeout = 12",
+                "max_retries = 7",
+                "retry_backoff_s = 2.25",
+                "",
+            ]
+        )
+    )
+
+    cfg = ISONEConfig.from_ini_file(ini)
+
+    assert cfg.username == "ini_user"
+    assert cfg.password == "ini_pass"
+    assert str(cfg.data_dir).replace("\\", "/").endswith("data/INI_ISONE")
+    assert cfg.timeout == 12
+    assert cfg.max_retries == 7
+    assert cfg.retry_backoff_s == 2.25
+
+
+def test_load_prefers_ini_when_ini_has_creds(monkeypatch, tmp_path):
+    ini = tmp_path / "cfg.ini"
+    ini.write_text(
+        "[isone]\n"
+        "username = ini_user\n"
+        "password = ini_pass\n"
+        "timeout = 11\n"
+    )
+
+    # Set env to different values to prove INI wins
+    monkeypatch.setenv("ISONE_USERNAME", "env_user")
+    monkeypatch.setenv("ISONE_PASSWORD", "env_pass")
+
+    cfg = ISONEConfig.load(ini)
+
+    assert cfg.username == "ini_user"
+    assert cfg.password == "ini_pass"
+    assert cfg.timeout == 11
+
+
+def test_load_merges_env_creds_when_ini_missing_creds(monkeypatch, tmp_path):
+    ini = tmp_path / "cfg.ini"
+    ini.write_text(
+        "[isone]\n"
+        "data_dir = data/INI_ONLY\n"
+        "timeout = 9\n"
+        "max_retries = 4\n"
+        "retry_backoff_s = 3.0\n"
+    )
+
+    monkeypatch.setenv("ISONE_USERNAME", "env_user")
+    monkeypatch.setenv("ISONE_PASSWORD", "env_pass")
+
+    cfg = ISONEConfig.load(ini)
+
+    # creds from env
+    assert cfg.username == "env_user"
+    assert cfg.password == "env_pass"
+
+    # non-secret settings from INI
+    assert str(cfg.data_dir).replace("\\", "/").endswith("data/INI_ONLY")
+    assert cfg.timeout == 9
+    assert cfg.max_retries == 4
+    assert cfg.retry_backoff_s == 3.0
+
+
+def test_create_template_ini_creates_file(tmp_path):
+    out = tmp_path / "user_config.ini"
+    assert not out.exists()
+
+    ISONEConfig.create_template_ini(out)
+
+    txt = out.read_text()
+    assert "[isone]" in txt
+    assert "username =" in txt
+    assert "password =" in txt
+
+
+def test_create_template_ini_appends_when_file_exists(tmp_path):
+    out = tmp_path / "user_config.ini"
+    out.write_text("[miso]\npricing_api_key = abc\n\n")
+
+    ISONEConfig.create_template_ini(out)
+
+    txt = out.read_text()
+    assert "[miso]" in txt
+    assert "pricing_api_key = abc" in txt
+    assert "[isone]" in txt  # appended
+
+
+def test_from_ini_file_returns_default_when_no_config_file_found(monkeypatch, tmp_path):
+    # Prevent picking up repo-level user_config.ini/config.ini
+    monkeypatch.chdir(tmp_path)
+
+    missing = tmp_path / "does_not_exist.ini"
+    assert not missing.exists()
+
+    cfg = ISONEConfig.from_ini_file(missing)
+
+    # Hits line 113: "return cls()  # nothing found"
+    assert cfg == ISONEConfig()
+
+
+def test_from_ini_file_returns_default_when_isone_section_missing(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+
+    ini = tmp_path / "cfg.ini"
+    ini.write_text(
+        "[miso]\n"
+        "pricing_api_key = abc\n"
+    )
+
+    cfg = ISONEConfig.from_ini_file(ini)
+
+    # Hits line 117: if "isone" not in config: return cls()
+    assert cfg == ISONEConfig()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

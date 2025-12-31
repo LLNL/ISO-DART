@@ -124,8 +124,12 @@ class WeatherClient:
         end_dt = datetime.combine(end_date, datetime.min.time())
 
         data = Hourly(self.selected_location, start_dt, end_dt)
-        data = data.convert(units.imperial)
-        df = data.fetch()
+
+        try:
+            df = data.convert(units.imperial).fetch()
+        except Exception:
+            logger.exception("Failed to download weather data")
+            return False
 
         if df.empty:
             logger.error("No data returned from Meteostat")

@@ -88,7 +88,7 @@ class TestWeatherClient:
 class TestWeatherFindStations:
     """Test finding weather stations."""
 
-    @patch("meteostat.Stations")
+    @patch("lib.weather.client.Stations")
     def test_find_stations_success(self, mock_stations_class, client, mock_stations_df):
         """Test finding stations successfully."""
         mock_stations = Mock()
@@ -101,10 +101,10 @@ class TestWeatherFindStations:
 
         stations = client.find_stations("CA", start, end)
 
-        assert len(stations) == 33
+        assert len(stations) == 3
         assert "San Francisco Airport" in stations["name"].values
 
-    @patch("meteostat.Stations")
+    @patch("lib.weather.client.Stations")
     def test_find_stations_filters_by_date(self, mock_stations_class, client):
         """Test that stations are filtered by data availability."""
         # Create stations with varying data availability
@@ -138,15 +138,17 @@ class TestWeatherFindStations:
         stations = client.find_stations("CA", start, end)
 
         # Should return 33 stations with data in range
-        assert len(stations) == 33
+        assert len(stations) == 2
         assert "Station B" not in stations["name"].values
 
-    @patch("meteostat.Stations")
+    @patch("lib.weather.client.Stations")
     def test_find_stations_empty_result(self, mock_stations_class, client):
         """Test finding stations when none available."""
         mock_stations = Mock()
         mock_stations.region.return_value = mock_stations
-        mock_stations.fetch.return_value = pd.DataFrame()
+        mock_stations.fetch.return_value = pd.DataFrame(
+            columns=["name", "latitude", "longitude", "elevation", "daily_start", "daily_end"]
+        )
         mock_stations_class.return_value = mock_stations
 
         stations = client.find_stations("XX", date(2024, 1, 1), date(2024, 1, 31))
@@ -157,9 +159,9 @@ class TestWeatherFindStations:
 class TestWeatherDownload:
     """Test weather data download."""
 
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Stations")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
     def test_download_weather_data_success(
         self,
         mock_point,
@@ -194,16 +196,18 @@ class TestWeatherDownload:
         output_files = list(temp_dir["data_dir"].glob("*.csv"))
         assert len(output_files) == 1
 
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Stations")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
     def test_download_weather_data_no_stations(
         self, mock_point, mock_stations_class, mock_hourly_class, client
     ):
         """Test download when no stations available."""
         mock_stations = Mock()
         mock_stations.region.return_value = mock_stations
-        mock_stations.fetch.return_value = pd.DataFrame()
+        mock_stations.fetch.return_value = pd.DataFrame(
+            columns=["name", "latitude", "longitude", "elevation", "daily_start", "daily_end"]
+        )
         mock_stations_class.return_value = mock_stations
 
         success = client.download_weather_data(
@@ -235,9 +239,9 @@ class TestWeatherDownload:
 
         assert success is False
 
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Stations")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
     def test_download_weather_data_cleans_columns(
         self, mock_point, mock_stations_class, mock_hourly_class, client, mock_stations_df, temp_dir
     ):
@@ -278,9 +282,9 @@ class TestWeatherDownload:
         # 'snow' column should be removed
         assert "snow" not in df.columns
 
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Stations")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
     def test_download_weather_data_converts_condition_codes(
         self, mock_point, mock_stations_class, mock_hourly_class, client, mock_stations_df, temp_dir
     ):
@@ -311,13 +315,13 @@ class TestWeatherDownload:
         df = pd.read_csv(output_file)
 
         assert "weather_condition" in df.columns
-        assert df["weather_condition"].iloc[0] == "Cloudy"
-        assert df["weather_condition"].iloc[1] == "Cloudy"
-        assert df["weather_condition"].iloc[2] == "Fair"
+        assert df["weather_condition"].iloc[0] == "Clear"
+        assert df["weather_condition"].iloc[1] == "Rain"
+        assert df["weather_condition"].iloc[2] == "Thunderstorm"
 
     @patch("builtins.input")
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Point")
     def test_download_weather_data_interactive_selection_invalid_then_valid(
         self, mock_point, mock_hourly_class, mock_input, client, temp_dir, capsys
     ):
@@ -522,9 +526,9 @@ class TestWeatherUtilityMethods:
 class TestWeatherFilenameGeneration:
     """Test filename generation for weather data."""
 
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Stations")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
     def test_filename_sanitization(
         self,
         mock_point,
@@ -571,9 +575,9 @@ class TestWeatherFilenameGeneration:
 class TestWeatherErrorHandling:
     """Test error handling in weather client."""
 
-    @patch("meteostat.Hourly")
-    @patch("meteostat.Stations")
-    @patch("meteostat.Point")
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
     def test_download_handles_exception(
         self, mock_point, mock_stations_class, mock_hourly_class, client, mock_stations_df
     ):
@@ -593,7 +597,7 @@ class TestWeatherErrorHandling:
             state="CA", start_date=date(2024, 1, 1), duration=1, interactive=False
         )
 
-        assert success
+        assert not success
 
     @patch("pandas.read_csv")
     def test_solar_download_handles_exception(self, mock_read_csv, client):
