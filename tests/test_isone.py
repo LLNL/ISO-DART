@@ -392,7 +392,9 @@ def test_request_json_requires_credentials_when_authenticated():
 
 def test_request_json_raises_after_max_retries(monkeypatch):
     # Covers lines 160-162: break + raise last_err
-    cfg = ISONEConfig(api_base="https://x", username="u", password="p", max_retries=2, retry_backoff_s=0.5)
+    cfg = ISONEConfig(
+        api_base="https://x", username="u", password="p", max_retries=2, retry_backoff_s=0.5
+    )
     c = ISONEClient(cfg)
 
     c.session = FakeSession(
@@ -483,12 +485,7 @@ def test_from_ini_file_reads_isone_section(tmp_path):
 
 def test_load_prefers_ini_when_ini_has_creds(monkeypatch, tmp_path):
     ini = tmp_path / "cfg.ini"
-    ini.write_text(
-        "[isone]\n"
-        "username = ini_user\n"
-        "password = ini_pass\n"
-        "timeout = 11\n"
-    )
+    ini.write_text("[isone]\n" "username = ini_user\n" "password = ini_pass\n" "timeout = 11\n")
 
     # Set env to different values to prove INI wins
     monkeypatch.setenv("ISONE_USERNAME", "env_user")
@@ -568,10 +565,7 @@ def test_from_ini_file_returns_default_when_isone_section_missing(monkeypatch, t
     monkeypatch.chdir(tmp_path)
 
     ini = tmp_path / "cfg.ini"
-    ini.write_text(
-        "[miso]\n"
-        "pricing_api_key = abc\n"
-    )
+    ini.write_text("[miso]\n" "pricing_api_key = abc\n")
 
     cfg = ISONEConfig.from_ini_file(ini)
 
