@@ -358,7 +358,7 @@ def test_config_from_env_reads_values(monkeypatch):
     cfg = ISONEConfig.from_env()
     assert cfg.username == "env_user"
     assert cfg.password == "env_pass"
-    assert str(cfg.data_dir).endswith("data/ENV_ISONE")
+    assert cfg.data_dir == Path("data") / "ENV_ISONE"
     assert cfg.timeout == 12
     assert cfg.max_retries == 7
     assert cfg.retry_backoff_s == 2.25
