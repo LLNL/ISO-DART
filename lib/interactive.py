@@ -1762,16 +1762,17 @@ def run_bpa_mode():
     print("  (2) Operating Reserves Deployed")
     print("      - Regulation Up/Down reserves")
     print("      - Contingency reserves")
-    print("  (3) All Data (both of above)")
+    print("  (3) Outages")
+    print("  (4) All Data")
 
     while True:
         try:
-            data_type = int(input("\nYour choice (1-3): "))
-            if data_type in range(1, 4):
+            data_type = int(input("\nYour choice (1-4): "))
+            if data_type in range(1, 5):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 3")
+        print("Please enter a number between 1 and 4")
 
     # Year selection
     print("\n" + "=" * 60)
@@ -1874,7 +1875,14 @@ def run_bpa_mode():
                 print(f"   Filtering: {start_date} to {end_date}")
             success = client.get_reserves_deployed(year, start_date, end_date)
 
-        else:  # data_type == 3
+        elif data_type == 3:
+            print("\n📥 Downloading Outages data...")
+            print(f"   Year: {year}")
+            if start_date:
+                print(f"   Filtering: {start_date} to {end_date}")
+            success = client.get_outages(year, start_date, end_date)
+
+        else:  # data_type == 4
             print("\n📥 Downloading all BPA data...")
             print(f"   Year: {year}")
             if start_date:
@@ -1889,21 +1897,24 @@ def run_bpa_mode():
             print("\n📊 Data Details:")
             print(f"   • Year: {year}")
             print(f"   • Resolution: {info['temporal_resolution']}")
-            print(f"   • Format: CSV (converted from Excel)")
+            print(f"   • Format: Excel")
             print(f"   • Time Zone: Pacific Time")
 
             # Show what data types were downloaded
             print("\n📁 Files Created:")
             if data_type == 1:
-                print(f"   • {year}_BPA_Wind_Generation_Total_Load.csv")
+                print(f"   • {year}_BPA_Wind_Generation_Total_Load.xlsx")
             elif data_type == 2:
-                print(f"   • {year}_BPA_Reserves_Deployed.csv")
+                print(f"   • {year}_BPA_Reserves_Deployed.xlsx")
+            elif data_type == 3:
+                print(f"   • {year}_BPA_Outages.xlsx")
             else:
                 print(f"   • {year}_BPA_Wind_Generation_Total_Load.csv")
                 print(f"   • {year}_BPA_Reserves_Deployed.csv")
+                print(f"   • {year}_BPA_Outages.xlsx")
 
             print("\n💡 Tips:")
-            print("   • Data is in CSV format for easy analysis")
+            print("   • Data is in Excel")
             print("   • All timestamps are in Pacific Time (PST/PDT)")
             print("   • 5-min resolution with hour-ending timestamps")
             print("   • Historical data is typically final/validated")

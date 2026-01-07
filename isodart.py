@@ -409,13 +409,17 @@ def handle_bpa(args):
                 args.start.year, start_date=args.start, end_date=end_date
             )
 
+        elif args.data_type == "outages":
+            logger.info("Downloading BPA outages data...")
+            success = client.get_outages(args.start.year, start_date=args.start, end_date=end_date)
+
         elif args.data_type == "all":
             logger.info("Downloading all BPA data...")
             success = client.get_all_data(args.start.year, start_date=args.start, end_date=end_date)
 
         else:
             logger.error(f"Unknown BPA data type: {args.data_type}")
-            logger.info("Available types: wind_gen_total_load, reserves_deployed, all")
+            logger.info("Available types: wind_gen_total_load, reserves_deployed, outages, all")
             return False
 
         if success:

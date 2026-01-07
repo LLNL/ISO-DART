@@ -21,13 +21,14 @@ class BPADataType(Enum):
 
     WIND_GEN_TOTAL_LOAD = "wind_gen_total_load"
     RESERVES_DEPLOYED = "reserves_deployed"
+    OUTAGES = "outages"
 
 
 @dataclass
 class BPAConfig:
     """Configuration for BPA client."""
 
-    base_url: str = "https://transmission.bpa.gov/Business/Operations/Wind/OPITabularReports"
+    base_url: str = "https://transmission.bpa.gov/Business/Operations"
     data_dir: Path = Path("data/BPA")
     max_retries: int = 3
     retry_delay: int = 5
@@ -81,9 +82,11 @@ class BPAClient:
             Complete URL for Excel file
         """
         if data_type == BPADataType.WIND_GEN_TOTAL_LOAD:
-            filename = f"WindGenTotalLoadYTD_{year}.xlsx"
+            filename = f"/Wind/OPITabularReports/WindGenTotalLoadYTD_{year}.xlsx"
         elif data_type == BPADataType.RESERVES_DEPLOYED:
-            filename = f"ReservesDeployedYTD_{year}.xlsx"
+            filename = f"/Wind/OPITabularReports/ReservesDeployedYTD_{year}.xlsx"
+        elif data_type == BPADataType.OUTAGES:
+            filename = f"/Outages/OutagesCY{year}.xlsx"
         else:
             raise ValueError(f"Unknown data type: {data_type}")
 
@@ -183,8 +186,8 @@ class BPAClient:
                 return False
 
             # Save to file
-            output_file = self.config.data_dir / f"{year}_BPA_Wind_Generation_Total_Load.csv"
-            df.to_csv(output_file, index=False)
+            output_file = self.config.data_dir / f"{year}_BPA_Wind_Generation_Total_Load.xlsx"
+            df.to_excel(output_file, index=False, engine="openpyxl")
             logger.info(f"Saved {len(df)} rows to {output_file}")
 
             # Report date range
@@ -243,8 +246,63 @@ class BPAClient:
                 return False
 
             # Save to file
-            output_file = self.config.data_dir / f"{year}_BPA_Reserves_Deployed.csv"
-            df.to_csv(output_file, index=False)
+            output_file = self.config.data_dir / f"{year}_BPA_Reserves_Deployed.xlsx"
+            df.to_excel(output_file, index=False, engine="openpyxl")
+            logger.info(f"Saved {len(df)} rows to {output_file}")
+
+            # Report date range
+            date_cols = [col for col in df.columns if pd.api.types.is_datetime64_any_dtype(df[col])]
+            if date_cols:
+                col = date_cols[0]
+                logger.info(f"Data range: {df[col].min()} to {df[col].max()}")
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Error processing data: {e}", exc_info=True)
+            return False
+
+    def get_outages(
+        self, year: int, start_date: Optional[date] = None, end_date: Optional[date] = None
+    ) -> bool:
+        """
+        Get Outages data for a year.
+
+        Args:
+            year: Year for data (e.g., 2024)
+            start_date: Optional start date to filter data
+            end_date: Optional end date to filter data
+
+        Returns:
+            True if successful, False otherwise
+        """
+        logger.info(f"Downloading BPA Outages data for {year}")
+
+        url = self._build_url(BPADataType.OUTAGES, year)
+
+        content = self._make_request(url)
+        if not content:
+            logger.error(f"Failed to retrieve data from BPA for year {year}")
+            return False
+
+        try:
+            df = self._parse_excel_file(content, BPADataType.OUTAGES)
+
+            if df is None or df.empty:
+                logger.error("No data returned after parsing")
+                return False
+
+            # Filter by date range if provided
+            if start_date or end_date:
+                df = self._filter_by_date_range(df, start_date, end_date)
+
+            if df.empty:
+                logger.warning("No data after date filtering")
+                return False
+
+            # Save to file
+            output_file = self.config.data_dir / f"{year}_BPA_Outages.xlsx"
+            df.to_excel(output_file, index=False, engine="openpyxl")
             logger.info(f"Saved {len(df)} rows to {output_file}")
 
             # Report date range
@@ -277,8 +335,9 @@ class BPAClient:
 
         success_wind = self.get_wind_gen_total_load(year, start_date, end_date)
         success_reserves = self.get_reserves_deployed(year, start_date, end_date)
+        success_outages = self.get_outages(year, start_date, end_date)
 
-        return success_wind and success_reserves
+        return success_wind and success_reserves and success_outages
 
     def _filter_by_date_range(
         self, df: pd.DataFrame, start_date: Optional[date], end_date: Optional[date]
@@ -347,6 +406,22 @@ def get_bpa_data_availability() -> Dict[str, Any]:
                 "file_format": "Excel (.xlsx)",
                 "endpoint": "ReservesDeployedYTD_yyyy.xlsx",
             },
+            "outages": {
+                "description": "Outages",
+                "variables": [
+                    "Voltage (kV)",
+                    "Duration (min)",
+                    "Type",
+                    "Cause",
+                    "Responsible System",
+                    "O&M District",
+                    "Outage ID",
+                    "Date",
+                    "Time",
+                ],
+                "file_format": "Excel (.xlsx)",
+                "endpoint": "OutagesCYyyyy.xlsx",
+            },
         },
         "geographic_coverage": "BPA Balancing Authority Area (Pacific Northwest)",
         "notes": [
@@ -374,11 +449,11 @@ def print_bpa_data_info():
 
     print("\nAvailable Data Types:")
     for dtype, details in info["data_types"].items():
-        print(f"\n  {dtype}:")
+        print(f"\n  {dtype}: ")
         print(f"    {details['description']}")
         print(f"    Format: {details['file_format']}")
         print(f"    Endpoint: {details['endpoint']}")
-        print(f"    Variables:")
+        print(f"    Variables: ")
         for var in details["variables"]:
             print(f"      - {var}")
 
@@ -411,6 +486,10 @@ if __name__ == "__main__":
 
     print(f"\n2. Testing Reserves Deployed for {current_year}...")
     success = client.get_reserves_deployed(current_year)
+    print(f"   Result: {'✓ Success' if success else '✗ Failed'}")
+
+    print(f"\n2. Testing Outages for {current_year}...")
+    success = client.get_outages(current_year)
     print(f"   Result: {'✓ Success' if success else '✗ Failed'}")
 
     client.cleanup()

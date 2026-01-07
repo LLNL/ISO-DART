@@ -51,21 +51,19 @@ class TestBPADataType:
         """Enum should expose the expected members and values."""
         assert BPADataType.WIND_GEN_TOTAL_LOAD.value == "wind_gen_total_load"
         assert BPADataType.RESERVES_DEPLOYED.value == "reserves_deployed"
+        assert BPADataType.OUTAGES.value == "outages"
 
     def test_enum_is_iterable(self):
-        """Enum should contain exactly the two expected members."""
+        """Enum should contain exactly the expected members."""
         names = {m.name for m in BPADataType}
-        assert names == {"WIND_GEN_TOTAL_LOAD", "RESERVES_DEPLOYED"}
+        assert names == {"WIND_GEN_TOTAL_LOAD", "RESERVES_DEPLOYED", "OUTAGES"}
 
 
 class TestBPAConfig:
     def test_default_config_values(self):
         """Default config should match hard-coded defaults in bpa.py."""
         cfg = BPAConfig()
-        assert (
-            cfg.base_url
-            == "https://transmission.bpa.gov/Business/Operations/Wind/OPITabularReports"
-        )
+        assert cfg.base_url == "https://transmission.bpa.gov/Business/Operations"
         assert cfg.data_dir == Path("data/BPA")
         assert cfg.max_retries == 3
         assert cfg.retry_delay == 5
@@ -110,6 +108,13 @@ class TestBuildUrl:
         url = client._build_url(BPADataType.RESERVES_DEPLOYED, year)
         assert str(year) in url
         assert url.endswith(f"ReservesDeployedYTD_{year}.xlsx")
+        assert client.config.base_url in url
+
+    def test_build_url_outages(self, client: BPAClient):
+        year = 2023
+        url = client._build_url(BPADataType.OUTAGES, year)
+        assert str(year) in url
+        assert url.endswith(f"OutagesCY{year}.xlsx")
         assert client.config.base_url in url
 
     def test_build_url_unknown_type_raises(self, client: BPAClient):
@@ -348,7 +353,7 @@ class TestWindGenTotalLoad:
         success = client.get_wind_gen_total_load(2024)
         assert success is False
 
-        output_file = client.config.data_dir / "2024_BPA_WindGenTotalLoad.csv"
+        output_file = client.config.data_dir / "2024_BPA_WindGenTotalLoad.xlsx"
         assert not output_file.exists()
 
     @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
@@ -406,9 +411,9 @@ class TestReservesDeployed:
         success = client.get_reserves_deployed(2024)
         assert success is True
 
-        output_file = client.config.data_dir / "2024_BPA_Reserves_Deployed.csv"
+        output_file = client.config.data_dir / "2024_BPA_Reserves_Deployed.xlsx"
         assert output_file.exists()
-        saved = pd.read_csv(output_file)
+        saved = pd.read_excel(output_file)
         assert len(saved) > 0
 
     @patch.object(BPAClient, "_make_request")
@@ -424,7 +429,7 @@ class TestReservesDeployed:
         success = client.get_reserves_deployed(2024)
         assert success is False
 
-        output_file = client.config.data_dir / "2024_BPA_Reserves_Deployed.csv"
+        output_file = client.config.data_dir / "2024_BPA_Reserves_Deployed.xlsx"
         assert not output_file.exists()
 
     @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
@@ -456,10 +461,79 @@ class TestReservesDeployed:
         assert "Error processing data:" in caplog.text
 
 
+class TestOutages:
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_successful_download_and_save(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        client.config.data_dir = tmp_path
+
+        dt_index = pd.date_range("2024-01-01", periods=3, freq="h")
+        df = pd.DataFrame({"DateTime": dt_index, "Value": [10, 20, 30]})
+        mock_request.return_value = b"excel-content"
+        mock_parse.return_value = df
+
+        success = client.get_outages(2024)
+        assert success is True
+
+        output_file = client.config.data_dir / "2024_BPA_Outages.xlsx"
+        assert output_file.exists()
+        saved = pd.read_excel(output_file)
+        assert len(saved) > 0
+
+    @patch.object(BPAClient, "_make_request")
+    def test_request_failure_returns_false(
+        self,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        client.config.data_dir = tmp_path
+        mock_request.return_value = None
+
+        success = client.get_outages(2024)
+        assert success is False
+
+        output_file = client.config.data_dir / "2024_BPA_Outages.xlsx"
+        assert not output_file.exists()
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file", return_value=pd.DataFrame())
+    def test_outages_parse_empty_returns_false(self, mock_parse, mock_req, client, tmp_path):
+        client.config.data_dir = tmp_path
+        assert client.get_outages(2024) is False
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file")
+    @patch.object(BPAClient, "_filter_by_date_range", return_value=pd.DataFrame())
+    def test_outages_date_filter_makes_empty_returns_false(
+        self, mock_filter, mock_parse, mock_req, client, tmp_path
+    ):
+        client.config.data_dir = tmp_path
+        mock_parse.return_value = pd.DataFrame(
+            {"DateTime": pd.date_range("2024-01-01", periods=3, freq="h"), "Value": [1, 2, 3]}
+        )
+
+        assert client.get_outages(2024, start_date=date(2024, 1, 2)) is False
+
+    @patch.object(BPAClient, "_make_request", return_value=b"excel-content")
+    @patch.object(BPAClient, "_parse_excel_file", side_effect=RuntimeError("boom"))
+    def test_outages_processing_exception_returns_false(self, mock_parse, mock_req, client, caplog):
+        caplog.set_level(logging.ERROR)
+        assert client.get_outages(2024) is False
+        assert "Error processing data:" in caplog.text
+
+
 class TestGetAllData:
     def test_get_all_data_combines_results(self, client: BPAClient):
         client.get_wind_gen_total_load = MagicMock(return_value=True)  # type: ignore[assignment]
         client.get_reserves_deployed = MagicMock(return_value=False)  # type: ignore[assignment]
+        client.get_outages = MagicMock(return_value=True)  # type: ignore[assignment]
 
         result = client.get_all_data(2024)
         assert result is False  # True AND False
@@ -490,6 +564,7 @@ class TestAvailabilityMetadata:
         assert isinstance(info["data_types"], dict)
         assert "wind_gen_total_load" in info["data_types"]
         assert "reserves_deployed" in info["data_types"]
+        assert "outages" in info["data_types"]
 
         years = info["available_years"]
         assert isinstance(years, list)
@@ -503,6 +578,7 @@ class TestAvailabilityMetadata:
         assert "Available Data Types" in captured
         assert "wind_gen_total_load" in captured
         assert "reserves_deployed" in captured
+        assert "outages" in captured
 
 
 # ---------------------------------------------------------------------------
