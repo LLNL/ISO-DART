@@ -374,12 +374,13 @@ BPA provides historical yearly datasets:
    * Contingency reserves
    * 5-minute resolution
 
+3. **Outages**
+
 **Special Features**:
 
 * Data organized by full calendar year
 * Optional date filtering within year
 * Automatic download of Excel files
-* Conversion to CSV format
 
 Weather Data Interactive Mode
 ------------------------------
