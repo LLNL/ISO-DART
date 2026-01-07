@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&lt;no title&gt; &mdash; ISO-DART 2.0.0 documentation</title>
+  <title>Data Formats Guide &mdash; ISO-DART 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="ISO Coverage" href="../isos/index.html" />
-    <link rel="prev" title=")" href="python-api.html" /> 
+    <link rel="prev" title="Python API Guide" href="python-api.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -200,8 +200,8 @@
 </li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="index.html">User Guide</a><ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="interactive-mode.html">Interactive Mode Guide</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="interactive-mode.html#overview">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="interactive-mode.html#starting-interactive-mode">Starting Interactive Mode</a></li>
@@ -272,13 +272,163 @@
 <li class="toctree-l3"><a class="reference internal" href="interactive-mode.html#see-also">See Also</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id42">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id47">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id76">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id105">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id134">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id211">)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html">Command Line Usage Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#basic-syntax">Basic Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#quick-examples">Quick Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#global-options">Global Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#required-arguments">Required Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#optional-arguments">Optional Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#iso-specific-options">ISO-Specific Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#caiso-options">CAISO Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#miso-options">MISO Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#nyiso-options">NYISO Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#spp-options">SPP Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#bpa-options">BPA Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#pjm-options">PJM Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#iso-ne-options">ISO-NE Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#weather-data-options">Weather Data Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#using-configuration-files">Using Configuration Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#automation-with-cron">Automation with Cron</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#output-files">Output Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#common-errors">Common Errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#exit-codes">Exit Codes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#command-reference">Command Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="command-line.html#quick-reference-table">Quick Reference Table</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html">Python API Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#basic-usage-pattern">Basic Usage Pattern</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#caiso-client">CAISO Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#basic-lmp-download">Basic LMP Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#available-markets">Available Markets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#load-forecasts">Load Forecasts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#renewable-generation">Renewable Generation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#ancillary-services">Ancillary Services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#custom-configuration">Custom Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#miso-client">MISO Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#setup-with-api-keys">Setup with API Keys</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#lmp-data">LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#available-lmp-types">Available LMP Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#load-and-generation">Load and Generation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#working-with-miso-data">Working with MISO Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#nyiso-client">NYISO Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#basic-usage">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#spp-client">SPP Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#id1">LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#load-and-resource-forecasts">Load and Resource Forecasts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#bpa-client">BPA Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#historical-data">Historical Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#pjm-client">PJM Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#setup">Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#id2">LMP Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#iso-ne-client">ISO-NE Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#id3">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#weather-client">Weather Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#download-weather-data">Download Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#advanced-patterns">Advanced Patterns</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#multi-iso-download">Multi-ISO Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#error-handling">Error Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#async-parallel-downloads">Async/Parallel Downloads</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#data-processing-pipeline">Data Processing Pipeline</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#custom-retry-logic">Custom Retry Logic</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#always-clean-up">1. Always Clean Up</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#check-return-values">2. Check Return Values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#use-appropriate-date-ranges">3. Use Appropriate Date Ranges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#configure-logging">4. Configure Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#type-hints">Type Hints</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data Formats Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#general-csv-format">General CSV Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#file-naming-conventions">File Naming Conventions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#caiso">CAISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#miso">MISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nyiso">NYISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spp">SPP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bpa">BPA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pjm">PJM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#weather">Weather</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#data-schemas">Data Schemas</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#caiso-lmp-data">CAISO LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#caiso-load-forecast">CAISO Load Forecast</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#caiso-wind-solar-summary">CAISO Wind/Solar Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#miso-lmp-data">MISO LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#miso-fuel-mix">MISO Fuel Mix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nyiso-lbmp-data">NYISO LBMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spp-lmp-data">SPP LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spp-operating-reserves">SPP Operating Reserves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bpa-data">BPA Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pjm-lmp-data">PJM LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#weather-data">Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#working-with-data">Working with Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#loading-in-python">Loading in Python</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#loading-in-r">Loading in R</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#excel-import">Excel Import</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database-import">Database Import</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#data-quality-checks">Data Quality Checks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#validate-date-ranges">Validate Date Ranges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#check-for-nulls">Check for Nulls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#validate-intervals">Validate Intervals</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#time-zones">Time Zones</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">CAISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">MISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">NYISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">SPP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">PJM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="interactive-mode.html">Interactive Mode Guide</a><ul>
@@ -351,13 +501,163 @@
 <li class="toctree-l2"><a class="reference internal" href="interactive-mode.html#see-also">See Also</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id42">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id47">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id76">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id105">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id134">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id211">)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="command-line.html">Command Line Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#basic-syntax">Basic Syntax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#quick-examples">Quick Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#global-options">Global Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#required-arguments">Required Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#optional-arguments">Optional Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#iso-specific-options">ISO-Specific Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#caiso-options">CAISO Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#miso-options">MISO Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#nyiso-options">NYISO Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#spp-options">SPP Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#bpa-options">BPA Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#pjm-options">PJM Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#iso-ne-options">ISO-NE Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#weather-data-options">Weather Data Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#using-configuration-files">Using Configuration Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#automation-with-cron">Automation with Cron</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#output-files">Output Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#common-errors">Common Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#exit-codes">Exit Codes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="command-line.html#command-reference">Command Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="command-line.html#quick-reference-table">Quick Reference Table</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python-api.html">Python API Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#basic-usage-pattern">Basic Usage Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#caiso-client">CAISO Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#basic-lmp-download">Basic LMP Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#available-markets">Available Markets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#load-forecasts">Load Forecasts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#renewable-generation">Renewable Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#ancillary-services">Ancillary Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#custom-configuration">Custom Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#miso-client">MISO Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#setup-with-api-keys">Setup with API Keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#lmp-data">LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#available-lmp-types">Available LMP Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#load-and-generation">Load and Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#working-with-miso-data">Working with MISO Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#nyiso-client">NYISO Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#basic-usage">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#spp-client">SPP Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#id1">LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#load-and-resource-forecasts">Load and Resource Forecasts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#bpa-client">BPA Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#historical-data">Historical Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#pjm-client">PJM Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#id2">LMP Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#iso-ne-client">ISO-NE Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#id3">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#weather-client">Weather Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#download-weather-data">Download Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#advanced-patterns">Advanced Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#multi-iso-download">Multi-ISO Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#error-handling">Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#async-parallel-downloads">Async/Parallel Downloads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#data-processing-pipeline">Data Processing Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#custom-retry-logic">Custom Retry Logic</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#always-clean-up">1. Always Clean Up</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#check-return-values">2. Check Return Values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#use-appropriate-date-ranges">3. Use Appropriate Date Ranges</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#configure-logging">4. Configure Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#type-hints">Type Hints</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Formats Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#general-csv-format">General CSV Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-naming-conventions">File Naming Conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#caiso">CAISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miso">MISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nyiso">NYISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spp">SPP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bpa">BPA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pjm">PJM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#weather">Weather</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-schemas">Data Schemas</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#caiso-lmp-data">CAISO LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#caiso-load-forecast">CAISO Load Forecast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#caiso-wind-solar-summary">CAISO Wind/Solar Summary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miso-lmp-data">MISO LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miso-fuel-mix">MISO Fuel Mix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nyiso-lbmp-data">NYISO LBMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spp-lmp-data">SPP LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spp-operating-reserves">SPP Operating Reserves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bpa-data">BPA Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pjm-lmp-data">PJM LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#weather-data">Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-data">Working with Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#loading-in-python">Loading in Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#loading-in-r">Loading in R</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#excel-import">Excel Import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#database-import">Database Import</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-quality-checks">Data Quality Checks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#validate-date-ranges">Validate Date Ranges</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#check-for-nulls">Check for Nulls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#validate-intervals">Validate Intervals</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#time-zones">Time Zones</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">CAISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">MISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">NYISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">SPP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">PJM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">ISO Coverage</span></p>
 <ul>
@@ -836,7 +1136,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="breadcrumb-item active">Data Formats Guide</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/user-guide/data-formats.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -846,89 +1146,70 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <p># Data Formats Guide</p>
-<p>## Overview</p>
+  <section id="data-formats-guide">
+<h1>Data Formats Guide<a class="headerlink" href="#data-formats-guide" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>ISO-DART saves all data in CSV format for maximum compatibility with analysis tools. This guide describes the structure and format of downloaded data files.</p>
-<p>## General CSV Format</p>
+</section>
+<section id="general-csv-format">
+<h2>General CSV Format<a class="headerlink" href="#general-csv-format" title="Link to this heading"></a></h2>
 <p>All CSV files have:
 - Header row with column names
 - UTF-8 encoding
 - Comma-separated values
 - ISO-8601 date/time formats where applicable</p>
-<p>## File Naming Conventions</p>
-<p>### CAISO</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">{start_date}_to_{end_date}_{query_name}_{data_item}.csv</span>
-<span class="pre">`</span></code></p>
-<p>Examples:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv</span>
-<span class="pre">20240101_to_20240131_SLD_FCST_CAISO_forecast.csv</span>
-<span class="pre">20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv</span>
-<span class="pre">`</span></code></p>
-<p>### MISO</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">miso_{data_type}_{date}.csv</span>
-<span class="pre">`</span></code></p>
-<p>Examples:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">miso_da_exante_lmp_2024-01-01.csv</span>
-<span class="pre">miso_fuel_mix_2024-01-01.csv</span>
-<span class="pre">miso_rt_actual_load_2024-01-01.csv</span>
-<span class="pre">`</span></code></p>
-<p>### NYISO</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">{start_date}_to_{end_date}_{dataid}_{aggregation}.csv</span>
-<span class="pre">`</span></code></p>
-<p>Examples:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">20240101_to_20240131_damlbmp_zone.csv</span>
-<span class="pre">20240101_to_20240131_rtfuelmix.csv</span>
-<span class="pre">20240101_to_20240131_pal.csv</span>
-<span class="pre">`</span></code></p>
-<p>### SPP</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">{start_date}_to_{end_date}_SPP_{market}_{data_type}_{location_type}.csv</span>
-<span class="pre">`</span></code></p>
-<p>Examples:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">20240101_to_20240131_SPP_DA_LMP_SL.csv</span>
-<span class="pre">20240101_to_20240131_SPP_RTBM_MCP.csv</span>
-<span class="pre">20240101_to_20240131_SPP_Operating_Reserves.csv</span>
-<span class="pre">`</span></code></p>
-<p>### BPA</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">{year}_BPA_{data_type}.csv</span>
-<span class="pre">`</span></code></p>
-<p>Examples:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">2024_BPA_Wind_Generation_Total_Load.csv</span>
-<span class="pre">2024_BPA_Reserves_Deployed.csv</span>
-<span class="pre">`</span></code></p>
-<p>### PJM</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">{start_date}_to_{end_date}_{endpoint}.csv</span>
-<span class="pre">`</span></code></p>
-<p>Examples:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">01-01-2024_to_01-31-2024_da_hrl_lmps.csv</span>
-<span class="pre">01-01-2024_to_01-31-2024_hrl_load_metered.csv</span>
-<span class="pre">`</span></code></p>
-<p>### Weather</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">{start_date}_to_{end_date}_{station_name}_{state}.csv</span>
-<span class="pre">`</span></code></p>
-<p>Examples:
-<code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">2024-01-01_to_2024-01-31_San_Francisco_International_Airport_CA.csv</span>
-<span class="pre">`</span></code></p>
-<p>## Data Schemas</p>
-<p>### CAISO LMP Data</p>
+</section>
+<section id="file-naming-conventions">
+<h2>File Naming Conventions<a class="headerlink" href="#file-naming-conventions" title="Link to this heading"></a></h2>
+<section id="caiso">
+<h3>CAISO<a class="headerlink" href="#caiso" title="Link to this heading"></a></h3>
+</section>
+<section id="miso">
+<h3>MISO<a class="headerlink" href="#miso" title="Link to this heading"></a></h3>
+</section>
+<section id="nyiso">
+<h3>NYISO<a class="headerlink" href="#nyiso" title="Link to this heading"></a></h3>
+</section>
+<section id="spp">
+<h3>SPP<a class="headerlink" href="#spp" title="Link to this heading"></a></h3>
+</section>
+<section id="bpa">
+<h3>BPA<a class="headerlink" href="#bpa" title="Link to this heading"></a></h3>
+</section>
+<section id="pjm">
+<h3>PJM<a class="headerlink" href="#pjm" title="Link to this heading"></a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{start_date}_to_{end_date}_{endpoint}.csv
+
+
+Examples:
+
+01-01-2024_to_01-31-2024_da_hrl_lmps.csv
+01-01-2024_to_01-31-2024_hrl_load_metered.csv
+</pre></div>
+</div>
+</section>
+<section id="weather">
+<h3>Weather<a class="headerlink" href="#weather" title="Link to this heading"></a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{start_date}_to_{end_date}_{station_name}_{state}.csv
+
+
+Examples:
+
+2024-01-01_to_2024-01-31_San_Francisco_International_Airport_CA.csv
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-schemas">
+<h2>Data Schemas<a class="headerlink" href="#data-schemas" title="Link to this heading"></a></h2>
+<section id="caiso-lmp-data">
+<h3>CAISO LMP Data<a class="headerlink" href="#caiso-lmp-data" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_PRC_LMP_*.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id41"><span class="problematic" id="id42">|--------|</span></a>——<a href="#id43"><span class="problematic" id="id44">|-------------|</span></a>———|
+<p><a href="#id6"><span class="problematic" id="id7">|--------|</span></a>——<a href="#id8"><span class="problematic" id="id9">|-------------|</span></a>———|
 | <cite>INTERVALSTARTTIME_GMT</cite> | datetime | Interval start (GMT) | 2024-01-01T08:00:00Z |
 | <cite>INTERVALENDTIME_GMT</cite> | datetime | Interval end (GMT) | 2024-01-01T09:00:00Z |
 | <cite>OPR_DATE</cite> | date | Operating date | 2024-01-01 |
@@ -947,24 +1228,28 @@
 <span class="pre">2024-01-01,1,TH_NP15_GEN-APND,32.45,0.23,1.12</span>
 <span class="pre">2024-01-01,2,TH_NP15_GEN-APND,29.87,-0.45,0.89</span>
 <span class="pre">`</span></code></p>
-<p>### CAISO Load Forecast</p>
+</section>
+<section id="caiso-load-forecast">
+<h3>CAISO Load Forecast<a class="headerlink" href="#caiso-load-forecast" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_SLD_FCST_*.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id45"><span class="problematic" id="id46">|--------|</span></a>——<a href="#id47"><span class="problematic" id="id48">|-------------|</span></a>———|
+<p><a href="#id10"><span class="problematic" id="id11">|--------|</span></a>——<a href="#id12"><span class="problematic" id="id13">|-------------|</span></a>———|
 | <cite>INTERVALSTARTTIME_GMT</cite> | datetime | Interval start | 2024-01-01T08:00:00Z |
 | <cite>OPR_DATE</cite> | date | Operating date | 2024-01-01 |
 | <cite>INTERVAL_NUM</cite> | integer | Hour ending | 1 |
 | <cite>TAC_AREA_NAME</cite> | string | Area name | CAISO |
 | <cite>MARKET_RUN_ID</cite> | string | Market type | DAM |
 | <cite>VALUE</cite> | float | Load (MW) | 28500.0 |</p>
-<p>### CAISO Wind/Solar Summary</p>
+</section>
+<section id="caiso-wind-solar-summary">
+<h3>CAISO Wind/Solar Summary<a class="headerlink" href="#caiso-wind-solar-summary" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_ENE_WIND_SOLAR_SUMMARY_*.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id49"><span class="problematic" id="id50">|--------|</span></a>——<a href="#id51"><span class="problematic" id="id52">|-------------|</span></a>———|
+<p><a href="#id14"><span class="problematic" id="id15">|--------|</span></a>——<a href="#id16"><span class="problematic" id="id17">|-------------|</span></a>———|
 | <cite>INTERVALSTARTTIME_GMT</cite> | datetime | Interval start | 2024-01-01T08:00:00Z |
 | <cite>OPR_DATE</cite> | date | Operating date | 2024-01-01 |
 | <cite>INTERVAL_NUM</cite> | integer | 5-min interval (1-288) | 97 |
@@ -975,12 +1260,14 @@
 - <cite>SOLAR_TOTAL_GEN_MW</cite> - Solar generation
 - <cite>WIND_FORECAST_MW</cite> - Wind forecast
 - <cite>SOLAR_FORECAST_MW</cite> - Solar forecast</p>
-<p>### MISO LMP Data</p>
+</section>
+<section id="miso-lmp-data">
+<h3>MISO LMP Data<a class="headerlink" href="#miso-lmp-data" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>miso_*_lmp_*.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id53"><span class="problematic" id="id54">|--------|</span></a>——<a href="#id55"><span class="problematic" id="id56">|-------------|</span></a>———|
+<p><a href="#id18"><span class="problematic" id="id19">|--------|</span></a>——<a href="#id20"><span class="problematic" id="id21">|-------------|</span></a>———|
 | <cite>interval</cite> | datetime | Timestamp | 2024-01-01T00:00:00Z |
 | <cite>node</cite> | string | Pricing node | ALTW.WELLS1 |
 | <cite>lmp</cite> | float | Total LMP ($/MWh) | 25.34 |
@@ -988,35 +1275,41 @@
 | <cite>mlc</cite> | float | Loss component | 0.12 |
 | <cite>value</cite> | float | LMP value | 25.34 |
 | <cite>preliminaryFinal</cite> | string | Data status | Final |</p>
-<p>### MISO Fuel Mix</p>
+</section>
+<section id="miso-fuel-mix">
+<h3>MISO Fuel Mix<a class="headerlink" href="#miso-fuel-mix" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>miso_fuel_mix_*.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id57"><span class="problematic" id="id58">|--------|</span></a>——<a href="#id59"><span class="problematic" id="id60">|-------------|</span></a>———|
+<p><a href="#id22"><span class="problematic" id="id23">|--------|</span></a>——<a href="#id24"><span class="problematic" id="id25">|-------------|</span></a>———|
 | <cite>interval</cite> | datetime | 5-min timestamp | 2024-01-01T00:05:00Z |
 | <cite>fuelType</cite> | string | Fuel type | Coal |
 | <cite>region</cite> | string | MISO region | MISO |
 | <cite>value</cite> | float | Generation (MW) | 8500.0 |</p>
 <p><strong>Fuel Types:</strong> Coal, Gas, Nuclear, Wind, Solar, Hydro, Other</p>
-<p>### NYISO LBMP Data</p>
+</section>
+<section id="nyiso-lbmp-data">
+<h3>NYISO LBMP Data<a class="headerlink" href="#nyiso-lbmp-data" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_damlbmp_zone.csv</cite> or <cite>*_realtime_zone.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id61"><span class="problematic" id="id62">|--------|</span></a>——<a href="#id63"><span class="problematic" id="id64">|-------------|</span></a>———|
+<p><a href="#id26"><span class="problematic" id="id27">|--------|</span></a>——<a href="#id28"><span class="problematic" id="id29">|-------------|</span></a>———|
 | <cite>Time Stamp</cite> | datetime | Timestamp (ET) | 01/01/2024 00:00:00 |
 | <cite>Name</cite> | string | Zone name | N.Y.C. |
 | <cite>LBMP ($/MWHr)</cite> | float | Total LBMP | 35.67 |
 | <cite>Marginal Cost Losses ($/MWHr)</cite> | float | Loss component | 0.89 |
 | <cite>Marginal Cost Congestion ($/MWHr)</cite> | float | Congestion component | 1.23 |</p>
 <p><strong>Zone Names:</strong> CAPITL, CENTRL, DUNWOD, GENESE, H.Q, HUD VL, LONGIL, MHK VL, MILLWD, N.Y.C., NORTH, O.H., PJM, WEST</p>
-<p>### NYISO Fuel Mix</p>
+</section>
+<section id="nyiso-fuel-mix">
+<h3>NYISO Fuel Mix<a class="headerlink" href="#nyiso-fuel-mix" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_rtfuelmix.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id65"><span class="problematic" id="id66">|--------|</span></a>——<a href="#id67"><span class="problematic" id="id68">|-------------|</span></a>———|
+<p><a href="#id30"><span class="problematic" id="id31">|--------|</span></a>——<a href="#id32"><span class="problematic" id="id33">|-------------|</span></a>———|
 | <cite>Time Stamp</cite> | datetime | 5-min timestamp | 01/01/2024 00:05:00 |
 | <cite>Time Zone</cite> | string | Time zone | EST |
 | <cite>Dual Fuel</cite> | float | Generation (MW) | 450.0 |
@@ -1026,12 +1319,14 @@
 | <cite>Other Renewables</cite> | float | Generation (MW) | 850.0 |
 | <cite>Wind</cite> | float | Generation (MW) | 1200.0 |
 | <cite>Hydro</cite> | float | Generation (MW) | 2100.0 |</p>
-<p>### SPP LMP Data</p>
+</section>
+<section id="spp-lmp-data">
+<h3>SPP LMP Data<a class="headerlink" href="#spp-lmp-data" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_SPP_*_LMP_*.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id69"><span class="problematic" id="id70">|--------|</span></a>——<a href="#id71"><span class="problematic" id="id72">|-------------|</span></a>———|
+<p><a href="#id34"><span class="problematic" id="id35">|--------|</span></a>——<a href="#id36"><span class="problematic" id="id37">|-------------|</span></a>———|
 | <cite>GMTIntervalEnd</cite> | datetime | GMT interval end | 2024-01-01T07:00:00 |
 | <cite>Settlement Location</cite> | string | Location name | KCPL.HSTNS5 |
 | <cite>Pnode</cite> | string | Physical node | KCPL.HSTNS5 |
@@ -1039,33 +1334,39 @@
 | <cite>MLC</cite> | float | Loss component | 0.34 |
 | <cite>MCC</cite> | float | Congestion component | 0.89 |
 | <cite>MEC</cite> | float | Energy component | 27.22 |</p>
-<p>### SPP Operating Reserves</p>
+</section>
+<section id="spp-operating-reserves">
+<h3>SPP Operating Reserves<a class="headerlink" href="#spp-operating-reserves" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_SPP_Operating_Reserves.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id73"><span class="problematic" id="id74">|--------|</span></a>——<a href="#id75"><span class="problematic" id="id76">|-------------|</span></a>———|
+<p><a href="#id38"><span class="problematic" id="id39">|--------|</span></a>——<a href="#id40"><span class="problematic" id="id41">|-------------|</span></a>———|
 | <cite>GMTIntervalEnd</cite> | datetime | 5-min interval end | 2024-01-01T00:05:00 |
 | <cite>Reserve_Type</cite> | string | Reserve product | RegUp |
 | <cite>Requirement_MW</cite> | float | Requirement (MW) | 450.0 |
 | <cite>Cleared_MW</cite> | float | Cleared (MW) | 465.0 |</p>
 <p><strong>Reserve Types:</strong> RegUp, RegDN, Spin, Supp</p>
-<p>### BPA Data</p>
+</section>
+<section id="bpa-data">
+<h3>BPA Data<a class="headerlink" href="#bpa-data" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_BPA_Wind_Generation_Total_Load.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id77"><span class="problematic" id="id78">|--------|</span></a>——<a href="#id79"><span class="problematic" id="id80">|-------------|</span></a>———|
+<p><a href="#id42"><span class="problematic" id="id43">|--------|</span></a>——<a href="#id44"><span class="problematic" id="id45">|-------------|</span></a>———|
 | <cite>Date</cite> | date | Operating date | 1/1/2024 |
 | <cite>Hour</cite> | integer | Hour ending | 1 |
 | <cite>Wind</cite> | float | Wind generation (MW) | 3450.0 |
 | <cite>Load</cite> | float | Total load (MW) | 8200.0 |</p>
-<p>### PJM LMP Data</p>
+</section>
+<section id="pjm-lmp-data">
+<h3>PJM LMP Data<a class="headerlink" href="#pjm-lmp-data" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_da_hrl_lmps.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id81"><span class="problematic" id="id82">|--------|</span></a>——<a href="#id83"><span class="problematic" id="id84">|-------------|</span></a>———|
+<p><a href="#id46"><span class="problematic" id="id47">|--------|</span></a>——<a href="#id48"><span class="problematic" id="id49">|-------------|</span></a>———|
 | <cite>datetime_beginning_ept</cite> | datetime | Hour beginning (EPT) | 01/01/2024 00:00 |
 | <cite>pnode_id</cite> | integer | Pricing node ID | 51288 |
 | <cite>pnode_name</cite> | string | Node name | AECO-1 |
@@ -1078,12 +1379,14 @@
 | <cite>marginal_loss_price_ept</cite> | float | Loss ($/MWh) | 0.67 |
 | <cite>system_energy_price_ept</cite> | float | Energy ($/MWh) | 30.55 |
 | <cite>row_is_current</cite> | string | Current flag | True |</p>
-<p>### Weather Data</p>
+</section>
+<section id="weather-data">
+<h3>Weather Data<a class="headerlink" href="#weather-data" title="Link to this heading"></a></h3>
 <p><strong>File Pattern:</strong> <cite>*_{station}_{state}.csv</cite></p>
 <div class="line-block">
 <div class="line">Column | Type | Description | Example |</div>
 </div>
-<p><a href="#id85"><span class="problematic" id="id86">|--------|</span></a>——<a href="#id87"><span class="problematic" id="id88">|-------------|</span></a>———|
+<p><a href="#id50"><span class="problematic" id="id51">|--------|</span></a>——<a href="#id52"><span class="problematic" id="id53">|-------------|</span></a>———|
 | <cite>time</cite> | datetime | Hourly timestamp | 2024-01-01 00:00:00 |
 | <cite>temperature</cite> | float | Temperature (°F) | 45.3 |
 | <cite>dew_point</cite> | float | Dew point (°F) | 38.2 |
@@ -1093,34 +1396,18 @@
 | <cite>wind_dir</cite> | float | Wind direction (degrees) | 225.0 |
 | <cite>air_pressure</cite> | float | Pressure (inHg) | 30.15 |
 | <cite>weather_condition</cite> | string | Condition | Cloudy |</p>
-<p>## Working with Data</p>
-<p>### Loading in Python</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
-import pandas as pd</p>
-<p># CAISO LMP
-df = pd.read_csv(‘data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv’)
-df[‘OPR_DATE’] = pd.to_datetime(df[‘OPR_DATE’])</p>
-<p># MISO with datetime index
-df = pd.read_csv(‘data/MISO/miso_da_exante_lmp_2024-01-01.csv’)
-df[‘interval’] = pd.to_datetime(df[‘interval’])
-df.set_index(‘interval’, inplace=True)</p>
-<p># Weather data
-df = pd.read_csv(‘data/weather/2024-01-01_to_2024-01-31_San_Francisco_CA.csv’,</p>
-<blockquote>
-<div><p>index_col=’time’, parse_dates=True)</p>
-</div></blockquote>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
-<p>### Loading in R</p>
-<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>r
-# CAISO LMP
-library(readr)
-df &lt;- read_csv(‘data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv’)
-df$OPR_DATE &lt;- as.Date(df$OPR_DATE)</p>
-<p># MISO
-df &lt;- read_csv(‘data/MISO/miso_da_exante_lmp_2024-01-01.csv’)
-df$interval &lt;- as.POSIXct(df$interval)
-<a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
-<p>### Excel Import</p>
+</section>
+</section>
+<section id="working-with-data">
+<h2>Working with Data<a class="headerlink" href="#working-with-data" title="Link to this heading"></a></h2>
+<section id="loading-in-python">
+<h3>Loading in Python<a class="headerlink" href="#loading-in-python" title="Link to this heading"></a></h3>
+</section>
+<section id="loading-in-r">
+<h3>Loading in R<a class="headerlink" href="#loading-in-r" title="Link to this heading"></a></h3>
+</section>
+<section id="excel-import">
+<h3>Excel Import<a class="headerlink" href="#excel-import" title="Link to this heading"></a></h3>
 <ol class="arabic simple">
 <li><p>Open Excel</p></li>
 <li><p>Data → From Text/CSV</p></li>
@@ -1128,72 +1415,84 @@ df$interval &lt;- as.POSIXct(df$interval)
 <li><p>Verify delimiter is comma</p></li>
 <li><p>Import</p></li>
 </ol>
-<p>### Database Import</p>
-<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>sql
-– PostgreSQL
-COPY caiso_lmp FROM ‘/path/to/file.csv’ DELIMITER ‘,’ CSV HEADER;</p>
-<p>– SQLite
+</section>
+<section id="database-import">
+<h3>Database Import<a class="headerlink" href="#database-import" title="Link to this heading"></a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-- PostgreSQL
+COPY caiso_lmp FROM &#39;/path/to/file.csv&#39; DELIMITER &#39;,&#39; CSV HEADER;
+
+-- SQLite
 .mode csv
 .import data/CAISO/file.csv caiso_lmp
-<a href="#id21"><span class="problematic" id="id22">``</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a></p>
-<p>## Data Quality Checks</p>
-<p>### Validate Date Ranges</p>
-<p><a href="#id25"><span class="problematic" id="id26">``</span></a><a href="#id27"><span class="problematic" id="id28">`</span></a>python
-import pandas as pd</p>
-<p>df = pd.read_csv(‘your_file.csv’)
-df[‘OPR_DATE’] = pd.to_datetime(df[‘OPR_DATE’])</p>
-<p># Check for gaps
-date_range = pd.date_range(df[‘OPR_DATE’].min(), df[‘OPR_DATE’].max(), freq=’D’)
-missing_dates = set(date_range) - set(df[‘OPR_DATE’])
-if missing_dates:</p>
-<blockquote>
-<div><p>print(f”Missing dates: {missing_dates}”)</p>
-</div></blockquote>
-<p><a href="#id29"><span class="problematic" id="id30">``</span></a><a href="#id31"><span class="problematic" id="id32">`</span></a></p>
-<p>### Check for Nulls</p>
-<p><code class="docutils literal notranslate"><span class="pre">`python</span>
-<span class="pre">null_counts</span> <span class="pre">=</span> <span class="pre">df.isnull().sum()</span>
-<span class="pre">print(null_counts[null_counts</span> <span class="pre">&gt;</span> <span class="pre">0])</span>
-<span class="pre">`</span></code></p>
-<p>### Validate Intervals</p>
-<p><a href="#id33"><span class="problematic" id="id34">``</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>python
-# Check hourly data has 24 intervals per day
-intervals_per_day = df.groupby(‘OPR_DATE’)[‘INTERVAL_NUM’].nunique()
-irregular_days = intervals_per_day[intervals_per_day != 24]
-if len(irregular_days) &gt; 0:</p>
-<blockquote>
-<div><p>print(f”Irregular days: {irregular_days}”)</p>
-</div></blockquote>
-<p><a href="#id37"><span class="problematic" id="id38">``</span></a><a href="#id39"><span class="problematic" id="id40">`</span></a></p>
-<p>## Time Zones</p>
-<p>### CAISO
-- All times in Pacific Time (PT)
-- GMT columns provided for UTC reference
-- Handles DST automatically (23 or 25 hours)</p>
-<p>### MISO
-- All times in Central Time (CT)
-- ISO 8601 format with UTC offset</p>
-<p>### NYISO
-- All times in Eastern Time (ET)
-- Time zone column included</p>
-<p>### SPP
-- GMT timestamps
-- Central Time implicit</p>
-<p>### PJM
-- Eastern Prevailing Time (EPT)
-- Includes DST handling</p>
-<p>## Next Steps</p>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-quality-checks">
+<h2>Data Quality Checks<a class="headerlink" href="#data-quality-checks" title="Link to this heading"></a></h2>
+<section id="validate-date-ranges">
+<h3>Validate Date Ranges<a class="headerlink" href="#validate-date-ranges" title="Link to this heading"></a></h3>
+</section>
+<section id="check-for-nulls">
+<h3>Check for Nulls<a class="headerlink" href="#check-for-nulls" title="Link to this heading"></a></h3>
+</section>
+<section id="validate-intervals">
+<h3>Validate Intervals<a class="headerlink" href="#validate-intervals" title="Link to this heading"></a></h3>
+</section>
+</section>
+<section id="time-zones">
+<h2>Time Zones<a class="headerlink" href="#time-zones" title="Link to this heading"></a></h2>
+<section id="id1">
+<h3>CAISO<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>All times in Pacific Time (PT)</p></li>
+<li><p>GMT columns provided for UTC reference</p></li>
+<li><p>Handles DST automatically (23 or 25 hours)</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>MISO<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>All times in Central Time (CT)</p></li>
+<li><p>ISO 8601 format with UTC offset</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>NYISO<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>All times in Eastern Time (ET)</p></li>
+<li><p>Time zone column included</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>SPP<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>GMT timestamps</p></li>
+<li><p>Central Time implicit</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>PJM<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Eastern Prevailing Time (EPT)</p></li>
+<li><p>Includes DST handling</p></li>
+</ul>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>See [Python API Guide](python-api.md) for data processing examples</p></li>
 <li><p>See [Tutorials](../tutorials/examples/index.rst) for analysis examples</p></li>
-<li><p>See [Data Dictionary](../reference/data-dictionary.rst) for complete field definitions</p></li>
 </ul>
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="python-api.html" class="btn btn-neutral float-left" title=")" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="python-api.html" class="btn btn-neutral float-left" title="Python API Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../isos/index.html" class="btn btn-neutral float-right" title="ISO Coverage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

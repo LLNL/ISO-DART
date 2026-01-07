@@ -1,37 +1,44 @@
-# Command Line Usage Guide
+Command Line Usage Guide
+========================
 
-## Overview
+Overview
+--------
 
 ISO-DART provides a powerful command-line interface for downloading electricity market data. This guide covers all command-line options and common usage patterns.
 
-## Basic Syntax
+Basic Syntax
+------------
 
-```bash
-python isodart.py [OPTIONS]
-```
+.. code-block:: text
+    python isodart.py [OPTIONS]
 
-## Quick Examples
 
-```bash
-# Interactive mode (easiest)
-python isodart.py
+Quick Examples
+--------------
 
-# Download CAISO Day-Ahead LMP
-python isodart.py --iso caiso --data-type lmp --market dam \
-  --start 2024-01-01 --duration 7
+.. code-block:: text
 
-# Download MISO fuel mix
-python isodart.py --iso miso --data-type fuel-mix \
-  --start 2024-01-01 --duration 30
+    # Interactive mode (easiest)
+    python isodart.py
 
-# Download weather data
-python isodart.py --data-type weather --state CA \
-  --start 2024-01-01 --duration 30
-```
+    # Download CAISO Day-Ahead LMP
+    python isodart.py --iso caiso --data-type lmp --market dam \
+      --start 2024-01-01 --duration 7
 
-## Global Options
+    # Download MISO fuel mix
+    python isodart.py --iso miso --data-type fuel-mix \
+      --start 2024-01-01 --duration 30
 
-### Required Arguments
+    # Download weather data
+    python isodart.py --data-type weather --state CA \
+      --start 2024-01-01 --duration 30
+
+
+Global Options
+--------------
+
+Required Arguments
+~~~~~~~~~~~~~~~~~~
 
 | Argument | Description | Example |
 |----------|-------------|---------|
@@ -40,7 +47,8 @@ python isodart.py --data-type weather --state CA \
 | `--start` | Start date (YYYY-MM-DD) | `--start 2024-01-01` |
 | `--duration` | Duration in days | `--duration 7` |
 
-### Optional Arguments
+Optional Arguments
+~~~~~~~~~~~~~~~~~~
 
 | Argument | Description | Default |
 |----------|-------------|---------|
@@ -49,201 +57,218 @@ python isodart.py --data-type weather --state CA \
 | `--config` | Path to config file | None |
 | `--interactive` | Force interactive mode | False |
 
-## ISO-Specific Options
+ISO-Specific Options
+--------------------
 
-### CAISO Options
+CAISO Options
+~~~~~~~~~~~~~
 
-```bash
-# LMP data
-python isodart.py --iso caiso --data-type lmp --market dam \
-  --start 2024-01-01 --duration 7
+.. code-block:: text
+    # LMP data
+    python isodart.py --iso caiso --data-type lmp --market dam \
+      --start 2024-01-01 --duration 7
 
-# Available markets: dam, rtm, hasp, rtpd, ruc
-# Available data types: lmp, load, wind-solar, fuel-prices, ghg-prices, as-prices
-```
+    # Available markets: dam, rtm, hasp, rtpd, ruc
+    # Available data types: lmp, load, wind-solar, fuel-prices, ghg-prices, as-prices
 
-### MISO Options
 
-```bash
-# LMP data
-python isodart.py --iso miso --data-type lmp --lmp-type da_exante \
-  --start 2024-01-01 --duration 7
+MISO Options
+~~~~~~~~~~~~
 
-# Available LMP types: da_exante, da_expost, rt_exante, rt_expost
-# Available data types: lmp, mcp, load, fuel-mix, generation
-```
+.. code-block:: text
+    # LMP data
+    python isodart.py --iso miso --data-type lmp --lmp-type da_exante \
+      --start 2024-01-01 --duration 7
 
-### NYISO Options
+    # Available LMP types: da_exante, da_expost, rt_exante, rt_expost
+    # Available data types: lmp, mcp, load, fuel-mix, generation
 
-```bash
-# LBMP data
-python isodart.py --iso nyiso --data-type lbmp --market dam --level zonal \
-  --start 2024-01-01 --duration 7
 
-# Available levels: zonal, generator
-# Available data types: lbmp, load, fuel-mix, btm-solar
-```
+NYISO Options
+~~~~~~~~~~~~~
 
-### SPP Options
+.. code-block:: text
+    # LBMP data
+    python isodart.py --iso nyiso --data-type lbmp --market dam --level zonal \
+      --start 2024-01-01 --duration 7
 
-```bash
-# LMP by settlement location
-python isodart.py --iso spp --data-type lmp --market dam \
-  --start 2024-01-01 --duration 7
+    # Available levels: zonal, generator
+    # Available data types: lbmp, load, fuel-mix, btm-solar
 
-# LMP by bus
-python isodart.py --iso spp --data-type lmp --market dam --by-bus \
-  --start 2024-01-01 --duration 7
 
-# Available markets: dam, rtbm
-# Available data types: lmp, mcp, operating-reserves, binding-constraints
-```
+SPP Options
+~~~~~~~~~~~
 
-### BPA Options
+.. code-block:: text
+    # LMP by settlement location
+    python isodart.py --iso spp --data-type lmp --market dam \
+      --start 2024-01-01 --duration 7
 
-```bash
-# Wind and load data
-python isodart.py --iso bpa --data-type wind_gen_total_load \
-  --start 2024-01-01 --duration 7
+    # LMP by bus
+    python isodart.py --iso spp --data-type lmp --market dam --by-bus \
+      --start 2024-01-01 --duration 7
 
-# Available data types: wind_gen_total_load, reserves_deployed, all
-```
+    # Available markets: dam, rtbm
+    # Available data types: lmp, mcp, operating-reserves, binding-constraints
 
-### PJM Options
 
-```bash
-# Day-ahead LMP
-python isodart.py --iso pjm --data-type lmp --lmp-type da_hourly \
-  --start 2024-01-01 --duration 7
+BPA Options
+~~~~~~~~~~~~
 
-# With specific pricing node
-python isodart.py --iso pjm --data-type lmp --lmp-type da_hourly \
-  --pnode-id 51288 --start 2024-01-01 --duration 7
+.. code-block:: text
+    # Wind and load data
+    python isodart.py --iso bpa --data-type wind_gen_total_load \
+      --start 2024-01-01 --duration 7
 
-# Available LMP types: da_hourly, rt_5min, rt_hourly
-```
+    # Available data types: wind_gen_total_load, reserves_deployed, outages, all
 
-### ISO-NE Options
 
-```bash
-# Day-ahead hourly LMP
-python isodart.py --iso isone --data-type lmp --lmp-type da_hourly \
-  --start 2024-01-01 --duration 7
+PJM Options
+~~~~~~~~~~~
 
-# Available data types: lmp, ancillary, demand
-```
+.. code-block:: text
+    # Day-ahead LMP
+    python isodart.py --iso pjm --data-type lmp --lmp-type da_hourly \
+      --start 2024-01-01 --duration 7
 
-## Weather Data Options
+    # With specific pricing node
+    python isodart.py --iso pjm --data-type lmp --lmp-type da_hourly \
+      --pnode-id 51288 --start 2024-01-01 --duration 7
 
-```bash
-# Download weather data
-python isodart.py --data-type weather --state CA \
-  --start 2024-01-01 --duration 30
+    # Available LMP types: da_hourly, rt_5min, rt_hourly
 
-# Include solar data
-python isodart.py --data-type weather --state CA \
-  --start 2024-01-01 --duration 30 --include-solar
-```
 
-## Advanced Usage
+ISO-NE Options
+~~~~~~~~~~~~~~
 
-### Using Configuration Files
+.. code-block:: text
+    # Day-ahead hourly LMP
+    python isodart.py --iso isone --data-type lmp --lmp-type da_hourly \
+      --start 2024-01-01 --duration 7
+
+    # Available data types: lmp, ancillary, demand
+
+
+Weather Data Options
+--------------------
+
+.. code-block:: text
+    # Download weather data
+    python isodart.py --data-type weather --state CA \
+      --start 2024-01-01 --duration 30
+
+    # Include solar data
+    python isodart.py --data-type weather --state CA \
+      --start 2024-01-01 --duration 30 --include-solar
+
+
+Advanced Usage
+--------------
+
+Using Configuration Files
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create a `config.yaml`:
 
-```yaml
-caiso:
-  max_retries: 5
-  timeout: 60
+.. code-block:: text
+    caiso:
+      max_retries: 5
+      timeout: 60
 
-logging:
-  level: DEBUG
-  file: logs/isodart.log
-```
+    logging:
+      level: DEBUG
+      file: logs/isodart.log
+
 
 Use it:
 
-```bash
-python isodart.py --config config.yaml --iso caiso --data-type lmp \
-  --market dam --start 2024-01-01 --duration 7
-```
+.. code-block:: text
+    python isodart.py --config config.yaml --iso caiso --data-type lmp \
+      --market dam --start 2024-01-01 --duration 7
 
-### Automation with Cron
 
-```bash
-# Daily download at 2 AM
-0 2 * * * cd /path/to/ISO-DART && /path/to/venv/bin/python isodart.py --iso caiso --data-type lmp --market dam --start $(date -d "yesterday" +\%Y-\%m-\%d) --duration 1
+Automation with Cron
+~~~~~~~~~~~~~~~~~~~~
 
-# Weekly download on Monday
-0 3 * * 1 cd /path/to/ISO-DART && /path/to/venv/bin/python isodart.py --iso caiso --data-type lmp --market dam --start $(date -d "7 days ago" +\%Y-\%m-\%d) --duration 7
-```
+.. code-block:: text
+    # Daily download at 2 AM
+    0 2 * * * cd /path/to/ISO-DART && /path/to/venv/bin/python isodart.py --iso caiso --data-type lmp --market dam --start $(date -d "yesterday" +\%Y-\%m-\%d) --duration 1
 
-### Batch Processing
+    # Weekly download on Monday
+    0 3 * * 1 cd /path/to/ISO-DART && /path/to/venv/bin/python isodart.py --iso caiso --data-type lmp --market dam --start $(date -d "7 days ago" +\%Y-\%m-\%d) --duration 7
+
+
+Batch Processing
+~~~~~~~~~~~~~~~~
 
 Create a shell script `download_all.sh`:
 
-```bash
-#!/bin/bash
+.. code-block:: text
+    #!/bin/bash
 
-START_DATE="2024-01-01"
-DURATION=7
+    START_DATE="2024-01-01"
+    DURATION=7
 
-# Download multiple data types
-python isodart.py --iso caiso --data-type lmp --market dam --start $START_DATE --duration $DURATION
-python isodart.py --iso caiso --data-type lmp --market rtm --start $START_DATE --duration $DURATION
-python isodart.py --iso caiso --data-type load --market dam --start $START_DATE --duration $DURATION
-python isodart.py --iso caiso --data-type wind-solar --start $START_DATE --duration $DURATION
+    # Download multiple data types
+    python isodart.py --iso caiso --data-type lmp --market dam --start $START_DATE --duration $DURATION
+    python isodart.py --iso caiso --data-type lmp --market rtm --start $START_DATE --duration $DURATION
+    python isodart.py --iso caiso --data-type load --market dam --start $START_DATE --duration $DURATION
+    python isodart.py --iso caiso --data-type wind-solar --start $START_DATE --duration $DURATION
 
-echo "All downloads complete!"
-```
+    echo "All downloads complete!"
+
 
 Make it executable:
 
-```bash
-chmod +x download_all.sh
-./download_all.sh
-```
+.. code-block:: text
+    chmod +x download_all.sh
+    ./download_all.sh
 
-## Output Files
+
+Output Files
+------------
 
 Downloaded files are saved to:
 
-```
-data/
-├── CAISO/
-│   └── YYYYMMDD_to_YYYYMMDD_datatype.csv
-├── MISO/
-│   └── miso_datatype_YYYY-MM-DD.csv
-├── NYISO/
-│   └── YYYYMMDD_to_YYYYMMDD_dataid.csv
-├── SPP/
-│   └── YYYYMMDD_to_YYYYMMDD_SPP_datatype.csv
-├── BPA/
-│   └── YYYY_BPA_datatype.csv
-├── PJM/
-│   └── MM-DD-YYYY_to_MM-DD-YYYY_datatype.csv
-└── weather/
-    └── YYYY-MM-DD_to_YYYY-MM-DD_station_STATE.csv
-```
+.. code-block:: text
+    data/
+    ├── CAISO/
+    │   └── YYYYMMDD_to_YYYYMMDD_datatype.csv
+    ├── MISO/
+    │   └── miso_datatype_YYYY-MM-DD.csv
+    ├── NYISO/
+    │   └── YYYYMMDD_to_YYYYMMDD_dataid.csv
+    ├── SPP/
+    │   └── YYYYMMDD_to_YYYYMMDD_SPP_datatype.csv
+    ├── BPA/
+    │   └── YYYY_BPA_datatype.csv
+    ├── PJM/
+    │   └── MM-DD-YYYY_to_MM-DD-YYYY_datatype.csv
+    └── weather/
+        └── YYYY-MM-DD_to_YYYY-MM-DD_station_STATE.csv
 
-## Logging
+
+Logging
+-------
 
 Enable verbose logging:
 
-```bash
-python isodart.py --verbose --iso caiso --data-type lmp --market dam \
-  --start 2024-01-01 --duration 7
-```
+.. code-block:: text
+    python isodart.py --verbose --iso caiso --data-type lmp --market dam \
+      --start 2024-01-01 --duration 7
+
 
 Check logs:
 
-```bash
-tail -f logs/isodart.log
-```
+.. code-block:: text
+    tail -f logs/isodart.log
 
-## Error Handling
 
-### Common Errors
+Error Handling
+--------------
+
+Common Errors
+~~~~~~~~~~~~~
 
 **"API Error 404: Data not found"**
 - Date range may be too recent or too old
@@ -258,19 +283,21 @@ tail -f logs/isodart.log
 - Check API keys in `user_config.ini`
 - Verify credentials are correct
 
-### Exit Codes
+Exit Codes
+~~~~~~~~~~
 
 - `0`: Success
 - `1`: Download failed or error occurred
 
 Check exit code:
 
-```bash
-python isodart.py --iso caiso --data-type lmp --market dam --start 2024-01-01 --duration 7
-echo $?  # 0 = success, 1 = failure
-```
+.. code-block:: text
+    python isodart.py --iso caiso --data-type lmp --market dam --start 2024-01-01 --duration 7
+    echo $?  # 0 = success, 1 = failure
 
-## Best Practices
+
+Best Practices
+--------------
 
 1. **Start with small date ranges** to test connectivity
 2. **Use verbose mode** when debugging
@@ -278,9 +305,11 @@ echo $?  # 0 = success, 1 = failure
 4. **Automate wisely** - respect API rate limits
 5. **Validate data** after download
 
-## Command Reference
+Command Reference
+-----------------
 
-### Quick Reference Table
+Quick Reference Table
+~~~~~~~~~~~~~~~~~~~~~
 
 | Command | Purpose |
 |---------|---------|
@@ -289,9 +318,3 @@ echo $?  # 0 = success, 1 = failure
 | `python isodart.py --iso caiso --data-type lmp --market dam --start 2024-01-01 --duration 7` | Download CAISO DAM LMP |
 | `python isodart.py --verbose` | Enable debug output |
 | `python isodart.py --config file.yaml` | Use custom config |
-
-## Next Steps
-
-- See [Python API Guide](python-api.md) for programmatic usage
-- See [Configuration Guide](configuration.md) for setup details
-- See [Examples](../tutorials/examples/index.rst) for more usage patterns

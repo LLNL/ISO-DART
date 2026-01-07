@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>&lt;no title&gt; &mdash; ISO-DART 2.0.0 documentation</title>
+  <title>Command Line Usage Guide &mdash; ISO-DART 2.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -26,7 +26,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title=")" href="python-api.html" />
+    <link rel="next" title="Python API Guide" href="python-api.html" />
     <link rel="prev" title="Interactive Mode Guide" href="interactive-mode.html" /> 
 </head>
 
@@ -200,8 +200,8 @@
 </li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="index.html">User Guide</a><ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="interactive-mode.html">Interactive Mode Guide</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="interactive-mode.html#overview">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="interactive-mode.html#starting-interactive-mode">Starting Interactive Mode</a></li>
@@ -272,13 +272,163 @@
 <li class="toctree-l3"><a class="reference internal" href="interactive-mode.html#see-also">See Also</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id42">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id47">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id76">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id105">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id134">)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python-api.html#id211">)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Command Line Usage Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#basic-syntax">Basic Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-examples">Quick Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#global-options">Global Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#required-arguments">Required Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optional-arguments">Optional Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#iso-specific-options">ISO-Specific Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#caiso-options">CAISO Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#miso-options">MISO Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nyiso-options">NYISO Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#spp-options">SPP Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bpa-options">BPA Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pjm-options">PJM Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#iso-ne-options">ISO-NE Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#weather-data-options">Weather Data Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#using-configuration-files">Using Configuration Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#automation-with-cron">Automation with Cron</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#output-files">Output Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#common-errors">Common Errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#exit-codes">Exit Codes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-reference">Command Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#quick-reference-table">Quick Reference Table</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html">Python API Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#basic-usage-pattern">Basic Usage Pattern</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#caiso-client">CAISO Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#basic-lmp-download">Basic LMP Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#available-markets">Available Markets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#load-forecasts">Load Forecasts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#renewable-generation">Renewable Generation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#ancillary-services">Ancillary Services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#custom-configuration">Custom Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#miso-client">MISO Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#setup-with-api-keys">Setup with API Keys</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#lmp-data">LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#available-lmp-types">Available LMP Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#load-and-generation">Load and Generation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#working-with-miso-data">Working with MISO Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#nyiso-client">NYISO Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#basic-usage">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#spp-client">SPP Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#id1">LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#load-and-resource-forecasts">Load and Resource Forecasts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#bpa-client">BPA Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#historical-data">Historical Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#pjm-client">PJM Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#setup">Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#id2">LMP Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#iso-ne-client">ISO-NE Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#id3">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#weather-client">Weather Client</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#download-weather-data">Download Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#advanced-patterns">Advanced Patterns</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#multi-iso-download">Multi-ISO Download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#error-handling">Error Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#async-parallel-downloads">Async/Parallel Downloads</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#data-processing-pipeline">Data Processing Pipeline</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#custom-retry-logic">Custom Retry Logic</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#always-clean-up">1. Always Clean Up</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#check-return-values">2. Check Return Values</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#use-appropriate-date-ranges">3. Use Appropriate Date Ranges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="python-api.html#configure-logging">4. Configure Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#type-hints">Type Hints</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html">Data Formats Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#general-csv-format">General CSV Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#file-naming-conventions">File Naming Conventions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#caiso">CAISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#miso">MISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#nyiso">NYISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#spp">SPP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#bpa">BPA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#pjm">PJM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#weather">Weather</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#data-schemas">Data Schemas</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#caiso-lmp-data">CAISO LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#caiso-load-forecast">CAISO Load Forecast</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#caiso-wind-solar-summary">CAISO Wind/Solar Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#miso-lmp-data">MISO LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#miso-fuel-mix">MISO Fuel Mix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#nyiso-lbmp-data">NYISO LBMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#spp-lmp-data">SPP LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#spp-operating-reserves">SPP Operating Reserves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#bpa-data">BPA Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#pjm-lmp-data">PJM LMP Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#weather-data">Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#working-with-data">Working with Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#loading-in-python">Loading in Python</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#loading-in-r">Loading in R</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#excel-import">Excel Import</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#database-import">Database Import</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#data-quality-checks">Data Quality Checks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#validate-date-ranges">Validate Date Ranges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#check-for-nulls">Check for Nulls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#validate-intervals">Validate Intervals</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#time-zones">Time Zones</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#id1">CAISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#id2">MISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#id3">NYISO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#id4">SPP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="data-formats.html#id5">PJM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="interactive-mode.html">Interactive Mode Guide</a><ul>
@@ -351,13 +501,163 @@
 <li class="toctree-l2"><a class="reference internal" href="interactive-mode.html#see-also">See Also</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id42">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id47">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id76">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id105">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id134">)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="python-api.html#id211">)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command Line Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-syntax">Basic Syntax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-examples">Quick Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#global-options">Global Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#required-arguments">Required Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-arguments">Optional Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#iso-specific-options">ISO-Specific Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#caiso-options">CAISO Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miso-options">MISO Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nyiso-options">NYISO Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spp-options">SPP Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bpa-options">BPA Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pjm-options">PJM Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#iso-ne-options">ISO-NE Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#weather-data-options">Weather Data Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-configuration-files">Using Configuration Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#automation-with-cron">Automation with Cron</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#output-files">Output Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-errors">Common Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exit-codes">Exit Codes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-reference">Command Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quick-reference-table">Quick Reference Table</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python-api.html">Python API Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#basic-usage-pattern">Basic Usage Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#caiso-client">CAISO Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#basic-lmp-download">Basic LMP Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#available-markets">Available Markets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#load-forecasts">Load Forecasts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#renewable-generation">Renewable Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#ancillary-services">Ancillary Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#custom-configuration">Custom Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#miso-client">MISO Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#setup-with-api-keys">Setup with API Keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#lmp-data">LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#available-lmp-types">Available LMP Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#load-and-generation">Load and Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#working-with-miso-data">Working with MISO Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#nyiso-client">NYISO Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#basic-usage">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#spp-client">SPP Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#id1">LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#load-and-resource-forecasts">Load and Resource Forecasts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#bpa-client">BPA Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#historical-data">Historical Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#pjm-client">PJM Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#id2">LMP Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#iso-ne-client">ISO-NE Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#id3">Basic Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#weather-client">Weather Client</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#download-weather-data">Download Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#advanced-patterns">Advanced Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#multi-iso-download">Multi-ISO Download</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#error-handling">Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#async-parallel-downloads">Async/Parallel Downloads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#data-processing-pipeline">Data Processing Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#custom-retry-logic">Custom Retry Logic</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#always-clean-up">1. Always Clean Up</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#check-return-values">2. Check Return Values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#use-appropriate-date-ranges">3. Use Appropriate Date Ranges</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#configure-logging">4. Configure Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#type-hints">Type Hints</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data-formats.html">Data Formats Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#general-csv-format">General CSV Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#file-naming-conventions">File Naming Conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#caiso">CAISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#miso">MISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#nyiso">NYISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#spp">SPP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#bpa">BPA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#pjm">PJM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#weather">Weather</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#data-schemas">Data Schemas</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#caiso-lmp-data">CAISO LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#caiso-load-forecast">CAISO Load Forecast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#caiso-wind-solar-summary">CAISO Wind/Solar Summary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#miso-lmp-data">MISO LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#miso-fuel-mix">MISO Fuel Mix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#nyiso-lbmp-data">NYISO LBMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#spp-lmp-data">SPP LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#spp-operating-reserves">SPP Operating Reserves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#bpa-data">BPA Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#pjm-lmp-data">PJM LMP Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#weather-data">Weather Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#working-with-data">Working with Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#loading-in-python">Loading in Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#loading-in-r">Loading in R</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#excel-import">Excel Import</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#database-import">Database Import</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#data-quality-checks">Data Quality Checks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#validate-date-ranges">Validate Date Ranges</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#check-for-nulls">Check for Nulls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#validate-intervals">Validate Intervals</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#time-zones">Time Zones</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#id1">CAISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#id2">MISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#id3">NYISO</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#id4">SPP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data-formats.html#id5">PJM</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data-formats.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">ISO Coverage</span></p>
 <ul>
@@ -836,7 +1136,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="breadcrumb-item active">Command Line Usage Guide</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/user-guide/command-line.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -846,225 +1146,115 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <p># Command Line Usage Guide</p>
-<p>## Overview</p>
+  <section id="command-line-usage-guide">
+<h1>Command Line Usage Guide<a class="headerlink" href="#command-line-usage-guide" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>ISO-DART provides a powerful command-line interface for downloading electricity market data. This guide covers all command-line options and common usage patterns.</p>
-<p>## Basic Syntax</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
-<span class="pre">python</span> <span class="pre">isodart.py</span> <span class="pre">[OPTIONS]</span>
-<span class="pre">`</span></code></p>
-<p>## Quick Examples</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>bash
-# Interactive mode (easiest)
-python isodart.py</p>
-<p># Download CAISO Day-Ahead LMP
-python isodart.py –iso caiso –data-type lmp –market dam </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Download MISO fuel mix
-python isodart.py –iso miso –data-type fuel-mix </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 30</p>
-</div></blockquote>
-<p># Download weather data
-python isodart.py –data-type weather –state CA </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 30</p>
-</div></blockquote>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
-<p>## Global Options</p>
-<p>### Required Arguments</p>
+</section>
+<section id="basic-syntax">
+<h2>Basic Syntax<a class="headerlink" href="#basic-syntax" title="Link to this heading"></a></h2>
+</section>
+<section id="quick-examples">
+<h2>Quick Examples<a class="headerlink" href="#quick-examples" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Interactive mode (easiest)
+python isodart.py
+
+# Download CAISO Day-Ahead LMP
+python isodart.py --iso caiso --data-type lmp --market dam \
+  --start 2024-01-01 --duration 7
+
+# Download MISO fuel mix
+python isodart.py --iso miso --data-type fuel-mix \
+  --start 2024-01-01 --duration 30
+
+# Download weather data
+python isodart.py --data-type weather --state CA \
+  --start 2024-01-01 --duration 30
+</pre></div>
+</div>
+</section>
+<section id="global-options">
+<h2>Global Options<a class="headerlink" href="#global-options" title="Link to this heading"></a></h2>
+<section id="required-arguments">
+<h3>Required Arguments<a class="headerlink" href="#required-arguments" title="Link to this heading"></a></h3>
 <div class="line-block">
 <div class="line">Argument | Description | Example |</div>
 </div>
-<p><a href="#id119"><span class="problematic" id="id120">|----------|</span></a>————-<a href="#id121"><span class="problematic" id="id122">|---------|</span></a>
+<p><a href="#id1"><span class="problematic" id="id2">|----------|</span></a>————-<a href="#id3"><span class="problematic" id="id4">|---------|</span></a>
 | <cite>–iso</cite> | ISO to download from | <cite>–iso caiso</cite> |
 | <cite>–data-type</cite> | Type of data to download | <cite>–data-type lmp</cite> |
 | <cite>–start</cite> | Start date (YYYY-MM-DD) | <cite>–start 2024-01-01</cite> |
 | <cite>–duration</cite> | Duration in days | <cite>–duration 7</cite> |</p>
-<p>### Optional Arguments</p>
+</section>
+<section id="optional-arguments">
+<h3>Optional Arguments<a class="headerlink" href="#optional-arguments" title="Link to this heading"></a></h3>
 <div class="line-block">
 <div class="line">Argument | Description | Default |</div>
 </div>
-<p><a href="#id123"><span class="problematic" id="id124">|----------|</span></a>————-<a href="#id125"><span class="problematic" id="id126">|---------|</span></a>
+<p><a href="#id5"><span class="problematic" id="id6">|----------|</span></a>————-<a href="#id7"><span class="problematic" id="id8">|---------|</span></a>
 | <cite>–market</cite> | Market type | None |
 | <cite>–verbose</cite> | Enable verbose logging | False |
 | <cite>–config</cite> | Path to config file | None |
 | <cite>–interactive</cite> | Force interactive mode | False |</p>
-<p>## ISO-Specific Options</p>
-<p>### CAISO Options</p>
-<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>bash
-# LMP data
-python isodart.py –iso caiso –data-type lmp –market dam </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Available markets: dam, rtm, hasp, rtpd, ruc
-# Available data types: lmp, load, wind-solar, fuel-prices, ghg-prices, as-prices
-<a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
-<p>### MISO Options</p>
-<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a>bash
-# LMP data
-python isodart.py –iso miso –data-type lmp –lmp-type da_exante </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Available LMP types: da_exante, da_expost, rt_exante, rt_expost
-# Available data types: lmp, mcp, load, fuel-mix, generation
-<a href="#id21"><span class="problematic" id="id22">``</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a></p>
-<p>### NYISO Options</p>
-<p><a href="#id25"><span class="problematic" id="id26">``</span></a><a href="#id27"><span class="problematic" id="id28">`</span></a>bash
-# LBMP data
-python isodart.py –iso nyiso –data-type lbmp –market dam –level zonal </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Available levels: zonal, generator
-# Available data types: lbmp, load, fuel-mix, btm-solar
-<a href="#id29"><span class="problematic" id="id30">``</span></a><a href="#id31"><span class="problematic" id="id32">`</span></a></p>
-<p>### SPP Options</p>
-<p><a href="#id33"><span class="problematic" id="id34">``</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a>bash
-# LMP by settlement location
-python isodart.py –iso spp –data-type lmp –market dam </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># LMP by bus
-python isodart.py –iso spp –data-type lmp –market dam –by-bus </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Available markets: dam, rtbm
-# Available data types: lmp, mcp, operating-reserves, binding-constraints
-<a href="#id37"><span class="problematic" id="id38">``</span></a><a href="#id39"><span class="problematic" id="id40">`</span></a></p>
-<p>### BPA Options</p>
-<p><a href="#id41"><span class="problematic" id="id42">``</span></a><a href="#id43"><span class="problematic" id="id44">`</span></a>bash
-# Wind and load data
-python isodart.py –iso bpa –data-type wind_gen_total_load </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Available data types: wind_gen_total_load, reserves_deployed, all
-<a href="#id45"><span class="problematic" id="id46">``</span></a><a href="#id47"><span class="problematic" id="id48">`</span></a></p>
-<p>### PJM Options</p>
-<p><a href="#id49"><span class="problematic" id="id50">``</span></a><a href="#id51"><span class="problematic" id="id52">`</span></a>bash
-# Day-ahead LMP
-python isodart.py –iso pjm –data-type lmp –lmp-type da_hourly </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># With specific pricing node
-python isodart.py –iso pjm –data-type lmp –lmp-type da_hourly </p>
-<blockquote>
-<div><p>–pnode-id 51288 –start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Available LMP types: da_hourly, rt_5min, rt_hourly
-<a href="#id53"><span class="problematic" id="id54">``</span></a><a href="#id55"><span class="problematic" id="id56">`</span></a></p>
-<p>### ISO-NE Options</p>
-<p><a href="#id57"><span class="problematic" id="id58">``</span></a><a href="#id59"><span class="problematic" id="id60">`</span></a>bash
-# Day-ahead hourly LMP
-python isodart.py –iso isone –data-type lmp –lmp-type da_hourly </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p># Available data types: lmp, ancillary, demand
-<a href="#id61"><span class="problematic" id="id62">``</span></a><a href="#id63"><span class="problematic" id="id64">`</span></a></p>
-<p>## Weather Data Options</p>
-<p><a href="#id65"><span class="problematic" id="id66">``</span></a><a href="#id67"><span class="problematic" id="id68">`</span></a>bash
-# Download weather data
-python isodart.py –data-type weather –state CA </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 30</p>
-</div></blockquote>
-<p># Include solar data
-python isodart.py –data-type weather –state CA </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 30 –include-solar</p>
-</div></blockquote>
-<p><a href="#id69"><span class="problematic" id="id70">``</span></a><a href="#id71"><span class="problematic" id="id72">`</span></a></p>
-<p>## Advanced Usage</p>
-<p>### Using Configuration Files</p>
+</section>
+</section>
+<section id="iso-specific-options">
+<h2>ISO-Specific Options<a class="headerlink" href="#iso-specific-options" title="Link to this heading"></a></h2>
+<section id="caiso-options">
+<h3>CAISO Options<a class="headerlink" href="#caiso-options" title="Link to this heading"></a></h3>
+</section>
+<section id="miso-options">
+<h3>MISO Options<a class="headerlink" href="#miso-options" title="Link to this heading"></a></h3>
+</section>
+<section id="nyiso-options">
+<h3>NYISO Options<a class="headerlink" href="#nyiso-options" title="Link to this heading"></a></h3>
+</section>
+<section id="spp-options">
+<h3>SPP Options<a class="headerlink" href="#spp-options" title="Link to this heading"></a></h3>
+</section>
+<section id="bpa-options">
+<h3>BPA Options<a class="headerlink" href="#bpa-options" title="Link to this heading"></a></h3>
+</section>
+<section id="pjm-options">
+<h3>PJM Options<a class="headerlink" href="#pjm-options" title="Link to this heading"></a></h3>
+</section>
+<section id="iso-ne-options">
+<h3>ISO-NE Options<a class="headerlink" href="#iso-ne-options" title="Link to this heading"></a></h3>
+</section>
+</section>
+<section id="weather-data-options">
+<h2>Weather Data Options<a class="headerlink" href="#weather-data-options" title="Link to this heading"></a></h2>
+</section>
+<section id="advanced-usage">
+<h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h2>
+<section id="using-configuration-files">
+<h3>Using Configuration Files<a class="headerlink" href="#using-configuration-files" title="Link to this heading"></a></h3>
 <p>Create a <cite>config.yaml</cite>:</p>
-<p><a href="#id73"><span class="problematic" id="id74">``</span></a><a href="#id75"><span class="problematic" id="id76">`</span></a>yaml
-caiso:</p>
-<blockquote>
-<div><p>max_retries: 5
-timeout: 60</p>
-</div></blockquote>
-<dl class="simple">
-<dt>logging:</dt><dd><p>level: DEBUG
-file: logs/isodart.log</p>
-</dd>
-</dl>
-<p><a href="#id77"><span class="problematic" id="id78">``</span></a><a href="#id79"><span class="problematic" id="id80">`</span></a></p>
 <p>Use it:</p>
-<p><a href="#id81"><span class="problematic" id="id82">``</span></a><a href="#id83"><span class="problematic" id="id84">`</span></a>bash
-python isodart.py –config config.yaml –iso caiso –data-type lmp </p>
-<blockquote>
-<div><p>–market dam –start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p><a href="#id85"><span class="problematic" id="id86">``</span></a><a href="#id87"><span class="problematic" id="id88">`</span></a></p>
-<p>### Automation with Cron</p>
-<p><a href="#id89"><span class="problematic" id="id90">``</span></a><a href="#id91"><span class="problematic" id="id92">`</span></a>bash
-# Daily download at 2 AM
-0 2 * * * cd /path/to/ISO-DART &amp;&amp; /path/to/venv/bin/python isodart.py –iso caiso –data-type lmp –market dam –start $(date -d “yesterday” +%Y-%m-%d) –duration 1</p>
-<p># Weekly download on Monday
-0 3 * * 1 cd /path/to/ISO-DART &amp;&amp; /path/to/venv/bin/python isodart.py –iso caiso –data-type lmp –market dam –start $(date -d “7 days ago” +%Y-%m-%d) –duration 7
-<a href="#id93"><span class="problematic" id="id94">``</span></a><a href="#id95"><span class="problematic" id="id96">`</span></a></p>
-<p>### Batch Processing</p>
+</section>
+<section id="automation-with-cron">
+<h3>Automation with Cron<a class="headerlink" href="#automation-with-cron" title="Link to this heading"></a></h3>
+</section>
+<section id="batch-processing">
+<h3>Batch Processing<a class="headerlink" href="#batch-processing" title="Link to this heading"></a></h3>
 <p>Create a shell script <cite>download_all.sh</cite>:</p>
-<p><a href="#id97"><span class="problematic" id="id98">``</span></a><a href="#id99"><span class="problematic" id="id100">`</span></a>bash
-#!/bin/bash</p>
-<p>START_DATE=”2024-01-01”
-DURATION=7</p>
-<p># Download multiple data types
-python isodart.py –iso caiso –data-type lmp –market dam –start $START_DATE –duration $DURATION
-python isodart.py –iso caiso –data-type lmp –market rtm –start $START_DATE –duration $DURATION
-python isodart.py –iso caiso –data-type load –market dam –start $START_DATE –duration $DURATION
-python isodart.py –iso caiso –data-type wind-solar –start $START_DATE –duration $DURATION</p>
-<p>echo “All downloads complete!”
-<a href="#id101"><span class="problematic" id="id102">``</span></a><a href="#id103"><span class="problematic" id="id104">`</span></a></p>
 <p>Make it executable:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
-<span class="pre">chmod</span> <span class="pre">+x</span> <span class="pre">download_all.sh</span>
-<span class="pre">./download_all.sh</span>
-<span class="pre">`</span></code></p>
-<p>## Output Files</p>
+</section>
+</section>
+<section id="output-files">
+<h2>Output Files<a class="headerlink" href="#output-files" title="Link to this heading"></a></h2>
 <p>Downloaded files are saved to:</p>
-<p><a href="#id105"><span class="problematic" id="id106">``</span></a>`
-data/
-├── CAISO/
-│   └── YYYYMMDD_to_YYYYMMDD_datatype.csv
-├── MISO/
-│   └── miso_datatype_YYYY-MM-DD.csv
-├── NYISO/
-│   └── YYYYMMDD_to_YYYYMMDD_dataid.csv
-├── SPP/
-│   └── YYYYMMDD_to_YYYYMMDD_SPP_datatype.csv
-├── BPA/
-│   └── YYYY_BPA_datatype.csv
-├── PJM/
-│   └── MM-DD-YYYY_to_MM-DD-YYYY_datatype.csv
-└── weather/</p>
-<blockquote>
-<div><p>└── YYYY-MM-DD_to_YYYY-MM-DD_station_STATE.csv</p>
-</div></blockquote>
-<p><a href="#id107"><span class="problematic" id="id108">``</span></a><a href="#id109"><span class="problematic" id="id110">`</span></a></p>
-<p>## Logging</p>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading"></a></h2>
 <p>Enable verbose logging:</p>
-<p><a href="#id111"><span class="problematic" id="id112">``</span></a><a href="#id113"><span class="problematic" id="id114">`</span></a>bash
-python isodart.py –verbose –iso caiso –data-type lmp –market dam </p>
-<blockquote>
-<div><p>–start 2024-01-01 –duration 7</p>
-</div></blockquote>
-<p><a href="#id115"><span class="problematic" id="id116">``</span></a><a href="#id117"><span class="problematic" id="id118">`</span></a></p>
 <p>Check logs:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
-<span class="pre">tail</span> <span class="pre">-f</span> <span class="pre">logs/isodart.log</span>
-<span class="pre">`</span></code></p>
-<p>## Error Handling</p>
-<p>### Common Errors</p>
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
+<section id="common-errors">
+<h3>Common Errors<a class="headerlink" href="#common-errors" title="Link to this heading"></a></h3>
 <p><strong>“API Error 404: Data not found”</strong>
 - Date range may be too recent or too old
 - Data may not exist for that period
@@ -1075,17 +1265,18 @@ python isodart.py –verbose –iso caiso –data-type lmp –market dam </p>
 <p><strong>“Authentication failed”</strong>
 - Check API keys in <cite>user_config.ini</cite>
 - Verify credentials are correct</p>
-<p>### Exit Codes</p>
+</section>
+<section id="exit-codes">
+<h3>Exit Codes<a class="headerlink" href="#exit-codes" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><cite>0</cite>: Success</p></li>
 <li><p><cite>1</cite>: Download failed or error occurred</p></li>
 </ul>
 <p>Check exit code:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
-<span class="pre">python</span> <span class="pre">isodart.py</span> <span class="pre">--iso</span> <span class="pre">caiso</span> <span class="pre">--data-type</span> <span class="pre">lmp</span> <span class="pre">--market</span> <span class="pre">dam</span> <span class="pre">--start</span> <span class="pre">2024-01-01</span> <span class="pre">--duration</span> <span class="pre">7</span>
-<span class="pre">echo</span> <span class="pre">$?</span>&#160; <span class="pre">#</span> <span class="pre">0</span> <span class="pre">=</span> <span class="pre">success,</span> <span class="pre">1</span> <span class="pre">=</span> <span class="pre">failure</span>
-<span class="pre">`</span></code></p>
-<p>## Best Practices</p>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p><strong>Start with small date ranges</strong> to test connectivity</p></li>
 <li><p><strong>Use verbose mode</strong> when debugging</p></li>
@@ -1093,30 +1284,30 @@ python isodart.py –verbose –iso caiso –data-type lmp –market dam </p>
 <li><p><strong>Automate wisely</strong> - respect API rate limits</p></li>
 <li><p><strong>Validate data</strong> after download</p></li>
 </ol>
-<p>## Command Reference</p>
-<p>### Quick Reference Table</p>
+</section>
+<section id="command-reference">
+<h2>Command Reference<a class="headerlink" href="#command-reference" title="Link to this heading"></a></h2>
+<section id="quick-reference-table">
+<h3>Quick Reference Table<a class="headerlink" href="#quick-reference-table" title="Link to this heading"></a></h3>
 <div class="line-block">
 <div class="line">Command | Purpose |</div>
 </div>
-<p><a href="#id127"><span class="problematic" id="id128">|---------|</span></a>———|
+<p><a href="#id9"><span class="problematic" id="id10">|---------|</span></a>———|
 | <cite>python isodart.py</cite> | Interactive mode |
 | <cite>python isodart.py –help</cite> | Show help |
 | <cite>python isodart.py –iso caiso –data-type lmp –market dam –start 2024-01-01 –duration 7</cite> | Download CAISO DAM LMP |
 | <cite>python isodart.py –verbose</cite> | Enable debug output |
 | <cite>python isodart.py –config file.yaml</cite> | Use custom config |</p>
-<p>## Next Steps</p>
-<ul class="simple">
-<li><p>See [Python API Guide](python-api.md) for programmatic usage</p></li>
-<li><p>See [Configuration Guide](configuration.md) for setup details</p></li>
-<li><p>See [Examples](../tutorials/examples/index.rst) for more usage patterns</p></li>
-</ul>
+</section>
+</section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="interactive-mode.html" class="btn btn-neutral float-left" title="Interactive Mode Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="python-api.html" class="btn btn-neutral float-right" title=")" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="python-api.html" class="btn btn-neutral float-right" title="Python API Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

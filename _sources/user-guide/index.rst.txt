@@ -7,5 +7,4 @@ User Guide
    interactive-mode
    command-line
    python-api
-   configuration
    data-formats

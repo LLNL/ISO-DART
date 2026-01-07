@@ -1,10 +1,13 @@
-# Data Formats Guide
+Data Formats Guide
+==================
 
-## Overview
+Overview
+--------
 
 ISO-DART saves all data in CSV format for maximum compatibility with analysis tools. This guide describes the structure and format of downloaded data files.
 
-## General CSV Format
+General CSV Format
+------------------
 
 All CSV files have:
 - Header row with column names
@@ -12,98 +15,106 @@ All CSV files have:
 - Comma-separated values
 - ISO-8601 date/time formats where applicable
 
-## File Naming Conventions
+File Naming Conventions
+-----------------------
 
-### CAISO
+CAISO
+~~~~~
 
-```
-{start_date}_to_{end_date}_{query_name}_{data_item}.csv
-```
+.. code-block:: text
+    {start_date}_to_{end_date}_{query_name}_{data_item}.csv
 
-Examples:
-```
-20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv
-20240101_to_20240131_SLD_FCST_CAISO_forecast.csv
-20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv
-```
 
-### MISO
+    Examples:
 
-```
-miso_{data_type}_{date}.csv
-```
+    20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv
+    20240101_to_20240131_SLD_FCST_CAISO_forecast.csv
+    20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv
 
-Examples:
-```
-miso_da_exante_lmp_2024-01-01.csv
-miso_fuel_mix_2024-01-01.csv
-miso_rt_actual_load_2024-01-01.csv
-```
 
-### NYISO
+MISO
+~~~~
 
-```
-{start_date}_to_{end_date}_{dataid}_{aggregation}.csv
-```
+.. code-block:: text
+    miso_{data_type}_{date}.csv
 
-Examples:
-```
-20240101_to_20240131_damlbmp_zone.csv
-20240101_to_20240131_rtfuelmix.csv
-20240101_to_20240131_pal.csv
-```
+    Examples:
 
-### SPP
+    miso_da_exante_lmp_2024-01-01.csv
+    miso_fuel_mix_2024-01-01.csv
+    miso_rt_actual_load_2024-01-01.csv
 
-```
-{start_date}_to_{end_date}_SPP_{market}_{data_type}_{location_type}.csv
-```
 
-Examples:
-```
-20240101_to_20240131_SPP_DA_LMP_SL.csv
-20240101_to_20240131_SPP_RTBM_MCP.csv
-20240101_to_20240131_SPP_Operating_Reserves.csv
-```
+NYISO
+~~~~~
 
-### BPA
+.. code-block:: text
+    {start_date}_to_{end_date}_{dataid}_{aggregation}.csv
 
-```
-{year}_BPA_{data_type}.csv
-```
+    Examples:
 
-Examples:
-```
-2024_BPA_Wind_Generation_Total_Load.csv
-2024_BPA_Reserves_Deployed.csv
-```
+    20240101_to_20240131_damlbmp_zone.csv
+    20240101_to_20240131_rtfuelmix.csv
+    20240101_to_20240131_pal.csv
 
-### PJM
+SPP
+~~~
 
-```
-{start_date}_to_{end_date}_{endpoint}.csv
-```
+.. code-block:: text
+    {start_date}_to_{end_date}_SPP_{market}_{data_type}_{location_type}.csv
 
-Examples:
-```
-01-01-2024_to_01-31-2024_da_hrl_lmps.csv
-01-01-2024_to_01-31-2024_hrl_load_metered.csv
-```
 
-### Weather
+    Examples:
 
-```
-{start_date}_to_{end_date}_{station_name}_{state}.csv
-```
+    20240101_to_20240131_SPP_DA_LMP_SL.csv
+    20240101_to_20240131_SPP_RTBM_MCP.csv
+    20240101_to_20240131_SPP_Operating_Reserves.csv
 
-Examples:
-```
-2024-01-01_to_2024-01-31_San_Francisco_International_Airport_CA.csv
-```
+BPA
+~~~
 
-## Data Schemas
+.. code-block:: text
+    {year}_BPA_{data_type}.csv
 
-### CAISO LMP Data
+
+    Examples:
+
+    2024_BPA_Wind_Generation_Total_Load.csv
+    2024_BPA_Reserves_Deployed.csv
+
+
+PJM
+~~~
+
+.. code-block:: text
+
+    {start_date}_to_{end_date}_{endpoint}.csv
+
+
+    Examples:
+
+    01-01-2024_to_01-31-2024_da_hrl_lmps.csv
+    01-01-2024_to_01-31-2024_hrl_load_metered.csv
+
+
+Weather
+~~~~~~~
+
+.. code-block:: text
+
+    {start_date}_to_{end_date}_{station_name}_{state}.csv
+
+
+    Examples:
+
+    2024-01-01_to_2024-01-31_San_Francisco_International_Airport_CA.csv
+
+
+Data Schemas
+------------
+
+CAISO LMP Data
+~~~~~~~~~~~~~~
 
 **File Pattern:** `*_PRC_LMP_*.csv`
 
@@ -129,7 +140,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 2024-01-01,2,TH_NP15_GEN-APND,29.87,-0.45,0.89
 ```
 
-### CAISO Load Forecast
+CAISO Load Forecast
+~~~~~~~~~~~~~~~~~~~
 
 **File Pattern:** `*_SLD_FCST_*.csv`
 
@@ -142,7 +154,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 | `MARKET_RUN_ID` | string | Market type | DAM |
 | `VALUE` | float | Load (MW) | 28500.0 |
 
-### CAISO Wind/Solar Summary
+CAISO Wind/Solar Summary
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 **File Pattern:** `*_ENE_WIND_SOLAR_SUMMARY_*.csv`
 
@@ -160,7 +173,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 - `WIND_FORECAST_MW` - Wind forecast
 - `SOLAR_FORECAST_MW` - Solar forecast
 
-### MISO LMP Data
+MISO LMP Data
+~~~~~~~~~~~~~
 
 **File Pattern:** `miso_*_lmp_*.csv`
 
@@ -174,7 +188,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 | `value` | float | LMP value | 25.34 |
 | `preliminaryFinal` | string | Data status | Final |
 
-### MISO Fuel Mix
+MISO Fuel Mix
+~~~~~~~~~~~~~
 
 **File Pattern:** `miso_fuel_mix_*.csv`
 
@@ -187,7 +202,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 
 **Fuel Types:** Coal, Gas, Nuclear, Wind, Solar, Hydro, Other
 
-### NYISO LBMP Data
+NYISO LBMP Data
+~~~~~~~~~~~~~~~
 
 **File Pattern:** `*_damlbmp_zone.csv` or `*_realtime_zone.csv`
 
@@ -201,7 +217,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 
 **Zone Names:** CAPITL, CENTRL, DUNWOD, GENESE, H.Q, HUD VL, LONGIL, MHK VL, MILLWD, N.Y.C., NORTH, O.H., PJM, WEST
 
-### NYISO Fuel Mix
+NYISO Fuel Mix
+~~~~~~~~~~~~~~
 
 **File Pattern:** `*_rtfuelmix.csv`
 
@@ -217,7 +234,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 | `Wind` | float | Generation (MW) | 1200.0 |
 | `Hydro` | float | Generation (MW) | 2100.0 |
 
-### SPP LMP Data
+SPP LMP Data
+~~~~~~~~~~~~
 
 **File Pattern:** `*_SPP_*_LMP_*.csv`
 
@@ -231,7 +249,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 | `MCC` | float | Congestion component | 0.89 |
 | `MEC` | float | Energy component | 27.22 |
 
-### SPP Operating Reserves
+SPP Operating Reserves
+~~~~~~~~~~~~~~~~~~~~~~
 
 **File Pattern:** `*_SPP_Operating_Reserves.csv`
 
@@ -244,7 +263,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 
 **Reserve Types:** RegUp, RegDN, Spin, Supp
 
-### BPA Data
+BPA Data
+~~~~~~~~
 
 **File Pattern:** `*_BPA_Wind_Generation_Total_Load.csv`
 
@@ -255,7 +275,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 | `Wind` | float | Wind generation (MW) | 3450.0 |
 | `Load` | float | Total load (MW) | 8200.0 |
 
-### PJM LMP Data
+PJM LMP Data
+~~~~~~~~~~~~
 
 **File Pattern:** `*_da_hrl_lmps.csv`
 
@@ -274,7 +295,8 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 | `system_energy_price_ept` | float | Energy ($/MWh) | 30.55 |
 | `row_is_current` | string | Current flag | True |
 
-### Weather Data
+Weather Data
+~~~~~~~~~~~~
 
 **File Pattern:** `*_{station}_{state}.csv`
 
@@ -290,41 +312,45 @@ OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
 | `air_pressure` | float | Pressure (inHg) | 30.15 |
 | `weather_condition` | string | Condition | Cloudy |
 
-## Working with Data
+Working with Data
+-----------------
 
-### Loading in Python
+Loading in Python
+~~~~~~~~~~~~~~~~~
 
-```python
-import pandas as pd
+.. code-block:: text
+    import pandas as pd
 
-# CAISO LMP
-df = pd.read_csv('data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv')
-df['OPR_DATE'] = pd.to_datetime(df['OPR_DATE'])
+    # CAISO LMP
+    df = pd.read_csv('data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv')
+    df['OPR_DATE'] = pd.to_datetime(df['OPR_DATE'])
 
-# MISO with datetime index
-df = pd.read_csv('data/MISO/miso_da_exante_lmp_2024-01-01.csv')
-df['interval'] = pd.to_datetime(df['interval'])
-df.set_index('interval', inplace=True)
+    # MISO with datetime index
+    df = pd.read_csv('data/MISO/miso_da_exante_lmp_2024-01-01.csv')
+    df['interval'] = pd.to_datetime(df['interval'])
+    df.set_index('interval', inplace=True)
 
-# Weather data
-df = pd.read_csv('data/weather/2024-01-01_to_2024-01-31_San_Francisco_CA.csv',
-                 index_col='time', parse_dates=True)
-```
+    # Weather data
+    df = pd.read_csv('data/weather/2024-01-01_to_2024-01-31_San_Francisco_CA.csv',
+                     index_col='time', parse_dates=True)
 
-### Loading in R
 
-```r
-# CAISO LMP
-library(readr)
-df <- read_csv('data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv')
-df$OPR_DATE <- as.Date(df$OPR_DATE)
+Loading in R
+~~~~~~~~~~~~
 
-# MISO
-df <- read_csv('data/MISO/miso_da_exante_lmp_2024-01-01.csv')
-df$interval <- as.POSIXct(df$interval)
-```
+.. code-block:: text
+    # CAISO LMP
+    library(readr)
+    df <- read_csv('data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv')
+    df$OPR_DATE <- as.Date(df$OPR_DATE)
 
-### Excel Import
+    # MISO
+    df <- read_csv('data/MISO/miso_da_exante_lmp_2024-01-01.csv')
+    df$interval <- as.POSIXct(df$interval)
+
+
+Excel Import
+~~~~~~~~~~~~
 
 1. Open Excel
 2. Data → From Text/CSV
@@ -332,76 +358,88 @@ df$interval <- as.POSIXct(df$interval)
 4. Verify delimiter is comma
 5. Import
 
-### Database Import
+Database Import
+~~~~~~~~~~~~~~~
 
-```sql
--- PostgreSQL
-COPY caiso_lmp FROM '/path/to/file.csv' DELIMITER ',' CSV HEADER;
+.. code-block:: text
 
--- SQLite
-.mode csv
-.import data/CAISO/file.csv caiso_lmp
-```
+    -- PostgreSQL
+    COPY caiso_lmp FROM '/path/to/file.csv' DELIMITER ',' CSV HEADER;
 
-## Data Quality Checks
+    -- SQLite
+    .mode csv
+    .import data/CAISO/file.csv caiso_lmp
 
-### Validate Date Ranges
 
-```python
-import pandas as pd
+Data Quality Checks
+-------------------
 
-df = pd.read_csv('your_file.csv')
-df['OPR_DATE'] = pd.to_datetime(df['OPR_DATE'])
+Validate Date Ranges
+~~~~~~~~~~~~~~~~~~~~
 
-# Check for gaps
-date_range = pd.date_range(df['OPR_DATE'].min(), df['OPR_DATE'].max(), freq='D')
-missing_dates = set(date_range) - set(df['OPR_DATE'])
-if missing_dates:
-    print(f"Missing dates: {missing_dates}")
-```
+.. code-block:: text
+    import pandas as pd
 
-### Check for Nulls
+    df = pd.read_csv('your_file.csv')
+    df['OPR_DATE'] = pd.to_datetime(df['OPR_DATE'])
 
-```python
-null_counts = df.isnull().sum()
-print(null_counts[null_counts > 0])
-```
+    # Check for gaps
+    date_range = pd.date_range(df['OPR_DATE'].min(), df['OPR_DATE'].max(), freq='D')
+    missing_dates = set(date_range) - set(df['OPR_DATE'])
+    if missing_dates:
+        print(f"Missing dates: {missing_dates}")
 
-### Validate Intervals
 
-```python
-# Check hourly data has 24 intervals per day
-intervals_per_day = df.groupby('OPR_DATE')['INTERVAL_NUM'].nunique()
-irregular_days = intervals_per_day[intervals_per_day != 24]
-if len(irregular_days) > 0:
-    print(f"Irregular days: {irregular_days}")
-```
+Check for Nulls
+~~~~~~~~~~~~~~~
 
-## Time Zones
+.. code-block:: text
+    null_counts = df.isnull().sum()
+    print(null_counts[null_counts > 0])
 
-### CAISO
+
+Validate Intervals
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+    # Check hourly data has 24 intervals per day
+    intervals_per_day = df.groupby('OPR_DATE')['INTERVAL_NUM'].nunique()
+    irregular_days = intervals_per_day[intervals_per_day != 24]
+    if len(irregular_days) > 0:
+        print(f"Irregular days: {irregular_days}")
+
+
+Time Zones
+----------
+
+CAISO
+~~~~~
 - All times in Pacific Time (PT)
 - GMT columns provided for UTC reference
 - Handles DST automatically (23 or 25 hours)
 
-### MISO
+MISO
+~~~~
 - All times in Central Time (CT)
 - ISO 8601 format with UTC offset
 
-### NYISO
+NYISO
+~~~~~
 - All times in Eastern Time (ET)
 - Time zone column included
 
-### SPP
+SPP
+~~~
 - GMT timestamps
 - Central Time implicit
 
-### PJM
+PJM
+~~~
 - Eastern Prevailing Time (EPT)
 - Includes DST handling
 
-## Next Steps
+Next Steps
+----------
 
 - See [Python API Guide](python-api.md) for data processing examples
 - See [Tutorials](../tutorials/examples/index.rst) for analysis examples
-- See [Data Dictionary](../reference/data-dictionary.rst) for complete field definitions
