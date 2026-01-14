@@ -26,6 +26,7 @@ def setup_directories():
         Path("data/BPA"),
         Path("data/SPP"),
         Path("data/PJM"),
+        Path("data/ISONE"),
         Path("data/weather"),
         Path("data/solar"),
         Path("raw_data/xml_files"),
@@ -388,6 +389,25 @@ def handle_bpa(args):
     logger.warning(f"BPA Data Limitation: {info['temporal_coverage']}")
 
     client = BPAClient()
+    # Optional: list available BPA transmission paths and exit
+    if getattr(args, "list_bpa_paths", False):
+        try:
+            available = client.list_paths() if hasattr(client, "list_paths") else None
+            if not available:
+                logger.error("BPA client does not support list_paths(). Update lib/iso/bpa.py.")
+                return False
+            print("\nBPA Transmission Paths (ReportIDs)")
+            print("Flowgates:")
+            for rid in (available.get("Flowgate") or available.get("flowgates") or []):
+                print(f"  - {rid}")
+            print("\nInterties:")
+            for rid in (available.get("Intertie") or available.get("interties") or []):
+                print(f"  - {rid}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to list BPA paths: {e}")
+            return False
+
     success = False
 
     try:
@@ -411,11 +431,29 @@ def handle_bpa(args):
 
         elif args.data_type == "outages":
             logger.info("Downloading BPA outages data...")
-            success = client.get_outages(args.start.year, start_date=args.start, end_date=end_date)
+            success = client.get_outages(
+                args.start.year, start_date=args.start, end_date=end_date
+            )
 
-        elif args.data_type == "all":
-            logger.info("Downloading all BPA data...")
-            success = client.get_all_data(args.start.year, start_date=args.start, end_date=end_date)
+        elif args.data_type == "transmission_paths":
+            # Requires --path-kind and --path-id
+            if not args.path_kind or not args.path_id:
+                logger.error("For BPA transmission_paths you must provide --path-kind (flowgate|intertie) and --path-id")
+                print("\n❌ Missing arguments: --path-kind and --path-id are required for BPA transmission_paths")
+                return False
+
+            from lib.iso.bpa import BPAPathsKind  # enum in BPA client
+            kind = BPAPathsKind.FLOWGATE if args.path_kind.lower() == "flowgate" else BPAPathsKind.INTERTIE
+
+            logger.info(f"Downloading BPA transmission paths: {kind.value}/{args.path_id} for {args.start.year}...")
+            success = client.get_transmission_paths(
+                kind=kind,
+                report_id=args.path_id,
+                year=args.start.year,
+                start_date=args.start,
+                end_date=end_date,
+                combine_months=True,
+            )
 
         else:
             logger.error(f"Unknown BPA data type: {args.data_type}")
@@ -1020,6 +1058,22 @@ Examples:
         help="For ISO-NE location ID: Needed for full day 5min data",
     )
 
+    # BPA Transmission Paths (Flowgates/Interties)
+    parser.add_argument(
+        "--path-kind",
+        choices=["flowgate", "intertie"],
+        help="For BPA transmission_paths: whether the report is a Flowgate or Intertie",
+    )
+    parser.add_argument(
+        "--path-id",
+        help="For BPA transmission_paths: BPA ReportID (e.g., ColumbiaInjection, AC, BC, etc.)",
+    )
+    parser.add_argument(
+        "--list-bpa-paths",
+        action="store_true",
+        help="List available BPA transmission path ReportIDs (scraped from BPA PathFileLocations page) and exit",
+    )
+
     parser.add_argument(
         "--include-solar",
         action="store_true",
@@ -1072,7 +1126,14 @@ Examples:
     if not args.data_type:
         parser.error("--data-type is required")
 
-    if not args.start or not args.duration:
+    # Some actions are informational and don't require a date range (e.g., BPA path listing)
+    needs_date_range = not (
+        args.iso == "bpa"
+        and args.data_type == "transmission_paths"
+        and getattr(args, "list_bpa_paths", False)
+    )
+
+    if needs_date_range and (not args.start or not args.duration):
         parser.error("--start and --duration are required")
 
     # Route to appropriate handler

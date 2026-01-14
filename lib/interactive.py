@@ -1731,8 +1731,9 @@ def run_spp_mode():
 
 def run_bpa_mode():
     """Interactive mode for BPA historical data."""
-    from lib.iso.bpa import BPAClient, get_bpa_data_availability
+    from lib.iso.bpa import BPAClient, BPAPathsKind, get_bpa_data_availability
     from datetime import date, timedelta
+    import difflib
 
     print("\n" + "=" * 60)
     print("BPA DATA SELECTION")
@@ -1763,7 +1764,11 @@ def run_bpa_mode():
     print("      - Regulation Up/Down reserves")
     print("      - Contingency reserves")
     print("  (3) Outages")
-    print("  (4) All Data")
+    print("  (4) Transmission Paths")
+
+    data_type = None
+    kind = None  # BPAPathsKind
+    report_id = None  # str
 
     while True:
         try:
@@ -1773,6 +1778,88 @@ def run_bpa_mode():
         except ValueError:
             pass
         print("Please enter a number between 1 and 4")
+
+    # Extra prompts for Transmission Paths
+    if data_type == 4:
+        print("\nWhat kind of transmission path?")
+        print("  (1) Flowgate")
+        print("  (2) Intertie")
+
+        while True:
+            try:
+                kind_choice = int(input("\nYour choice (1-2): "))
+                if kind_choice in (1, 2):
+                    break
+            except ValueError:
+                pass
+            print("Please enter a number between 1 and 2")
+
+        kind = BPAPathsKind.FLOWGATE if kind_choice == 1 else BPAPathsKind.INTERTIE
+
+        # Pull available ReportIDs (best-effort). If it fails, allow manual entry.
+        options = []
+        try:
+            print("\n🔎 Fetching available BPA Transmission Path ReportIDs...")
+            tmp = BPAClient()
+            try:
+                available = tmp.list_paths() if hasattr(tmp, "list_paths") else None
+            finally:
+                tmp.cleanup()
+
+            if available:
+                flowgates = available.get("Flowgate") or available.get("flowgates") or []
+                interties = available.get("Intertie") or available.get("interties") or []
+                options = sorted(flowgates if kind == BPAPathsKind.FLOWGATE else interties)
+
+                print(f"\n✓ Found {len(options)} {kind.value} ReportIDs.")
+                if options:
+                    preview = options[:25]
+                    print("  Examples:")
+                    for rid in preview:
+                        print(f"   • {rid}")
+                    if len(options) > len(preview):
+                        print(f"   ... (+{len(options) - len(preview)} more)")
+                    print(
+                        "\nTip: type 'list' to print all IDs, or type a partial ID and I'll suggest matches."
+                    )
+        except Exception as e:
+            logger.warning(f"Could not fetch BPA path list (continuing with manual entry): {e}")
+
+        # Choose ReportID
+        while True:
+            raw = input(f"\nEnter {kind.value} ReportID: ").strip()
+            if not raw:
+                print("Please enter a non-empty ReportID.")
+                continue
+
+            if raw.lower() == "list" and options:
+                print(f"\nAll {kind.value} ReportIDs:")
+                for rid in options:
+                    print(f"  - {rid}")
+                continue
+
+            if options:
+                # Accept exact (case-insensitive) match
+                lowered = {r.lower(): r for r in options}
+                if raw.lower() in lowered:
+                    report_id = lowered[raw.lower()]
+                    break
+
+                # Suggest close matches
+                suggestions = difflib.get_close_matches(raw, options, n=8, cutoff=0.4)
+                if suggestions:
+                    print("\nNot an exact match. Did you mean one of these?")
+                    for s in suggestions:
+                        print(f"  - {s}")
+                    continue
+
+                print("\n❌ Unknown ReportID for this category.")
+                print("   Type 'list' to see all ReportIDs, or try again.")
+                continue
+
+            # No options fetched; accept whatever they type
+            report_id = raw
+            break
 
     # Year selection
     print("\n" + "=" * 60)
@@ -1789,29 +1876,44 @@ def run_bpa_mode():
             else:
                 print(f"Year must be between {min(available_years)} and {max(available_years)}")
         except ValueError:
-            print("Please enter a valid 4-digit year")
+            print("Please enter a valid year")
 
-    # Optional date filtering
+    # Optional date range filtering
     print("\n" + "=" * 60)
-    print("DATE FILTERING (OPTIONAL)")
+    print("DATE RANGE FILTERING (OPTIONAL)")
     print("=" * 60)
-    print(f"You selected year {year}. You can optionally filter to a specific date range")
-    print(f"within that year, or download the entire year.")
 
-    filter_dates = input("\nFilter by specific dates within the year? (y/n): ").lower()
+    print("\nWould you like to filter to a specific date range within the year?")
+    print("This can reduce file size if you only need part of the year.")
+    print("  (1) Yes - specify date range")
+    print("  (2) No - download entire year")
+
+    while True:
+        try:
+            date_choice = int(input("\nYour choice (1-2): "))
+            if date_choice in (1, 2):
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
 
     start_date = None
     end_date = None
 
-    if filter_dates == "y":
-        print(f"\nEnter date range within {year}:")
+    if date_choice == 1:
+        print("\nEnter start and end dates (within the selected year).")
+        print("Note: BPA data is typically hourly. Dates are inclusive.")
 
         # Get start date
         while True:
             try:
-                month = int(input("  Start Month (1-12): "))
+                month = int(input("\n  Start Month (1-12): "))
                 day = int(input("  Start Day (1-31): "))
                 start_date = date(year, month, day)
+
+                if start_date.year != year:
+                    print(f"\n⚠️  Start date must be within {year}.")
+                    continue
 
                 if start_date > date.today():
                     print("\n⚠️  Date is in the future. Please select a past date.")
@@ -1831,6 +1933,10 @@ def run_bpa_mode():
                 day = int(input("  End Day (1-31): "))
                 end_date = date(year, month, day)
 
+                if end_date.year != year:
+                    print(f"\n⚠️  End date must be within {year}.")
+                    continue
+
                 if end_date < start_date:
                     print("\n⚠️  End date must be after start date.")
                     continue
@@ -1847,7 +1953,6 @@ def run_bpa_mode():
                 continue
 
         print(f"\n✓ Date range: {start_date} to {end_date}")
-
     else:
         print(f"\n✓ Will download entire year {year}")
 
@@ -1882,14 +1987,23 @@ def run_bpa_mode():
                 print(f"   Filtering: {start_date} to {end_date}")
             success = client.get_outages(year, start_date, end_date)
 
-        else:  # data_type == 4
-            print("\n📥 Downloading all BPA data...")
+        elif data_type == 4:
+            if not kind or not report_id:
+                raise ValueError("Transmission Paths requires both a path kind and a ReportID.")
+            print("\n📥 Downloading Transmission Paths data...")
+            print(f"   Kind: {kind.value}")
+            print(f"   ReportID: {report_id}")
             print(f"   Year: {year}")
             if start_date:
                 print(f"   Filtering: {start_date} to {end_date}")
-            print("   (1) Wind Generation and Total Load")
-            print("   (2) Operating Reserves Deployed")
-            success = client.get_all_data(year, start_date, end_date)
+            success = client.get_transmission_paths(
+                kind=kind,
+                report_id=report_id,
+                year=year,
+                start_date=start_date,
+                end_date=end_date,
+                combine_months=True,
+            )
 
         if success:
             print("\n✅ Download complete!")
@@ -1900,7 +2014,6 @@ def run_bpa_mode():
             print(f"   • Format: Excel")
             print(f"   • Time Zone: Pacific Time")
 
-            # Show what data types were downloaded
             print("\n📁 Files Created:")
             if data_type == 1:
                 print(f"   • {year}_BPA_Wind_Generation_Total_Load.xlsx")
@@ -1908,19 +2021,21 @@ def run_bpa_mode():
                 print(f"   • {year}_BPA_Reserves_Deployed.xlsx")
             elif data_type == 3:
                 print(f"   • {year}_BPA_Outages.xlsx")
-            else:
-                print(f"   • {year}_BPA_Wind_Generation_Total_Load.csv")
-                print(f"   • {year}_BPA_Reserves_Deployed.csv")
-                print(f"   • {year}_BPA_Outages.xlsx")
+            elif data_type == 4:
+                print(
+                    f"   • BPA/Transmission_Paths/{kind.value}/{report_id}/{report_id}_{year}_combined.xlsx"
+                )
 
             print("\n💡 Tips:")
-            print("   • Data is in Excel")
-            print("   • All timestamps are in Pacific Time (PST/PDT)")
-            print("   • 5-min resolution with hour-ending timestamps")
-            print("   • Historical data is typically final/validated")
+            print("   • Use isodart.py for batch downloads")
+            print("   • Check data/BPA/ for additional output files")
+            if data_type == 4:
+                print(
+                    "   • For Transmission Paths, ReportIDs come from BPA's PathFileLocations workbook"
+                )
 
         else:
-            print("\n❌ Download failed. Check logs for details.")
+            print("\n⚠️  Download failed or no data was available for the selected period.")
             print("   Common issues:")
             print("   • Network connection problems")
             print("   • BPA website temporarily unavailable")

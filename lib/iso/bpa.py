@@ -12,6 +12,7 @@ import requests
 import pandas as pd
 from dataclasses import dataclass
 from enum import Enum
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,14 @@ class BPADataType(Enum):
     WIND_GEN_TOTAL_LOAD = "wind_gen_total_load"
     RESERVES_DEPLOYED = "reserves_deployed"
     OUTAGES = "outages"
+    TRANSMISSION_PATHS = "transmission_paths"
+
+
+class BPAPathsKind(Enum):
+    """Transmission Paths categories from BPA site."""
+
+    FLOWGATE = "Flowgates"
+    INTERTIE = "Interties"
 
 
 @dataclass
@@ -92,6 +101,15 @@ class BPAClient:
 
         return f"{self.config.base_url}/{filename}"
 
+    def _build_paths_monthly_url(self, kind: BPAPathsKind, report_id: str, year: int, month: int) -> str:
+        """Build URL for BPA transmission paths monthly XLSX."""
+        # Example:
+        # https://transmission.bpa.gov/Business/Operations/Paths/Flowgates/monthly/ColumbiaInjection/2025/ColumbiaInjection_2025-01.xlsx
+        return (
+            f"{self.config.base_url}/Paths/{kind.value}/monthly/{report_id}/{year}/"
+            f"{report_id}_{year}-{month:02d}.xlsx"
+        )
+
     def _parse_excel_file(self, content: bytes, data_type: BPADataType) -> Optional[pd.DataFrame]:
         """
         Parse BPA Excel file.
@@ -111,7 +129,10 @@ class BPAClient:
 
             # BPA Excel files typically have data starting at row 0
             # Read all sheets and combine if necessary
-            df = pd.read_excel(excel_file, sheet_name=0, skiprows=1)
+            if data_type == BPADataType.TRANSMISSION_PATHS:
+                df = pd.read_excel(excel_file, sheet_name="Data", engine="openpyxl", header=2)
+            else:
+                df = pd.read_excel(excel_file, sheet_name=0, skiprows=1)
 
             logger.info(
                 f"Successfully parsed Excel file: {len(df)} rows, {len(df.columns)} columns"
@@ -317,27 +338,140 @@ class BPAClient:
             logger.error(f"Error processing data: {e}", exc_info=True)
             return False
 
-    def get_all_data(
-        self, year: int, start_date: Optional[date] = None, end_date: Optional[date] = None
+    def get_transmission_paths(
+        self,
+        kind: BPAPathsKind,
+        report_id: str,
+        year: int,
+        months: Optional[List[int]] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        combine_months: bool = True,
     ) -> bool:
         """
-        Get all available BPA historical data for a year.
+        Download BPA Transmission Paths monthly history for a given flowgate/intertie.
 
-        Args:
-            year: Year for data
-            start_date: Optional start date to filter data
-            end_date: Optional end date to filter data
+        If months is None, downloads all 12 months (skipping missing months gracefully).
+        If start_date/end_date are provided, months are derived from that window and override `months`.
 
-        Returns:
-            True if all downloads successful, False otherwise
+        Saves:
+          - combine_months=True (default): one XLSX for the year containing concatenated rows
+          - combine_months=False: one XLSX per month
+
+        Returns True if at least one month was successfully downloaded and saved.
         """
-        logger.info(f"Downloading all BPA data for {year}")
+        # Derive months from date window if given
+        if start_date and end_date:
+            # inclusive months between start and end
+            month_cursor = date(start_date.year, start_date.month, 1)
+            end_month = date(end_date.year, end_date.month, 1)
+            derived: List[int] = []
+            while month_cursor <= end_month:
+                if month_cursor.year == year:
+                    derived.append(month_cursor.month)
+                # advance one month
+                if month_cursor.month == 12:
+                    month_cursor = date(month_cursor.year + 1, 1, 1)
+                else:
+                    month_cursor = date(month_cursor.year, month_cursor.month + 1, 1)
+            months = sorted(set(derived))
 
-        success_wind = self.get_wind_gen_total_load(year, start_date, end_date)
-        success_reserves = self.get_reserves_deployed(year, start_date, end_date)
-        success_outages = self.get_outages(year, start_date, end_date)
+        if months is None:
+            months = list(range(1, 13))
 
-        return success_wind and success_reserves and success_outages
+        # Prepare output dir
+        out_dir = self.config.data_dir / "paths" / kind.value / report_id / str(year)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        dfs: List[pd.DataFrame] = []
+        any_success = False
+
+        for m in months:
+            url = self._build_paths_monthly_url(kind, report_id, year, m)
+            logger.info(f"Downloading BPA paths monthly file: {url}")
+            content = self._make_request(url)
+            if content is None:
+                logger.warning(f"Skipping missing/unavailable month {year}-{m:02d} for {kind.value}/{report_id}")
+                continue
+
+            if combine_months:
+                df = self._parse_excel_file(content, data_type=BPADataType.TRANSMISSION_PATHS)
+                if df is None or df.empty:
+                    logger.warning(f"Parsed empty dataframe for {year}-{m:02d} ({kind.value}/{report_id}); skipping")
+                    continue
+                # Add context columns (harmless if user later aggregates)
+                df.insert(0, "report_id", report_id)
+                df.insert(1, "kind", kind.value)
+                df.insert(2, "year", year)
+                df.insert(3, "month", m)
+                dfs.append(df)
+                any_success = True
+            else:
+                # Save raw month as-is in XLSX to preserve types
+                month_file = out_dir / f"{report_id}_{year}-{m:02d}.xlsx"
+                month_file.write_bytes(content)
+                any_success = True
+
+        if not any_success:
+            logger.error(f"No monthly files could be downloaded for {kind.value}/{report_id} in {year}")
+            return False
+
+        if combine_months:
+            combined = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+            out_file = out_dir / f"{report_id}_{year}_combined.xlsx"
+            combined.to_excel(out_file, index=False, engine="openpyxl")
+            logger.info(f"Saved combined transmission paths data to: {out_file}")
+
+        return True
+
+    def list_paths(self) -> dict[str, list[str]]:
+        """
+        Return {"Flowgate": [...], "Intertie": [...]} ReportIDs from BPA's PathFileLocations.xlsx.
+        Robust to workbook formatting: scans all cells for URLs and extracts IDs via regex.
+        """
+        import io
+        import re
+        import pandas as pd
+
+        xlsx_url = "https://transmission.bpa.gov/business/operations/Paths/PathFileLocations.xlsx"
+        logger.info(f"Fetching BPA path file locations (xlsx): {xlsx_url}")
+
+        resp = self.session.get(xlsx_url, timeout=60)
+        resp.raise_for_status()
+
+        excel_bytes = io.BytesIO(resp.content)
+        sheets = pd.read_excel(excel_bytes, sheet_name=None, engine="openpyxl")
+
+        # Match the exact pattern seen in your uploaded workbook (case-insensitive)
+        # Example: .../business/operations/Paths/FLOWGATES/ColumbiaInjection.XLSX
+        path_re = re.compile(r"/Paths/(FLOWGATES|INTERTIES)/([^/]+)\.XLSX", re.IGNORECASE)
+
+        flowgates: set[str] = set()
+        interties: set[str] = set()
+
+        for _, df in sheets.items():
+            # Scan every cell (stringified) for URLs
+            for v in df.astype(str).to_numpy().ravel():
+                s = str(v)
+                # Quick skip for most cells
+                if "Paths/" not in s and "paths/" not in s:
+                    continue
+                m = path_re.search(s)
+                if not m:
+                    continue
+
+                kind = m.group(1).lower()
+                report_id = m.group(2)
+
+                if kind == "flowgates":
+                    flowgates.add(report_id)
+                else:
+                    interties.add(report_id)
+
+        return {
+            "Flowgate": sorted(flowgates, key=str.lower),
+            "Intertie": sorted(interties, key=str.lower),
+        }
 
     def _filter_by_date_range(
         self, df: pd.DataFrame, start_date: Optional[date], end_date: Optional[date]

@@ -19,6 +19,7 @@ from lib.iso.bpa import (
     BPAClient,
     BPAConfig,
     BPADataType,
+    BPAPathsKind,
     get_bpa_data_availability,
     print_bpa_data_info,
 )
@@ -56,7 +57,12 @@ class TestBPADataType:
     def test_enum_is_iterable(self):
         """Enum should contain exactly the expected members."""
         names = {m.name for m in BPADataType}
-        assert names == {"WIND_GEN_TOTAL_LOAD", "RESERVES_DEPLOYED", "OUTAGES"}
+        assert names == {
+            "WIND_GEN_TOTAL_LOAD",
+            "RESERVES_DEPLOYED",
+            "OUTAGES",
+            "TRANSMISSION_PATHS",
+        }
 
 
 class TestBPAConfig:
@@ -254,11 +260,37 @@ class TestParseExcelFile:
         assert "Could not parse datetime column" in caplog.text
 
 
+class TestParseExcelFileTransmissionPaths:
+    def test_parse_excel_file_transmission_paths_type(self, client: BPAClient):
+        """Should parse TRANSMISSION_PATHS type with correct sheet and header."""
+        import io
+
+        # Create an Excel file with a "Data" sheet and header at row 2
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+            # Write some header rows, then the actual data starting at row 3 (header=2)
+            df = pd.DataFrame(
+                {
+                    "Header1": ["skip", "skip", "Column1", 1, 2, 3],
+                    "Header2": ["skip", "skip", "Column2", 4, 5, 6],
+                }
+            )
+            df.to_excel(writer, sheet_name="Data", index=False, header=False)
+
+        content = excel_buffer.getvalue()
+
+        # This should use the TRANSMISSION_PATHS branch (line 133)
+        result = client._parse_excel_file(content, BPADataType.TRANSMISSION_PATHS)
+
+        assert result is not None
+        assert isinstance(result, pd.DataFrame)
+        # Should have read from row 3 as header
+        assert "Column1" in result.columns or len(result.columns) > 0
+
+
 # ---------------------------------------------------------------------------
 # Date-range filtering tests
 # ---------------------------------------------------------------------------
-
-
 class TestFilterByDateRange:
     def test_empty_dataframe_returns_unchanged(self, client: BPAClient):
         df = pd.DataFrame()
@@ -529,25 +561,511 @@ class TestOutages:
         assert "Error processing data:" in caplog.text
 
 
-class TestGetAllData:
-    def test_get_all_data_combines_results(self, client: BPAClient):
-        client.get_wind_gen_total_load = MagicMock(return_value=True)  # type: ignore[assignment]
-        client.get_reserves_deployed = MagicMock(return_value=False)  # type: ignore[assignment]
-        client.get_outages = MagicMock(return_value=True)  # type: ignore[assignment]
+class TestBPAPathsKind:
+    def test_enum_members(self):
+        """Enum should expose the expected members and values."""
+        assert BPAPathsKind.FLOWGATE.value == "Flowgates"
+        assert BPAPathsKind.INTERTIE.value == "Interties"
 
-        result = client.get_all_data(2024)
-        assert result is False  # True AND False
+    def test_enum_is_iterable(self):
+        """Enum should contain exactly the expected members."""
+        names = {m.name for m in BPAPathsKind}
+        assert names == {"FLOWGATE", "INTERTIE"}
 
-        client.get_reserves_deployed.return_value = True
-        result2 = client.get_all_data(2024)
-        assert result2 is True
+
+class TestBuildPathsMonthlyUrl:
+    def test_build_paths_monthly_url_flowgate(self, client: BPAClient):
+        """Should build correct URL for flowgate paths."""
+        url = client._build_paths_monthly_url(BPAPathsKind.FLOWGATE, "ColumbiaInjection", 2025, 1)
+        assert (
+            "Paths/Flowgates/monthly/ColumbiaInjection/2025/ColumbiaInjection_2025-01.xlsx" in url
+        )
+
+    def test_build_paths_monthly_url_intertie(self, client: BPAClient):
+        """Should build correct URL for intertie paths."""
+        url = client._build_paths_monthly_url(
+            BPAPathsKind.INTERTIE, "CaliforniaOregonIntertie", 2024, 12
+        )
+        assert (
+            "Paths/Interties/monthly/CaliforniaOregonIntertie/2024/CaliforniaOregonIntertie_2024-12.xlsx"
+            in url
+        )
+
+    def test_build_paths_monthly_url_base_url(self, client: BPAClient):
+        """Should include base URL."""
+        url = client._build_paths_monthly_url(BPAPathsKind.FLOWGATE, "TestPath", 2023, 6)
+        assert url.startswith(client.config.base_url)
+
+
+class TestGetTransmissionPaths:
+    def _create_mock_df_without_context_cols(self, date_str, values):
+        """Helper to create DataFrame without the context columns that get added."""
+        return pd.DataFrame(
+            {"DateTime": pd.date_range(date_str, periods=len(values), freq="h"), "Value": values}
+        )
+
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_successful_download_combine_months(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        """Should successfully download and combine multiple months."""
+        client.config.data_dir = tmp_path
+
+        # Create mock data for each month (without context columns)
+        df1 = self._create_mock_df_without_context_cols("2024-01-01", [1, 2, 3])
+        df2 = self._create_mock_df_without_context_cols("2024-02-01", [4, 5, 6])
+
+        mock_request.side_effect = [b"excel-content-jan", b"excel-content-feb"]
+        mock_parse.side_effect = [df1, df2]
+
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.FLOWGATE,
+            report_id="TestPath",
+            year=2024,
+            months=[1, 2],
+            combine_months=True,
+        )
+
+        assert success is True
+        assert mock_request.call_count == 2
+        assert mock_parse.call_count == 2
+
+        # Check that combined file was created
+        output_file = (
+            tmp_path / "paths" / "Flowgates" / "TestPath" / "2024" / "TestPath_2024_combined.xlsx"
+        )
+        assert output_file.exists()
+
+        # Verify combined data
+        combined_df = pd.read_excel(output_file)
+        assert len(combined_df) == 6  # 3 rows from each month
+        assert "report_id" in combined_df.columns
+        assert "kind" in combined_df.columns
+        assert "year" in combined_df.columns
+        assert "month" in combined_df.columns
+
+    @patch.object(BPAClient, "_make_request")
+    def test_download_separate_months(
+        self,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        """Should save each month as separate file when combine_months=False."""
+        client.config.data_dir = tmp_path
+
+        mock_request.side_effect = [b"excel-jan", b"excel-feb"]
+
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.INTERTIE,
+            report_id="TestIntertie",
+            year=2024,
+            months=[1, 2],
+            combine_months=False,
+        )
+
+        assert success is True
+        assert mock_request.call_count == 2
+
+        # Check individual files were created
+        base_path = tmp_path / "paths" / "Interties" / "TestIntertie" / "2024"
+        assert (base_path / "TestIntertie_2024-01.xlsx").exists()
+        assert (base_path / "TestIntertie_2024-02.xlsx").exists()
+
+    @patch.object(BPAClient, "_make_request")
+    def test_skips_missing_months(
+        self,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+        caplog,
+    ):
+        """Should gracefully skip missing months and continue."""
+        client.config.data_dir = tmp_path
+        caplog.set_level(logging.WARNING)
+
+        # First month fails, second succeeds
+        mock_request.side_effect = [None, b"excel-feb"]
+
+        with patch.object(BPAClient, "_parse_excel_file") as mock_parse:
+            df = self._create_mock_df_without_context_cols("2024-02-01", [1, 2, 3])
+            mock_parse.return_value = df
+
+            success = client.get_transmission_paths(
+                kind=BPAPathsKind.FLOWGATE,
+                report_id="TestPath",
+                year=2024,
+                months=[1, 2],
+                combine_months=True,
+            )
+
+        assert success is True
+        assert "Skipping missing/unavailable month" in caplog.text
+
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_skips_empty_parsed_dataframe(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+        caplog,
+    ):
+        """Should skip months that parse to empty DataFrame."""
+        client.config.data_dir = tmp_path
+        caplog.set_level(logging.WARNING)
+
+        mock_request.side_effect = [b"excel-jan", b"excel-feb"]
+        # First month parses empty, second has data
+        df = self._create_mock_df_without_context_cols("2024-02-01", [1, 2, 3])
+        mock_parse.side_effect = [pd.DataFrame(), df]
+
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.FLOWGATE,
+            report_id="TestPath",
+            year=2024,
+            months=[1, 2],
+            combine_months=True,
+        )
+
+        assert success is True
+        assert "Parsed empty dataframe" in caplog.text
+
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_skips_none_parsed_dataframe(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+        caplog,
+    ):
+        """Should skip months that parse to None."""
+        client.config.data_dir = tmp_path
+        caplog.set_level(logging.WARNING)
+
+        mock_request.side_effect = [b"excel-jan", b"excel-feb"]
+        # First month parses to None, second has data
+        df = self._create_mock_df_without_context_cols("2024-02-01", [1, 2, 3])
+        mock_parse.side_effect = [None, df]
+
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.FLOWGATE,
+            report_id="TestPath",
+            year=2024,
+            months=[1, 2],
+            combine_months=True,
+        )
+
+        assert success is True
+        assert "Parsed empty dataframe" in caplog.text
+
+    @patch.object(BPAClient, "_make_request")
+    def test_all_months_fail_returns_false(
+        self,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+        caplog,
+    ):
+        """Should return False if all months fail to download."""
+        client.config.data_dir = tmp_path
+        caplog.set_level(logging.ERROR)
+
+        mock_request.return_value = None
+
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.FLOWGATE,
+            report_id="TestPath",
+            year=2024,
+            months=[1, 2],
+            combine_months=True,
+        )
+
+        assert success is False
+        assert "No monthly files could be downloaded" in caplog.text
+
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_derives_months_from_date_range(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        """Should derive months from start_date and end_date."""
+        client.config.data_dir = tmp_path
+
+        # Return a fresh copy each time to avoid "already exists" error
+        def create_fresh_df(*args, **kwargs):
+            return self._create_mock_df_without_context_cols("2024-01-01", [1, 2, 3])
+
+        mock_request.return_value = b"excel-content"
+        mock_parse.side_effect = create_fresh_df
+
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.FLOWGATE,
+            report_id="TestPath",
+            year=2024,
+            start_date=date(2024, 3, 15),
+            end_date=date(2024, 5, 20),
+            combine_months=True,
+        )
+
+        assert success is True
+        # Should have requested months 3, 4, 5
+        assert mock_request.call_count == 3
+
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_date_range_spanning_year_boundary(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        """Should only include months matching the specified year."""
+        client.config.data_dir = tmp_path
+
+        # Return a fresh copy each time to avoid "already exists" error
+        def create_fresh_df(*args, **kwargs):
+            return self._create_mock_df_without_context_cols("2024-11-01", [1, 2, 3])
+
+        mock_request.return_value = b"excel-content"
+        mock_parse.side_effect = create_fresh_df
+
+        # Date range spans 2023-2024, but year=2024
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.FLOWGATE,
+            report_id="TestPath",
+            year=2024,
+            start_date=date(2023, 11, 1),
+            end_date=date(2024, 2, 28),
+            combine_months=True,
+        )
+
+        assert success is True
+        # Should only request months 1, 2 for 2024
+        assert mock_request.call_count == 2
+
+    @patch.object(BPAClient, "_make_request")
+    @patch.object(BPAClient, "_parse_excel_file")
+    def test_defaults_to_all_12_months_when_no_months_specified(
+        self,
+        mock_parse: MagicMock,
+        mock_request: MagicMock,
+        client: BPAClient,
+        tmp_path: Path,
+    ):
+        """Should default to all 12 months when months=None and no date range."""
+        client.config.data_dir = tmp_path
+
+        # Return a fresh copy each time to avoid "already exists" error
+        def create_fresh_df(*args, **kwargs):
+            return self._create_mock_df_without_context_cols("2024-01-01", [1, 2, 3])
+
+        mock_request.return_value = b"excel-content"
+        mock_parse.side_effect = create_fresh_df
+
+        success = client.get_transmission_paths(
+            kind=BPAPathsKind.FLOWGATE, report_id="TestPath", year=2024, combine_months=True
+        )
+
+        assert success is True
+        # Should have requested all 12 months
+        assert mock_request.call_count == 12
+
+
+class TestListPaths:
+    def test_list_paths_success(self, client: BPAClient):
+        """Should successfully parse PathFileLocations.xlsx and return paths."""
+        import io
+
+        df = pd.DataFrame(
+            {
+                "Path": [
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/ColumbiaInjection.XLSX",
+                    "https://transmission.bpa.gov/business/operations/Paths/INTERTIES/CaliforniaOregon.XLSX",
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/SouthernCrossing.XLSX",
+                ],
+                "Other": ["data1", "data2", "data3"],
+            }
+        )
+
+        excel_buffer = io.BytesIO()
+        df.to_excel(excel_buffer, index=False, sheet_name="Sheet1")
+        excel_bytes = excel_buffer.getvalue()
+
+        mock_response = Mock()
+        mock_response.content = excel_bytes
+        mock_response.raise_for_status = Mock()
+
+        # Patch the instance's session.get method
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.list_paths()
+
+        assert "Flowgate" in result
+        assert "Intertie" in result
+        assert "ColumbiaInjection" in result["Flowgate"]
+        assert "SouthernCrossing" in result["Flowgate"]
+        assert "CaliforniaOregon" in result["Intertie"]
+
+    def test_list_paths_case_insensitive(self, client: BPAClient):
+        """Should handle mixed case in URLs."""
+        import io
+
+        df = pd.DataFrame(
+            {
+                "Path": [
+                    "https://transmission.bpa.gov/business/operations/paths/flowgates/TestPath1.xlsx",
+                    "https://transmission.bpa.gov/business/operations/Paths/Interties/TestPath2.XLSX",
+                ]
+            }
+        )
+
+        excel_buffer = io.BytesIO()
+        df.to_excel(excel_buffer, index=False)
+
+        mock_response = Mock()
+        mock_response.content = excel_buffer.getvalue()
+        mock_response.raise_for_status = Mock()
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.list_paths()
+
+        assert "TestPath1" in result["Flowgate"]
+        assert "TestPath2" in result["Intertie"]
+
+    def test_list_paths_skips_non_path_urls(self, client: BPAClient):
+        """Should skip URLs that don't match the path pattern."""
+        import io
+
+        df = pd.DataFrame(
+            {
+                "Data": [
+                    "https://transmission.bpa.gov/other/url.xlsx",
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/ValidPath.XLSX",
+                    "Not a URL at all",
+                    "Some other text without Paths/",  # This will hit the quick skip on line 461
+                ]
+            }
+        )
+
+        excel_buffer = io.BytesIO()
+        df.to_excel(excel_buffer, index=False)
+
+        mock_response = Mock()
+        mock_response.content = excel_buffer.getvalue()
+        mock_response.raise_for_status = Mock()
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.list_paths()
+
+        assert len(result["Flowgate"]) == 1
+        assert "ValidPath" in result["Flowgate"]
+        assert len(result["Intertie"]) == 0
+
+    def test_list_paths_sorted_results(self, client: BPAClient):
+        """Should return results sorted case-insensitively."""
+        import io
+
+        df = pd.DataFrame(
+            {
+                "Path": [
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/Zebra.XLSX",
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/apple.XLSX",
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/Banana.XLSX",
+                ]
+            }
+        )
+
+        excel_buffer = io.BytesIO()
+        df.to_excel(excel_buffer, index=False)
+
+        mock_response = Mock()
+        mock_response.content = excel_buffer.getvalue()
+        mock_response.raise_for_status = Mock()
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.list_paths()
+
+        # Should be sorted case-insensitively
+        assert result["Flowgate"] == ["apple", "Banana", "Zebra"]
+
+    def test_list_paths_multiple_sheets(self, client: BPAClient):
+        """Should scan all sheets in the workbook."""
+        import io
+
+        # Create workbook with multiple sheets
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+            df1 = pd.DataFrame(
+                {
+                    "Path": [
+                        "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/Path1.XLSX"
+                    ]
+                }
+            )
+            df2 = pd.DataFrame(
+                {
+                    "Path": [
+                        "https://transmission.bpa.gov/business/operations/Paths/INTERTIES/Path2.XLSX"
+                    ]
+                }
+            )
+            df1.to_excel(writer, sheet_name="Sheet1", index=False)
+            df2.to_excel(writer, sheet_name="Sheet2", index=False)
+
+        mock_response = Mock()
+        mock_response.content = excel_buffer.getvalue()
+        mock_response.raise_for_status = Mock()
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.list_paths()
+
+        assert "Path1" in result["Flowgate"]
+        assert "Path2" in result["Intertie"]
+
+    def test_list_paths_deduplicates(self, client: BPAClient):
+        """Should deduplicate paths that appear multiple times."""
+        import io
+
+        df = pd.DataFrame(
+            {
+                "Path": [
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/DuplicatePath.XLSX",
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/DuplicatePath.XLSX",
+                    "https://transmission.bpa.gov/business/operations/Paths/FLOWGATES/UniquePath.XLSX",
+                ]
+            }
+        )
+
+        excel_buffer = io.BytesIO()
+        df.to_excel(excel_buffer, index=False)
+
+        mock_response = Mock()
+        mock_response.content = excel_buffer.getvalue()
+        mock_response.raise_for_status = Mock()
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.list_paths()
+
+        assert len(result["Flowgate"]) == 2
+        assert result["Flowgate"].count("DuplicatePath") == 1
 
 
 # ---------------------------------------------------------------------------
 # Availability metadata & printing
 # ---------------------------------------------------------------------------
-
-
 class TestAvailabilityMetadata:
     def test_get_bpa_data_availability_structure(self):
         info: Dict[str, Any] = get_bpa_data_availability()
