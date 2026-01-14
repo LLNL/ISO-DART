@@ -101,7 +101,9 @@ class BPAClient:
 
         return f"{self.config.base_url}/{filename}"
 
-    def _build_paths_monthly_url(self, kind: BPAPathsKind, report_id: str, year: int, month: int) -> str:
+    def _build_paths_monthly_url(
+        self, kind: BPAPathsKind, report_id: str, year: int, month: int
+    ) -> str:
         """Build URL for BPA transmission paths monthly XLSX."""
         # Example:
         # https://transmission.bpa.gov/Business/Operations/Paths/Flowgates/monthly/ColumbiaInjection/2025/ColumbiaInjection_2025-01.xlsx
@@ -391,13 +393,17 @@ class BPAClient:
             logger.info(f"Downloading BPA paths monthly file: {url}")
             content = self._make_request(url)
             if content is None:
-                logger.warning(f"Skipping missing/unavailable month {year}-{m:02d} for {kind.value}/{report_id}")
+                logger.warning(
+                    f"Skipping missing/unavailable month {year}-{m:02d} for {kind.value}/{report_id}"
+                )
                 continue
 
             if combine_months:
                 df = self._parse_excel_file(content, data_type=BPADataType.TRANSMISSION_PATHS)
                 if df is None or df.empty:
-                    logger.warning(f"Parsed empty dataframe for {year}-{m:02d} ({kind.value}/{report_id}); skipping")
+                    logger.warning(
+                        f"Parsed empty dataframe for {year}-{m:02d} ({kind.value}/{report_id}); skipping"
+                    )
                     continue
                 # Add context columns (harmless if user later aggregates)
                 df.insert(0, "report_id", report_id)
@@ -413,7 +419,9 @@ class BPAClient:
                 any_success = True
 
         if not any_success:
-            logger.error(f"No monthly files could be downloaded for {kind.value}/{report_id} in {year}")
+            logger.error(
+                f"No monthly files could be downloaded for {kind.value}/{report_id} in {year}"
+            )
             return False
 
         if combine_months:
