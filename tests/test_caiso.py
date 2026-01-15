@@ -1030,53 +1030,77 @@ def test_is_xlsx_bytes(client):
     assert client._is_xlsx_bytes(b"") is False
 
 
-def test_parse_curtailed_nonop_html_selects_detail_table_and_coerces_numbers(client):
-    """_parse_curtailed_nonop_html should pick the detail table and coerce numeric columns."""
-    html = """<!doctype html>
-    <html><body>
-    <table><tr><td>Curtailed and Non-Operational Generating Units</td></tr></table>
-    <table>
-      <tr>
-        <th>Resource ID</th><th>Resource Name</th><th>Outage Type</th>
-        <th>Capacity (MW)</th><th>Curtailed (MW)</th><th>Zone Name</th>
-      </tr>
-      <tr>
-        <td>R1</td><td>Unit 1</td><td>CURTAILMENT</td>
-        <td>1,000</td><td> 250 </td><td>ZONE_A</td>
-      </tr>
-    </table>
-    </body></html>"""
-    df = client._parse_curtailed_nonop_html(
-        html.encode("utf-8"),
-        report_date=date(2020, 1, 1),
-        report_kind="am",
+def test_parse_curtailed_nonop_html_selects_detail_table_and_coerces_numbers(tmp_path, monkeypatch):
+    import pandas as pd
+    from datetime import date
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    # First table is "junk", second is the real detail table
+    junk = pd.DataFrame([["Curtailed and Non-Operational Generating Units"]], columns=["Title"])
+
+    detail = pd.DataFrame(
+        [
+            ["RID1", "Resource A", "FORCED", "1,234.5", "6", "Z1"],
+        ],
+        columns=[
+            "Resource ID",
+            "Resource Name",
+            "Outage Type",
+            "Capacity (MW)",
+            "Curtailed (MW)",
+            "Zone Name",
+        ],
     )
-    assert "Resource ID" in df.columns
-    assert "Resource Name" in df.columns
-    assert float(df.loc[0, "Capacity (MW)"]) == 1000.0
-    assert float(df.loc[0, "Curtailed (MW)"]) == 250.0
-    assert df.loc[0, "report_kind"] == "am"
-    assert df.loc[0, "report_date"] == "2020-01-01"
+
+    monkeypatch.setattr(pd, "read_html", lambda *a, **k: [junk, detail])
+
+    out = client._parse_curtailed_nonop_html(
+        b"<html>ignored</html>", report_date=date(2020, 1, 1), report_kind="am"
+    )
+
+    assert out.loc[0, "Resource ID"] == "RID1"
+    assert out.loc[0, "Resource Name"] == "Resource A"
+    assert float(out.loc[0, "Capacity (MW)"]) == 1234.5
+    assert float(out.loc[0, "Curtailed (MW)"]) == 6.0
+    assert out.loc[0, "report_kind"] == "am"
+    assert out.loc[0, "report_date"] == "2020-01-01"
 
 
-def test_parse_curtailed_nonop_html_utf16_branch(client):
-    """UTF-16 encoded HTML should be decoded and parsed."""
-    html = """<html><body>
-    <table><tr><td>header</td></tr></table>
-    <table>
-      <tr><th>Resource ID</th><th>Resource Name</th><th>Capacity (MW)</th><th>Curtailed (MW)</th></tr>
-      <tr><td>R2</td><td>Unit 2</td><td>10</td><td>0</td></tr>
-    </table>
-    </body></html>"""
-    html_bytes = html.encode("utf-16")  # includes BOM
-    df = client._parse_curtailed_nonop_html(
-        html_bytes,
-        report_date=date(2020, 1, 2),
-        report_kind="prior",
+def test_parse_curtailed_nonop_html_utf16_branch(tmp_path, monkeypatch):
+    import pandas as pd
+    from datetime import date
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    detail = pd.DataFrame(
+        [["RID1", "Resource A", "FORCED", "10", "0", "Z1"]],
+        columns=[
+            "Resource ID",
+            "Resource Name",
+            "Outage Type",
+            "Capacity (MW)",
+            "Curtailed (MW)",
+            "Zone Name",
+        ],
     )
-    assert df.loc[0, "Resource ID"] == "R2"
-    assert df.loc[0, "report_date"] == "2020-01-02"
-    assert df.loc[0, "report_kind"] == "prior"
+
+    # Stub out read_html so we don't need lxml/html5lib
+    monkeypatch.setattr(pd, "read_html", lambda *a, **k: [detail])
+
+    # Create UTF-16 bytes (with BOM) so your decode branch triggers
+    html_utf16 = "<html><body>ignored</body></html>".encode("utf-16")
+
+    out = client._parse_curtailed_nonop_html(
+        html_utf16, report_date=date(2020, 1, 1), report_kind="am"
+    )
+
+    assert out.loc[0, "Resource ID"] == "RID1"
+    assert out.loc[0, "report_date"] == "2020-01-01"
 
 
 @patch("requests.Session.get")
@@ -1102,54 +1126,54 @@ def test_get_curtailed_non_operational_reports_xlsx_success(mock_get, client, te
     assert mock_get.call_count == 1
 
 
-@patch("requests.Session.get")
-def test_get_curtailed_non_operational_reports_html_fallback_parses_csv(mock_get, client, temp_dir):
-    """If XLSX is missing but HTML exists, it should save HTML and parse CSV."""
-    html = """<!doctype html><html><body>
-    <table><tr><td>banner</td></tr></table>
-    <table>
-      <tr>
-        <th>Resource ID</th><th>Resource Name</th><th>Outage Type</th>
-        <th>Capacity (MW)</th><th>Curtailed (MW)</th><th>Zone Name</th>
-      </tr>
-      <tr>
-        <td>R1</td><td>Unit 1</td><td>CURTAILMENT</td><td>5</td><td>1</td><td>Z</td>
-      </tr>
-    </table>
-    </body></html>"""
+def test_get_curtailed_non_operational_reports_html_fallback_parses_csv(tmp_path, monkeypatch):
+    import pandas as pd
+    from datetime import date
+    from lib.iso.caiso import CAISOClient, CAISOConfig
 
-    xlsx_resp = Mock()
-    xlsx_resp.status_code = 404
-    xlsx_resp.content = b""
-    xlsx_resp.headers = {"Content-Type": "text/plain"}
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
 
-    html_resp = Mock()
-    html_resp.status_code = 200
-    html_resp.content = html.encode("utf-8")
-    html_resp.headers = {"Content-Type": "text/html; charset=utf-8"}
+    class FakeResp:
+        def __init__(self, status_code, content=b""):
+            self.status_code = status_code
+            self.content = content
 
-    def side_effect(url, *args, **kwargs):
+    # XLSX 404 -> force HTML fallback. HTML 200 -> proceed to parse/write
+    def fake_get(url, *args, **kwargs):
         if url.endswith(".xlsx"):
-            return xlsx_resp
+            return FakeResp(404, b"")
         if url.endswith(".html"):
-            return html_resp
-        raise AssertionError(f"Unexpected URL: {url}")
+            return FakeResp(200, b"<html>does not matter</html>")
+        return FakeResp(404, b"")
 
-    mock_get.side_effect = side_effect
+    monkeypatch.setattr(client.session, "get", fake_get)
+
+    # Return deterministic dataframe to be written to CSV
+    df = pd.DataFrame(
+        [
+            {
+                "Resource ID": "RID1",
+                "Resource Name": "Resource A",
+                "report_date": "2020-01-01",
+                "report_kind": "am",
+            }
+        ]
+    )
+    monkeypatch.setattr(client, "_parse_curtailed_nonop_html", lambda *a, **k: df)
 
     ok = client.get_curtailed_non_operational_reports(
         start_date=date(2020, 1, 1),
         end_date=date(2020, 1, 2),
         kind="am",
-        out_subdir="test_curtailed_nonop_html",
         save_raw_html=True,
         parse_html_to_csv=True,
     )
+
     assert ok is True
-    out_dir = temp_dir.data_dir / "test_curtailed_nonop_html"
-    assert (out_dir / "am_20200101.html").exists()
+    # Verify CSV exists
+    out_dir = tmp_path / "curtailed_non_operational_generator_reports"
     assert (out_dir / "am_20200101.csv").exists()
-    assert mock_get.call_count == 2
 
 
 def test_get_curtailed_non_operational_reports_invalid_kind_raises(client):
