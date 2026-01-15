@@ -1007,5 +1007,387 @@ def test_get_advisory_demand_forecast_continues_when_xml_to_csv_fails(client):
         assert client.get_advisory_demand_forecast(date(2024, 1, 1), date(2024, 1, 2)) is False
 
 
+def test_looks_like_html_by_content_type(client):
+    """_looks_like_html should detect HTML via Content-Type header."""
+    resp = Mock()
+    resp.headers = {"Content-Type": "text/html; charset=utf-8"}
+    resp.content = b""
+    assert client._looks_like_html(resp) is True
+
+
+def test_looks_like_html_by_sniffing_body(client):
+    """_looks_like_html should detect HTML by sniffing the body when Content-Type is generic."""
+    resp = Mock()
+    resp.headers = {"Content-Type": "application/octet-stream"}
+    resp.content = b"   <html><body>hi</body></html>"
+    assert client._looks_like_html(resp) is True
+
+
+def test_is_xlsx_bytes(client):
+    """_is_xlsx_bytes should detect ZIP/XLSX by PK signature."""
+    assert client._is_xlsx_bytes(b"PK\x03\x04fake") is True
+    assert client._is_xlsx_bytes(b"NOTAZIP") is False
+    assert client._is_xlsx_bytes(b"") is False
+
+
+def test_parse_curtailed_nonop_html_selects_detail_table_and_coerces_numbers(client):
+    """_parse_curtailed_nonop_html should pick the detail table and coerce numeric columns."""
+    html = """<!doctype html>
+    <html><body>
+    <table><tr><td>Curtailed and Non-Operational Generating Units</td></tr></table>
+    <table>
+      <tr>
+        <th>Resource ID</th><th>Resource Name</th><th>Outage Type</th>
+        <th>Capacity (MW)</th><th>Curtailed (MW)</th><th>Zone Name</th>
+      </tr>
+      <tr>
+        <td>R1</td><td>Unit 1</td><td>CURTAILMENT</td>
+        <td>1,000</td><td> 250 </td><td>ZONE_A</td>
+      </tr>
+    </table>
+    </body></html>"""
+    df = client._parse_curtailed_nonop_html(
+        html.encode("utf-8"),
+        report_date=date(2020, 1, 1),
+        report_kind="am",
+    )
+    assert "Resource ID" in df.columns
+    assert "Resource Name" in df.columns
+    assert float(df.loc[0, "Capacity (MW)"]) == 1000.0
+    assert float(df.loc[0, "Curtailed (MW)"]) == 250.0
+    assert df.loc[0, "report_kind"] == "am"
+    assert df.loc[0, "report_date"] == "2020-01-01"
+
+
+def test_parse_curtailed_nonop_html_utf16_branch(client):
+    """UTF-16 encoded HTML should be decoded and parsed."""
+    html = """<html><body>
+    <table><tr><td>header</td></tr></table>
+    <table>
+      <tr><th>Resource ID</th><th>Resource Name</th><th>Capacity (MW)</th><th>Curtailed (MW)</th></tr>
+      <tr><td>R2</td><td>Unit 2</td><td>10</td><td>0</td></tr>
+    </table>
+    </body></html>"""
+    html_bytes = html.encode("utf-16")  # includes BOM
+    df = client._parse_curtailed_nonop_html(
+        html_bytes,
+        report_date=date(2020, 1, 2),
+        report_kind="prior",
+    )
+    assert df.loc[0, "Resource ID"] == "R2"
+    assert df.loc[0, "report_date"] == "2020-01-02"
+    assert df.loc[0, "report_kind"] == "prior"
+
+
+@patch("requests.Session.get")
+def test_get_curtailed_non_operational_reports_xlsx_success(mock_get, client, temp_dir):
+    """If XLSX exists, it should be downloaded and saved, without HTML fallback."""
+    xlsx_resp = Mock()
+    xlsx_resp.status_code = 200
+    xlsx_resp.content = b"PK\x03\x04fake-xlsx"
+    xlsx_resp.headers = {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+    mock_get.return_value = xlsx_resp
+
+    ok = client.get_curtailed_non_operational_reports(
+        start_date=date(2021, 7, 1),
+        end_date=date(2021, 7, 2),
+        kind="am",
+        out_subdir="test_curtailed_nonop",
+    )
+    assert ok is True
+    out_dir = temp_dir.data_dir / "test_curtailed_nonop"
+    assert (out_dir / "am_20210701.xlsx").exists()
+    assert mock_get.call_count == 1
+
+
+@patch("requests.Session.get")
+def test_get_curtailed_non_operational_reports_html_fallback_parses_csv(mock_get, client, temp_dir):
+    """If XLSX is missing but HTML exists, it should save HTML and parse CSV."""
+    html = """<!doctype html><html><body>
+    <table><tr><td>banner</td></tr></table>
+    <table>
+      <tr>
+        <th>Resource ID</th><th>Resource Name</th><th>Outage Type</th>
+        <th>Capacity (MW)</th><th>Curtailed (MW)</th><th>Zone Name</th>
+      </tr>
+      <tr>
+        <td>R1</td><td>Unit 1</td><td>CURTAILMENT</td><td>5</td><td>1</td><td>Z</td>
+      </tr>
+    </table>
+    </body></html>"""
+
+    xlsx_resp = Mock()
+    xlsx_resp.status_code = 404
+    xlsx_resp.content = b""
+    xlsx_resp.headers = {"Content-Type": "text/plain"}
+
+    html_resp = Mock()
+    html_resp.status_code = 200
+    html_resp.content = html.encode("utf-8")
+    html_resp.headers = {"Content-Type": "text/html; charset=utf-8"}
+
+    def side_effect(url, *args, **kwargs):
+        if url.endswith(".xlsx"):
+            return xlsx_resp
+        if url.endswith(".html"):
+            return html_resp
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    mock_get.side_effect = side_effect
+
+    ok = client.get_curtailed_non_operational_reports(
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 1, 2),
+        kind="am",
+        out_subdir="test_curtailed_nonop_html",
+        save_raw_html=True,
+        parse_html_to_csv=True,
+    )
+    assert ok is True
+    out_dir = temp_dir.data_dir / "test_curtailed_nonop_html"
+    assert (out_dir / "am_20200101.html").exists()
+    assert (out_dir / "am_20200101.csv").exists()
+    assert mock_get.call_count == 2
+
+
+def test_get_curtailed_non_operational_reports_invalid_kind_raises(client):
+    """Invalid report kind should raise ValueError."""
+    with pytest.raises(ValueError):
+        client.get_curtailed_non_operational_reports(
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 1, 2),
+            kind="bad-kind",
+        )
+
+
+def test_get_curtailed_non_operational_reports_missing_both_logs_warning(client, tmp_path, caplog):
+    """
+    Covers the 'Missing/failed' warning path when neither XLSX nor HTML exists for a date.
+    """
+    client.config.data_dir = tmp_path
+
+    mock_404 = Mock()
+    mock_404.status_code = 404
+    mock_404.content = b""
+
+    with patch.object(client.session, "get", side_effect=[mock_404, mock_404]) as mock_get:
+        ok = client.get_curtailed_non_operational_reports(
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 1, 2),
+            kind="am",
+        )
+        assert ok is False
+        assert mock_get.call_count == 2
+        # message text may vary slightly; assert on a stable fragment
+        assert "Missing" in caplog.text or "failed" in caplog.text
+
+
+def test_get_curtailed_non_operational_reports_request_exception_logs_warning(
+    client, tmp_path, caplog
+):
+    """
+    Covers the RequestException handler path.
+    """
+    import requests
+
+    client.config.data_dir = tmp_path
+
+    with patch.object(client.session, "get", side_effect=requests.RequestException("boom")):
+        ok = client.get_curtailed_non_operational_reports(
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 1, 2),
+            kind="am",
+        )
+        assert ok is False
+        assert "Request error" in caplog.text or "error" in caplog.text.lower()
+
+
+def test_get_curtailed_non_operational_reports_html_parse_failure_raises(tmp_path, monkeypatch):
+    from datetime import date
+    import pytest
+
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    class FakeResp:
+        def __init__(self, status_code, content=b"", headers=None):
+            self.status_code = status_code
+            self.content = content
+            self.headers = headers or {}
+
+    # Force XLSX miss (404) and HTML hit (200) so we enter the parse_html_to_csv branch
+    def fake_get(url, *args, **kwargs):
+        if url.endswith(".xlsx"):
+            return FakeResp(404, b"", {"Content-Type": "text/plain"})
+        if url.endswith(".html"):
+            html = b"<html><body><table><tr><td>junk</td></tr></table></body></html>"
+            return FakeResp(200, html, {"Content-Type": "text/html"})
+        return FakeResp(404, b"")
+
+    monkeypatch.setattr(client.session, "get", fake_get)
+
+    called = {"parse": False}
+
+    def boom(*args, **kwargs):
+        called["parse"] = True
+        raise ValueError("parse error")
+
+    monkeypatch.setattr(client, "_parse_curtailed_nonop_html", boom)
+
+    with pytest.raises(ValueError):
+        client.get_curtailed_non_operational_reports(
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 1, 2),
+            kind="am",
+            save_raw_html=True,
+            parse_html_to_csv=True,
+        )
+
+    assert called["parse"] is True
+
+
+def test_get_curtailed_non_operational_reports_missing_failed_logs_warning(
+    tmp_path, monkeypatch, caplog
+):
+    from datetime import date
+    import logging
+
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    class FakeResp:
+        def __init__(self, status_code, content=b""):
+            self.status_code = status_code
+            self.content = content
+
+    # XLSX miss, HTML miss -> triggers logger.warning("Missing/failed ...")
+    def fake_get(url, *args, **kwargs):
+        return FakeResp(404, b"")
+
+    monkeypatch.setattr(client.session, "get", fake_get)
+
+    with caplog.at_level(logging.WARNING):
+        ok = client.get_curtailed_non_operational_reports(
+            start_date=date(2020, 1, 1),
+            end_date=date(2020, 1, 2),
+            kind="am",
+        )
+
+    assert ok is False
+    assert any("Missing/failed" in rec.message for rec in caplog.records)
+
+
+def test_parse_curtailed_nonop_html_handles_multiindex_columns(tmp_path, monkeypatch):
+    import pandas as pd
+    from datetime import date
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    # Make a DataFrame with MultiIndex columns so cols are tuples -> hits line 1073
+    cols = pd.MultiIndex.from_tuples(
+        [
+            ("meta", "Resource ID"),
+            ("meta", "Resource Name"),
+            ("mw", "Capacity (MW)"),
+            ("mw", "Curtailed (MW)"),
+        ]
+    )
+    df = pd.DataFrame([["R1", "Plant A", "1,234.5", "6"]], columns=cols)
+
+    monkeypatch.setattr(pd, "read_html", lambda *a, **k: [df])
+
+    out = client._parse_curtailed_nonop_html(
+        b"<html>ignored</html>", report_date=date(2020, 1, 1), report_kind="am"
+    )
+
+    # Ensure it found the detail table and added metadata columns
+    assert "Resource ID" in out.columns
+    assert "Resource Name" in out.columns
+    assert out.loc[0, "report_kind"] == "am"
+    assert out.loc[0, "report_date"] == "2020-01-01"
+
+    # And numeric coercion ran
+    assert float(out.loc[0, "Capacity (MW)"]) == 1234.5
+    assert float(out.loc[0, "Curtailed (MW)"]) == 6.0
+
+
+def test_parse_curtailed_nonop_html_raises_when_no_detail_table(tmp_path, monkeypatch):
+    import pandas as pd
+    import pytest
+    from datetime import date
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    # Table without Resource ID/Resource Name -> detail remains None -> hits line 1084
+    df = pd.DataFrame([["x", "y"]], columns=["Not It", "Also Not It"])
+    monkeypatch.setattr(pd, "read_html", lambda *a, **k: [df])
+
+    with pytest.raises(ValueError, match=r"Could not locate detail table"):
+        client._parse_curtailed_nonop_html(
+            b"<html>ignored</html>", report_date=date(2020, 1, 1), report_kind="am"
+        )
+
+
+def test_get_curtailed_non_operational_reports_creates_out_dir(tmp_path, monkeypatch):
+    from datetime import date
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    class FakeResp:
+        def __init__(self, status_code=404, content=b""):
+            self.status_code = status_code
+            self.content = content
+
+    # Force both XLSX and HTML to miss; method should still compute out_dir and mkdir it
+    monkeypatch.setattr(client.session, "get", lambda *a, **k: FakeResp(404, b""))
+
+    out_subdir = "curtailed_non_operational_generator_reports_custom"
+    ok = client.get_curtailed_non_operational_reports(
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 1, 2),
+        kind="am",
+        out_subdir=out_subdir,
+    )
+
+    assert ok is False
+    assert (tmp_path / out_subdir).exists()
+
+
+def test_get_curtailed_non_operational_reports_prior_kind_adds_pattern(tmp_path, monkeypatch):
+    from datetime import date
+    from lib.iso.caiso import CAISOClient, CAISOConfig
+
+    config = CAISOConfig(data_dir=tmp_path)
+    client = CAISOClient(config)
+
+    class FakeResp:
+        def __init__(self, status_code=404, content=b""):
+            self.status_code = status_code
+            self.content = content
+
+    # Force requests to always "miss" so we don't write files; we only want to hit the branch
+    monkeypatch.setattr(client.session, "get", lambda *a, **k: FakeResp(404, b""))
+
+    ok = client.get_curtailed_non_operational_reports(
+        start_date=date(2020, 1, 1),
+        end_date=date(2020, 1, 2),
+        kind="prior",  # <-- this is the key to hit the patterns.append(...) line
+    )
+
+    assert ok is False
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -84,18 +84,31 @@ def handle_caiso(args):
             logger.info(f"Downloading {market.value} LMP data...")
             success = client.get_lmp(market, args.start, end_date)
 
-        elif args.data_type == "load":
+        elif args.data_type == "load-forecast":
             if not args.market:
-                logger.error("Market type required for load data")
+                logger.error("Market type required for load forecast data")
                 return False
 
             market = market_map.get(args.market.lower())
             if market not in [Market.DAM, Market.RTM]:
-                logger.error(f"Invalid market for load: {args.market}")
+                logger.error(f"Invalid market for load forecast: {args.market}")
                 return False
 
             logger.info(f"Downloading {market.value} load forecast...")
             success = client.get_load_forecast(market, args.start, end_date)
+
+        elif args.data_type == "system-load":
+            if not args.market:
+                logger.error("Market type required for system load data")
+                return False
+
+            market = market_map.get(args.market.lower())
+            if market not in [Market.DAM, Market.RTM, Market.RUC, Market.HASP]:
+                logger.error(f"Invalid market for system load: {args.market}")
+                return False
+
+            logger.info(f"Downloading {market.value} system load...")
+            success = client.get_system_load(market, args.start, end_date)
 
         elif args.data_type == "wind-solar":
             logger.info("Downloading wind and solar summary...")
@@ -135,10 +148,89 @@ def handle_caiso(args):
             logger.info(f"Downloading {market.value} AS requirements...")
             success = client.get_ancillary_services_requirements(market, args.start, end_date)
 
+        elif args.data_type == "as-results":
+            if not args.market:
+                logger.error("Market type required for AS results")
+                return False
+
+            market = market_map.get(args.market.lower())
+            if market not in [Market.DAM, Market.HASP, Market.RTM]:
+                logger.error(f"Invalid market for AS results: {args.market}")
+                return False
+
+            logger.info(f"Downloading {market.value} AS results...")
+            success = client.get_ancillary_services_results(market, args.start, end_date)
+
+        elif args.data_type == "curtailed-nonop":
+            kind = getattr(args, "caiso_report_kind", "both")
+            logger.info(
+                f"Downloading CAISO curtailed/non-operational generator reports (kind={kind})..."
+            )
+            success = client.get_curtailed_non_operational_reports(args.start, end_date, kind=kind)
+
+        elif args.data_type == "intertie-prices":
+            logger.info("Downloading intertie constraint shadow prices...")
+            success = client.get_intertie_constraint_shadow_prices(args.start, end_date)
+
+        elif args.data_type == "mpm-status":
+            if not args.market:
+                logger.error("Market type required for MPM status")
+                return False
+
+            market = market_map.get(args.market.lower())
+            if market not in [Market.DAM, Market.HASP, Market.RTPD]:
+                logger.error(f"Invalid market for MPM status: {args.market}")
+                return False
+            logger.info("Downloading Market Power Mitigation (MPM) Status...")
+            success = client.get_market_power_mitigation(market, args.start, end_date)
+
+        elif args.data_type == "flex-ramp-req":
+            logger.info("Downloading Flexible Ramping Requirements...")
+            success = client.get_flex_ramp_requirements(args.start, end_date)
+
+        elif args.data_type == "flex-ramp-awards":
+            logger.info("Downloading Flexible Ramping Aggregated Awards...")
+            success = client.get_flex_ramp_awards(args.start, end_date)
+
+        elif args.data_type == "flex-ramp-curves":
+            logger.info("Downloading Flexible Ramping Demand Curves...")
+            success = client.get_flex_ramp_demand_curve(args.start, end_date)
+
+        elif args.data_type == "eim-transfer":
+            logger.info("Downloading Energy Imbalance Market (EIM) Transfer data...")
+            success = client.get_eim_transfer(args.start, end_date)
+
+        elif args.data_type == "eim-transfer-limits":
+            logger.info("Downloading Energy Imbalance Market (EIM) Transfer Limits...")
+            success = client.get_eim_transfer_limits(args.start, end_date)
+
+        elif args.data_type == "operating-reserves":
+            logger.info("Downloading Actual Operating Reserves...")
+            success = client.get_operating_reserves(args.start, end_date)
+
+        elif args.data_type == "point-tie-prices":
+            if not args.market:
+                logger.error("Market type required for Scheduling Point Tie Prices")
+                return False
+
+            market = market_map.get(args.market.lower())
+            if market not in [Market.DAM, Market.RTPD]:
+                logger.error(f"Invalid market for Scheduling Point Tie Prices: {args.market}")
+                return False
+            logger.info("Downloading Scheduling Point Tie Prices...")
+            success = client.get_scheduling_point_tie_prices(market, args.start, end_date)
+
+        elif args.data_type == "advisory-demand-forecast":
+            logger.info("Downloading Advisory Demand Forecast...")
+            success = client.get_advisory_demand_forecast(args.start, end_date)
+
         else:
             logger.error(f"Unknown CAISO data type: {args.data_type}")
             logger.info(
-                "Available types: lmp, load, wind-solar, fuel-prices, ghg-prices, as-prices"
+                "Available types: lmp, load-forecast, system-load, wind-solar, fuel-prices, ghg-prices, as-prices, "
+                "as-requirements, curtailed-nonop, intertie-prices, mpm-status, flex-ramp-req,"
+                "flex-ramp-awards, flex-ramp-curves, eim-transfer, eim-transfer-limits,"
+                "operating-reserves, point-tie-prices, advisory-demand-forecast"
             )
             return False
 
@@ -398,10 +490,10 @@ def handle_bpa(args):
                 return False
             print("\nBPA Transmission Paths (ReportIDs)")
             print("Flowgates:")
-            for rid in (available.get("Flowgate") or available.get("flowgates") or []):
+            for rid in available.get("Flowgate") or available.get("flowgates") or []:
                 print(f"  - {rid}")
             print("\nInterties:")
-            for rid in (available.get("Intertie") or available.get("interties") or []):
+            for rid in available.get("Intertie") or available.get("interties") or []:
                 print(f"  - {rid}")
             return True
         except Exception as e:
@@ -431,21 +523,30 @@ def handle_bpa(args):
 
         elif args.data_type == "outages":
             logger.info("Downloading BPA outages data...")
-            success = client.get_outages(
-                args.start.year, start_date=args.start, end_date=end_date
-            )
+            success = client.get_outages(args.start.year, start_date=args.start, end_date=end_date)
 
         elif args.data_type == "transmission_paths":
             # Requires --path-kind and --path-id
             if not args.path_kind or not args.path_id:
-                logger.error("For BPA transmission_paths you must provide --path-kind (flowgate|intertie) and --path-id")
-                print("\n❌ Missing arguments: --path-kind and --path-id are required for BPA transmission_paths")
+                logger.error(
+                    "For BPA transmission_paths you must provide --path-kind (flowgate|intertie) and --path-id"
+                )
+                print(
+                    "\n❌ Missing arguments: --path-kind and --path-id are required for BPA transmission_paths"
+                )
                 return False
 
             from lib.iso.bpa import BPAPathsKind  # enum in BPA client
-            kind = BPAPathsKind.FLOWGATE if args.path_kind.lower() == "flowgate" else BPAPathsKind.INTERTIE
 
-            logger.info(f"Downloading BPA transmission paths: {kind.value}/{args.path_id} for {args.start.year}...")
+            kind = (
+                BPAPathsKind.FLOWGATE
+                if args.path_kind.lower() == "flowgate"
+                else BPAPathsKind.INTERTIE
+            )
+
+            logger.info(
+                f"Downloading BPA transmission paths: {kind.value}/{args.path_id} for {args.start.year}..."
+            )
             success = client.get_transmission_paths(
                 kind=kind,
                 report_id=args.path_id,
@@ -918,6 +1019,13 @@ Examples:
     parser.add_argument(
         "--state",
         help="US state 2-letter code (for weather data)",
+    )
+
+    parser.add_argument(
+        "--caiso-report-kind",
+        choices=["am", "prior", "both"],
+        default="both",
+        help="For CAISO curtailed-nonop: which report flavor to download",
     )
 
     parser.add_argument(

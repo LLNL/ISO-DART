@@ -946,7 +946,7 @@ class CAISOClient:
         Get scheduling point tie prices.
 
         Args:
-            market: Market type (DAM, RTPD, or RTD)
+            market: Market type (DAM or RTPD)
             start_date: Start date
             end_date: End date
             step_size: Number of days per request
@@ -1032,6 +1032,172 @@ class CAISOClient:
         else:
             logger.warning("No advisory forecast data available for date range")
             return False
+
+    def _looks_like_html(self, resp: requests.Response) -> bool:
+        ctype = (resp.headers.get("Content-Type") or "").lower()
+        if "text/html" in ctype:
+            return True
+        # sometimes content-type can be generic; sniff the body
+        head = resp.content[:300].lstrip().lower()
+        return head.startswith(b"<!doctype html") or head.startswith(b"<html")
+
+    def _is_xlsx_bytes(self, b: bytes) -> bool:
+        # XLSX is a ZIP; starts with PK
+        return len(b) >= 2 and b[0:2] == b"PK"
+
+    def _parse_curtailed_nonop_html(self, html_bytes: bytes, report_date: date, report_kind: str):
+        """Parse legacy CAISO curtailed/non-operational HTML report into a normalized DataFrame.
+
+        The HTML files (older history) are typically UTF-16 and contain multiple tables,
+        including decorative header tables. We select the detail table by looking for the expected
+        'Resource ID'/'Resource Name' columns.
+        """
+        import pandas as pd
+
+        # Decode (older CAISO HTML often comes as UTF-16 with BOM / embedded NULs)
+        if html_bytes[:2] in (b"\xff\xfe", b"\xfe\xff") or b"\x00" in html_bytes[:200]:
+            html = html_bytes.decode("utf-16", errors="ignore")
+        else:
+            html = html_bytes.decode("utf-8", errors="ignore")
+
+        tables = pd.read_html(io.StringIO(html))
+
+        detail = None
+        for tbl in tables:
+            cols = list(tbl.columns)
+
+            # Flatten MultiIndex columns, if any
+            flat = []
+            for c in cols:
+                if isinstance(c, tuple):
+                    flat.append(str(c[-1]))
+                else:
+                    flat.append(str(c))
+
+            norm = [c.strip().lower() for c in flat]
+            if "resource id" in norm and "resource name" in norm:
+                tbl.columns = flat
+                detail = tbl
+                break
+
+        if detail is None:
+            raise ValueError(
+                "Could not locate detail table in HTML report (expected 'Resource ID' columns)."
+            )
+
+        # Basic cleanup
+        detail = detail.rename(columns={c: c.strip() for c in detail.columns})
+        detail = detail.replace({r"^\s*$": None}, regex=True)
+
+        # Coerce numeric columns when present
+        for col in ("Capacity (MW)", "Curtailed (MW)"):
+            if col in detail.columns:
+                detail[col] = (
+                    detail[col]
+                    .astype(str)
+                    .str.replace(",", "", regex=False)
+                    .str.strip()
+                    .replace({"None": None, "nan": None})
+                )
+                detail[col] = pd.to_numeric(detail[col], errors="coerce")
+
+        detail["report_date"] = report_date.isoformat()
+        detail["report_kind"] = report_kind
+        return detail
+
+    def get_curtailed_non_operational_reports(
+        self,
+        start_date: date,
+        end_date: date,
+        kind: str = "both",  # "am" | "prior" | "both"
+        out_subdir: str = "curtailed_non_operational_generator_reports",
+        timeout: int | None = None,
+        save_raw_html: bool = True,
+        parse_html_to_csv: bool = True,
+    ) -> bool:
+        """
+        Download CAISO 'Curtailed and Non-Operational Generator' reports.
+
+        Newer reports are posted as .xlsx. Older historical reports were posted as .html.
+        This method:
+          * tries .xlsx first
+          * if missing, tries the same filename with .html
+          * optionally parses .html into a normalized CSV with report_date/report_kind columns
+        """
+        kind = (kind or "both").lower()
+        if kind not in {"am", "prior", "both"}:
+            raise ValueError(f"Invalid kind={kind}. Use am|prior|both")
+
+        base = "https://www.caiso.com/documents"
+        patterns: list[tuple[str, str]] = []
+        if kind in {"am", "both"}:
+            patterns.append(("am", "curtailed-non-operational-generator-am-report-{yyyymmdd}.xlsx"))
+        if kind in {"prior", "both"}:
+            patterns.append(
+                (
+                    "prior",
+                    "curtailed-non-operational-generator-prior-trade-date-report-{yyyymmdd}.xlsx",
+                )
+            )
+
+        out_dir = self.config.data_dir / out_subdir
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        ok_any = False
+        cur = start_date
+        while cur < end_date:
+            yyyymmdd = cur.strftime("%Y%m%d")
+
+            for label, pat in patterns:
+                xlsx_url = f"{base}/{pat.format(yyyymmdd=yyyymmdd)}"
+                xlsx_path = out_dir / f"{label}_{yyyymmdd}.xlsx"
+
+                try:
+                    r = self.session.get(
+                        xlsx_url,
+                        timeout=(timeout or self.config.timeout),
+                        headers={"User-Agent": "iso-dart/2.0 (+https://github.com/...)"},
+                    )
+                    if r.status_code == 200 and r.content:
+                        xlsx_path.write_bytes(r.content)
+                        logger.info(f"Saved: {xlsx_path}")
+                        ok_any = True
+                        continue
+
+                    # Fallback: older HTML reports (same name, different extension)
+                    html_url = xlsx_url[:-5] + ".html"  # replace .xlsx
+                    html_path = out_dir / f"{label}_{yyyymmdd}.html"
+
+                    r2 = self.session.get(
+                        html_url,
+                        timeout=(timeout or self.config.timeout),
+                        headers={"User-Agent": "iso-dart/2.0 (+https://github.com/...)"},
+                    )
+                    if r2.status_code == 200 and r2.content:
+                        if save_raw_html:
+                            html_path.write_bytes(r2.content)
+                            logger.info(f"Saved: {html_path}")
+
+                        if parse_html_to_csv:
+                            df = self._parse_curtailed_nonop_html(
+                                r2.content, report_date=cur, report_kind=label
+                            )
+                            csv_path = out_dir / f"{label}_{yyyymmdd}.csv"
+                            df.to_csv(csv_path, index=False)
+                            logger.info(f"Parsed & saved: {csv_path}")
+
+                        ok_any = True
+                    else:
+                        logger.warning(
+                            f"Missing/failed (xlsx={r.status_code}, html={r2.status_code}): {xlsx_url}"
+                        )
+
+                except requests.RequestException as e:
+                    logger.warning(f"Request error for {xlsx_url}: {e}")
+
+            cur += timedelta(days=1)
+
+        return ok_any
 
     def cleanup(self):
         """Clean up temporary files."""
