@@ -344,6 +344,32 @@ def test_get_day_ahead_hourly_demand_saves_and_calls_expected_url(tmp_path):
     )
 
 
+def test_get_transmission_outages_saves_and_calls_expected_url(tmp_path):
+    cfg = ISONEConfig(
+        api_base="https://x", username="u", password="p", data_dir=tmp_path, max_retries=1
+    )
+    c = ISONEClient(cfg)
+    c.session = FakeSession([FakeResponse(200, json_obj={"outages": {}})])
+
+    paths = c.get_transmission_outages("2024-01-01", "2024-01-02")
+    assert len(paths) == 1
+    assert paths[0].exists()
+    assert c.session.calls[0]["url"] == "https://x/outages/day/20240101/outageType/short-term.json"
+
+
+def test_get_annual_maintenance_schedule_saves_and_calls_expected_url(tmp_path):
+    cfg = ISONEConfig(
+        api_base="https://x", username="u", password="p", data_dir=tmp_path, max_retries=1
+    )
+    c = ISONEClient(cfg)
+    c.session = FakeSession([FakeResponse(200, json_obj={"ams": {}})])
+
+    paths = c.get_annual_maintenance_schedule("2024-01-01", "2024-01-02")
+    assert len(paths) == 1
+    assert paths[0].exists()
+    assert c.session.calls[0]["url"] == "https://x/ams/day/20240101.json"
+
+
 # -----------------------------
 # Config-from-env coverage
 # -----------------------------

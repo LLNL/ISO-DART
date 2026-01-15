@@ -2443,22 +2443,28 @@ def run_isone_mode():
     print("  (1) Locational Marginal Prices (LMP)")
     print("  (2) Ancillary Services")
     print("  (3) Demand/Load Data")
+    print("  (4) Transmission Outages")
+    print("  (5) Annual Maintenance Schedule (AMS)")
 
     while True:
         try:
-            data_type = int(input("\nYour choice (1-3): "))
-            if data_type in range(1, 4):
+            data_type = int(input("\nYour choice (1-5): "))
+            if data_type in range(1, 6):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 3")
+        print("Please enter a number between 1 and 5")
 
     if data_type == 1:
         run_isone_lmp()
     elif data_type == 2:
         run_isone_ancillary()
-    else:
+    elif data_type == 3:
         run_isone_demand()
+    elif data_type == 4:
+        run_isone_outage()
+    else:
+        run_isone_ams()
 
 
 def run_isone_lmp():
@@ -2660,6 +2666,82 @@ def run_isone_demand():
             print("\n📥 Downloading Day-Ahead Hourly Demand...")
             paths = client.get_day_ahead_hourly_demand(start_date, end_excl)
             success = bool(paths)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: {client.config.data_dir}/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_isone_outage():
+    """ISO-NE transmission outages data selection (updated for new ISONEClient)."""
+    from lib.iso.isone import ISONEClient
+
+    print("\n" + "=" * 60)
+    print("ISO-NE TRANSMISSION OUTAGES DATA")
+    print("=" * 60)
+
+    print("\nWhat type of transmission outage data?")
+    print("  (1) Short-Term")
+    print("  (2) Long-Term")
+
+    while True:
+        try:
+            outage_type = int(input("\nYour choice (1-2): "))
+            if outage_type in [1, 2]:
+                break
+        except ValueError:
+            pass
+        print("Please enter 1 or 2")
+
+    start_date, duration = get_date_input()
+    end_excl = start_date + timedelta(days=duration)
+
+    client = ISONEClient()
+
+    try:
+        if outage_type == 1:
+            print("\n📥 Downloading short-term transmission outage data...")
+            paths = client.get_transmission_outages(start_date, end_excl, outage_type="short-term")
+            success = bool(paths)
+        else:
+            print("\n📥 Downloading long-term transmission outage data...")
+            paths = client.get_transmission_outages(start_date, end_excl, outage_type="long-term")
+            success = bool(paths)
+
+        if success:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: {client.config.data_dir}/")
+        else:
+            print("\n❌ Download failed. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+
+def run_isone_ams():
+    """ISO-NE annual maintenance schedule (AMS) data selection (updated for new ISONEClient)."""
+    from lib.iso.isone import ISONEClient
+
+    print("\n" + "=" * 60)
+    print("ISO-NE ANNUAL MAINTENANCE SCHEDULE (AMS) DATA")
+    print("=" * 60)
+
+    start_date, duration = get_date_input()
+    end_excl = start_date + timedelta(days=duration)
+
+    client = ISONEClient()
+
+    try:
+        print("\n📥 Downloading Annual Maintenance Schedule (AMS) data...")
+        paths = client.get_annual_maintenance_schedule(start_date, end_excl)
+        success = bool(paths)
 
         if success:
             print("\n✅ Download complete!")

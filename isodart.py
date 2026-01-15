@@ -898,9 +898,23 @@ def handle_isone(args):
                 logger.error(f"Invalid demand type: {demand_type}")
                 return False
 
+        elif args.data_type == "outages":
+            # Outage types: short-term, long-term
+            outage_type = getattr(args, "outage_type", "short-term")
+
+            logger.info(f"Downloading ISO-NE {outage_type} Transmission Outage report...")
+            paths = client.get_transmission_outages(start, end_excl, outage_type=outage_type)
+            success = bool(paths)
+
+        elif args.data_type == "ams":
+
+            logger.info("Downloading ISO-NE Annual Maintenance Schedule (AMS)...")
+            paths = client.get_annual_maintenance_schedule(start, end_excl)
+            success = bool(paths)
+
         else:
             logger.error(f"Unknown ISO-NE data type: {args.data_type}")
-            logger.info("Available types: lmp, ancillary, demand")
+            logger.info("Available types: lmp, ancillary, demand, outage, ams")
             return False
 
         if success:
@@ -1106,8 +1120,8 @@ Examples:
 
     parser.add_argument(
         "--outage-type",
-        choices=["forecast", "rt_outage", "scheduled", "actual"],
-        help="For MISO & NYISO Outage: type of outage data to download",
+        choices=["forecast", "rt_outage", "scheduled", "actual", "short-term", "long-term"],
+        help="For MISO, NYISO and ISO-NE Outage: type of outage data to download",
     )
 
     parser.add_argument(

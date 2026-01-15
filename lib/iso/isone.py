@@ -478,6 +478,93 @@ class ISONEClient:
             saved.append(out_path)
         return saved
 
+    def get_transmission_outages(
+        self,
+        start_date: DateLike,
+        end_date_exclusive: DateLike,
+        *,
+        outage_type: str = "short-term",
+        out_dir: Optional[Path] = None,
+    ) -> List[Path]:
+        """Download ISO-NE outage data via the **Web Services REST API**.
+
+        Why this exists:
+          ISO Express "Operations Reports" pages show CSV links under
+          https://www.iso-ne.com/transform/csv/outages?... but those links are
+          currently protected by a bot/captcha gate (403 Forbidden when fetched
+          programmatically).
+
+        The Web Services API provides the same outage content without the
+        captcha:
+          - /outages/day/{day}/outageType/{outageType}
+
+        Parameters
+        - outage_type: typically "short-term" or "long-term".
+
+        Output
+        - One JSON file per day.
+        """
+
+        start = _parse_date(start_date)
+        end = _parse_date(end_date_exclusive)
+
+        # Keep CLI values stable, but accept a few common aliases.
+        ot = str(outage_type).strip().lower()
+        alias = {
+            "short": "short-term",
+            "shortterm": "short-term",
+            "short_term": "short-term",
+            "st": "short-term",
+            "long": "long-term",
+            "longterm": "long-term",
+            "long_term": "long-term",
+            "lt": "long-term",
+        }
+        ot = alias.get(ot, ot)
+
+        out_dir = out_dir or (self.config.data_dir / "outages" / ot)
+        saved: List[Path] = []
+
+        for d in _iter_days(start, end):
+            day = _yyyymmdd(d)
+            path = f"outages/day/{day}/outageType/{ot}"
+            payload = self._request_json(path, authenticated=True)
+            out_path = out_dir / f"{day}.json"
+            self._save_json(payload, out_path)
+            saved.append(out_path)
+
+        return saved
+
+    def get_annual_maintenance_schedule(
+        self,
+        start_date: DateLike,
+        end_date_exclusive: DateLike,
+        *,
+        out_dir: Optional[Path] = None,
+    ) -> List[Path]:
+        """Download Annual Maintenance Schedule (planned generator outages) via REST.
+
+        REST endpoint:
+          - /ams/day/{day}
+
+        Output:
+          - One JSON file per day.
+        """
+
+        start = _parse_date(start_date)
+        end = _parse_date(end_date_exclusive)
+        out_dir = out_dir or (self.config.data_dir / "ams")
+
+        saved: List[Path] = []
+        for d in _iter_days(start, end):
+            day = _yyyymmdd(d)
+            payload = self._request_json(f"ams/day/{day}", authenticated=True)
+            out_path = out_dir / f"{day}.json"
+            self._save_json(payload, out_path)
+            saved.append(out_path)
+
+        return saved
+
 
 # Example usage
 if __name__ == "__main__":
