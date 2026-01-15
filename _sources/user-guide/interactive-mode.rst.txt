@@ -709,8 +709,7 @@ After mastering interactive mode:
 
 1. **Try Command-Line Mode**: :doc:`command-line`
 2. **Learn Python API**: :doc:`python-api`
-3. **Set Up Automation**: :doc:`../tutorials/intermediate/automation`
-4. **Explore Examples**: :doc:`../tutorials/examples/index`
+3. **Explore Examples**: :doc:`../tutorials/examples/index`
 
 See Also
 --------
@@ -718,4 +717,3 @@ See Also
 * :doc:`../getting-started/quickstart` - Quick start tutorial
 * :doc:`command-line` - Command-line usage guide
 * :doc:`python-api` - Python API documentation
-* :doc:`../operations/troubleshooting` - Troubleshooting guide

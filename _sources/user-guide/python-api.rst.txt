@@ -9,43 +9,43 @@ This guide covers using ISO-DART programmatically from Python scripts and applic
 Installation
 ------------
 
-.. code-block:: text
-    # Option 1: Use as a library (recommended)
-    import sys
-    sys.path.append('/path/to/ISO-DART')
+.. code-block:: python
 
-    from lib.iso.caiso import CAISOClient, Market
-    from lib.iso.miso import MISOClient, MISOConfig
-    # ... etc
+   # Option 1: Use as a library (recommended)
+   import sys
+   sys.path.append('/path/to/ISO-DART')
 
-    # Option 2: Install as package (future)
-    # pip install isodart
+   from lib.iso.caiso import CAISOClient, Market
+   from lib.iso.miso import MISOClient, MISOConfig
+   # ... etc
 
+   # Option 2: Install as package (future)
+   # pip install isodart
 
 Basic Usage Pattern
 -------------------
 
 All ISO clients follow a similar pattern:
 
-.. code-block:: text
-    from datetime import date
+.. code-block:: python
 
-    # 1. Import the client
-    from lib.iso.caiso import CAISOClient, Market
+   from datetime import date
 
-    # 2. Create client instance
-    client = CAISOClient()
+   # 1. Import the client
+   from lib.iso.caiso import CAISOClient, Market
 
-    # 3. Download data
-    success = client.get_lmp(
-        market=Market.DAM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+   # 2. Create client instance
+   client = CAISOClient()
 
-    # 4. Clean up
-    client.cleanup()
+   # 3. Download data
+   success = client.get_lmp(
+       market=Market.DAM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
+   # 4. Clean up
+   client.cleanup()
 
 CAISO Client
 ------------
@@ -53,113 +53,113 @@ CAISO Client
 Basic LMP Download
 ~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from datetime import date
-    from lib.iso.caiso import CAISOClient, Market
+.. code-block:: python
 
-    # Initialize client
-    client = CAISOClient()
+   from datetime import date
+   from lib.iso.caiso import CAISOClient, Market
 
-    # Download Day-Ahead LMP
-    client.get_lmp(
-        market=Market.DAM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+   # Initialize client
+   client = CAISOClient()
 
-    # Download Real-Time LMP
-    client.get_lmp(
-        market=Market.RTM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 7)
-    )
+   # Download Day-Ahead LMP
+   client.get_lmp(
+       market=Market.DAM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
-    client.cleanup()
+   # Download Real-Time LMP
+   client.get_lmp(
+       market=Market.RTM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 7)
+   )
 
+   client.cleanup()
 
 Available Markets
 ~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from lib.iso.caiso import Market
+.. code-block:: python
 
-    Market.DAM     # Day-Ahead Market
-    Market.HASP    # Hour-Ahead Scheduling Process
-    Market.RTM     # Real-Time Market
-    Market.RTPD    # Real-Time Pre-Dispatch
-    Market.RUC     # Residual Unit Commitment
-    Market.TWO_DA  # Two Day-Ahead
-    Market.SEVEN_DA # Seven Day-Ahead
+   from lib.iso.caiso import Market
 
+   Market.DAM      # Day-Ahead Market
+   Market.HASP     # Hour-Ahead Scheduling Process
+   Market.RTM      # Real-Time Market
+   Market.RTPD     # Real-Time Pre-Dispatch
+   Market.RUC      # Residual Unit Commitment
+   Market.TWO_DA   # Two Day-Ahead
+   Market.SEVEN_DA # Seven Day-Ahead
 
 Load Forecasts
 ~~~~~~~~~~~~~~
 
-.. code-block:: text
-    # Day-Ahead forecast
-    client.get_load_forecast(
-        market=Market.DAM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+.. code-block:: python
 
-    # 7-Day forecast
-    client.get_load_forecast(
-        market=Market.SEVEN_DA,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+   # Day-Ahead forecast
+   client.get_load_forecast(
+       market=Market.DAM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
+   # 7-Day forecast
+   client.get_load_forecast(
+       market=Market.SEVEN_DA,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
 Renewable Generation
 ~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    # Wind and solar summary
-    client.get_wind_solar_summary(
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+.. code-block:: python
 
+   # Wind and solar summary
+   client.get_wind_solar_summary(
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
 Ancillary Services
 ~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    # AS prices
-    client.get_ancillary_services_prices(
-        market=Market.DAM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+.. code-block:: python
 
-    # AS requirements
-    client.get_ancillary_services_requirements(
-        market=Market.DAM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31),
-        anc_type='ALL',  # or 'RU', 'RD', 'SR', 'NR'
-        anc_region='ALL'
-    )
+   # AS prices
+   client.get_ancillary_services_prices(
+       market=Market.DAM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
+   # AS requirements
+   client.get_ancillary_services_requirements(
+       market=Market.DAM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31),
+       anc_type='ALL',  # or 'RU', 'RD', 'SR', 'NR'
+       anc_region='ALL'
+   )
 
 Custom Configuration
 ~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from pathlib import Path
-    from lib.iso.caiso import CAISOClient, CAISOConfig
+.. code-block:: python
 
-    # Custom config
-    config = CAISOConfig(
-        data_dir=Path('my_data/CAISO'),
-        max_retries=5,
-        timeout=60,
-        retry_delay=10
-    )
+   from pathlib import Path
+   from lib.iso.caiso import CAISOClient, CAISOConfig
 
-    client = CAISOClient(config=config)
+   # Custom config
+   config = CAISOConfig(
+       data_dir=Path('my_data/CAISO'),
+       max_retries=5,
+       timeout=60,
+       retry_delay=10
+   )
 
+   client = CAISOClient(config=config)
 
 MISO Client
 -----------
@@ -167,101 +167,101 @@ MISO Client
 Setup with API Keys
 ~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from lib.iso.miso import MISOClient, MISOConfig
+.. code-block:: python
 
-    # Load from config file
-    config = MISOConfig.from_ini_file()
-    client = MISOClient(config)
+   from lib.iso.miso import MISOClient, MISOConfig
 
-    # Or specify directly
-    config = MISOConfig(
-        pricing_api_key='your-pricing-key',
-        lgi_api_key='your-lgi-key'
-    )
-    client = MISOClient(config)
+   # Load from config file
+   config = MISOConfig.from_ini_file()
+   client = MISOClient(config)
 
+   # Or specify directly
+   config = MISOConfig(
+       pricing_api_key='your-pricing-key',
+       lgi_api_key='your-lgi-key'
+   )
+   client = MISOClient(config)
 
 LMP Data
 ~~~~~~~~
 
-.. code-block:: text
-    from datetime import date
+.. code-block:: python
 
-    # Day-Ahead ExAnte LMP
-    data = client.get_lmp(
-        lmp_type='da_exante',
-        start_date=date(2024, 1, 1),
-        duration=30,
-        node='ALTW.WELLS1'  # Optional: specific node
-    )
+   from datetime import date
 
-    # Save to CSV
-    if data:
-        client.save_to_csv(data, 'miso_lmp.csv')
+   # Day-Ahead ExAnte LMP
+   data = client.get_lmp(
+       lmp_type='da_exante',
+       start_date=date(2024, 1, 1),
+       duration=30,
+       node='ALTW.WELLS1'  # Optional: specific node
+   )
 
+   # Save to CSV
+   if data:
+       client.save_to_csv(data, 'miso_lmp.csv')
 
 Available LMP Types
 ~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    'da_exante'   # Day-Ahead ExAnte
-    'da_expost'   # Day-Ahead ExPost
-    'rt_exante'   # Real-Time ExAnte
-    'rt_expost'   # Real-Time ExPost
+.. code-block:: python
 
+   'da_exante'   # Day-Ahead ExAnte
+   'da_expost'   # Day-Ahead ExPost
+   'rt_exante'   # Real-Time ExAnte
+   'rt_expost'   # Real-Time ExPost
 
 Load and Generation
 ~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    # Actual load
-    load_data = client.get_demand(
-        demand_type='rt_actual',
-        start_date=date(2024, 1, 1),
-        duration=30,
-        time_resolution='daily'
-    )
+.. code-block:: python
 
-    # Fuel mix
-    fuel_data = client.get_fuel_mix(
-        start_date=date(2024, 1, 1),
-        duration=30
-    )
+   # Actual load
+   load_data = client.get_demand(
+       demand_type='rt_actual',
+       start_date=date(2024, 1, 1),
+       duration=30,
+       time_resolution='daily'
+   )
 
-    # Generation by fuel type
-    gen_data = client.get_generation(
-        gen_type='rt_fuel_type',
-        start_date=date(2024, 1, 1),
-        duration=30
-    )
+   # Fuel mix
+   fuel_data = client.get_fuel_mix(
+       start_date=date(2024, 1, 1),
+       duration=30
+   )
 
+   # Generation by fuel type
+   gen_data = client.get_generation(
+       gen_type='rt_fuel_type',
+       start_date=date(2024, 1, 1),
+       duration=30
+   )
 
 Working with MISO Data
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    # Download and process
-    data = client.get_lmp('da_exante', date(2024, 1, 1), 7)
+.. code-block:: python
 
-    if data:
-        # Data is a dict: {date: [records]}
-        print(f"Downloaded data for {len(data)} dates")
+   # Download and process
+   data = client.get_lmp('da_exante', date(2024, 1, 1), 7)
 
-        # Save to CSV
-        client.save_to_csv(data, 'output.csv')
+   if data:
+       # Data is a dict: {date: [records]}
+       print(f"Downloaded data for {len(data)} dates")
 
-        # Or process directly
-        import pandas as pd
-        all_records = []
-        for date_key, records in data.items():
-            for record in records:
-                record['query_date'] = date_key
-                all_records.append(record)
+       # Save to CSV
+       client.save_to_csv(data, 'output.csv')
 
-        df = pd.DataFrame(all_records)
-        print(df.head())
+       # Or process directly
+       import pandas as pd
+       all_records = []
+       for date_key, records in data.items():
+           for record in records:
+               record['query_date'] = date_key
+               all_records.append(record)
 
+       df = pd.DataFrame(all_records)
+       print(df.head())
 
 NYISO Client
 ------------
@@ -269,34 +269,34 @@ NYISO Client
 Basic Usage
 ~~~~~~~~~~~
 
-.. code-block:: text
-    from lib.iso.nyiso import NYISOClient, NYISOMarket
+.. code-block:: python
 
-    client = NYISOClient()
+   from lib.iso.nyiso import NYISOClient, NYISOMarket
 
-    # LBMP data
-    client.get_lbmp(
-        market=NYISOMarket.DAM,
-        level='zonal',  # or 'generator'
-        start_date=date(2024, 1, 1),
-        duration=30
-    )
+   client = NYISOClient()
 
-    # Load data
-    client.get_load_data(
-        load_type='actual',
-        start_date=date(2024, 1, 1),
-        duration=30
-    )
+   # LBMP data
+   client.get_lbmp(
+       market=NYISOMarket.DAM,
+       level='zonal',  # or 'generator'
+       start_date=date(2024, 1, 1),
+       duration=30
+   )
 
-    # Fuel mix
-    client.get_fuel_mix(
-        start_date=date(2024, 1, 1),
-        duration=30
-    )
+   # Load data
+   client.get_load_data(
+       load_type='actual',
+       start_date=date(2024, 1, 1),
+       duration=30
+   )
 
-    client.cleanup()
+   # Fuel mix
+   client.get_fuel_mix(
+       start_date=date(2024, 1, 1),
+       duration=30
+   )
 
+   client.cleanup()
 
 SPP Client
 ----------
@@ -304,47 +304,47 @@ SPP Client
 LMP Data
 ~~~~~~~~
 
-.. code-block:: text
-    from lib.iso.spp import SPPClient, SPPMarket
+.. code-block:: python
 
-    client = SPPClient()
+   from lib.iso.spp import SPPClient, SPPMarket
 
-    # LMP by settlement location
-    client.get_lmp(
-        market=SPPMarket.DAM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31),
-        by_location=True  # False for by bus
-    )
+   client = SPPClient()
 
-    # Market clearing prices
-    client.get_mcp(
-        market=SPPMarket.RTBM,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+   # LMP by settlement location
+   client.get_lmp(
+       market=SPPMarket.DAM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31),
+       by_location=True  # False for by bus
+   )
 
-    client.cleanup()
+   # Market clearing prices
+   client.get_mcp(
+       market=SPPMarket.RTBM,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
+   client.cleanup()
 
 Load and Resource Forecasts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    # Short-term load forecast
-    client.get_load_forecast(
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31),
-        forecast_type='stlf'
-    )
+.. code-block:: python
 
-    # Medium-term resource (wind + solar) forecast
-    client.get_resource_forecast(
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31),
-        forecast_type='mtrf'
-    )
+   # Short-term load forecast
+   client.get_load_forecast(
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31),
+       forecast_type='stlf'
+   )
 
+   # Medium-term resource (wind + solar) forecast
+   client.get_resource_forecast(
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31),
+       forecast_type='mtrf'
+   )
 
 BPA Client
 ----------
@@ -352,34 +352,34 @@ BPA Client
 Historical Data
 ~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from lib.iso.bpa import BPAClient
+.. code-block:: python
 
-    client = BPAClient()
+   from lib.iso.bpa import BPAClient
 
-    # Wind generation and total load
-    client.get_wind_gen_total_load(
-        year=2024,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+   client = BPAClient()
 
-    # Operating reserves
-    client.get_reserves_deployed(
-        year=2024,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+   # Wind generation and total load
+   client.get_wind_gen_total_load(
+       year=2024,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
-    # Outages
-    client.get_outages(
-        year=2024,
-        start_date=date(2024, 1, 1),
-        end_date=date(2024, 1, 31)
-    )
+   # Operating reserves
+   client.get_reserves_deployed(
+       year=2024,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
-    client.cleanup()
+   # Outages
+   client.get_outages(
+       year=2024,
+       start_date=date(2024, 1, 1),
+       end_date=date(2024, 1, 31)
+   )
 
+   client.cleanup()
 
 PJM Client
 ----------
@@ -387,39 +387,39 @@ PJM Client
 Setup
 ~~~~~
 
-.. code-block:: text
-    from lib.iso.pjm import PJMClient, PJMConfig
+.. code-block:: python
 
-    # Load from config
-    config = PJMConfig.from_ini_file()
-    client = PJMClient(config)
+   from lib.iso.pjm import PJMClient, PJMConfig
 
-    # Or specify directly
-    config = PJMConfig(api_key='your-api-key')
-    client = PJMClient(config)
+   # Load from config
+   config = PJMConfig.from_ini_file()
+   client = PJMClient(config)
 
+   # Or specify directly
+   config = PJMConfig(api_key='your-api-key')
+   client = PJMClient(config)
 
 LMP Data
 ~~~~~~~~
 
-.. code-block:: text
-    # Day-ahead hourly LMP
-    client.get_lmp(
-        lmp_type='da_hourly',
-        start_date=date(2024, 1, 1),
-        duration=7,
-        pnode_id=51288  # Optional: specific node
-    )
+.. code-block:: python
 
-    # Real-time 5-minute LMP
-    client.get_lmp(
-        lmp_type='rt_5min',
-        start_date=date(2024, 1, 1),
-        duration=1  # Use shorter duration for 5-min data
-    )
+   # Day-ahead hourly LMP
+   client.get_lmp(
+       lmp_type='da_hourly',
+       start_date=date(2024, 1, 1),
+       duration=7,
+       pnode_id=51288  # Optional: specific node
+   )
 
-    client.cleanup()
+   # Real-time 5-minute LMP
+   client.get_lmp(
+       lmp_type='rt_5min',
+       start_date=date(2024, 1, 1),
+       duration=1  # Use shorter duration for 5-min data
+   )
 
+   client.cleanup()
 
 ISO-NE Client
 -------------
@@ -427,25 +427,25 @@ ISO-NE Client
 Basic Usage
 ~~~~~~~~~~~
 
-.. code-block:: text
-    from lib.iso.isone import ISONEClient
+.. code-block:: python
 
-    client = ISONEClient()
+   from lib.iso.isone import ISONEClient
 
-    # Day-ahead hourly LMP
-    paths = client.get_hourly_lmp(
-        start_date=date(2024, 1, 1),
-        end_date_exclusive=date(2024, 2, 1),
-        market='da',
-        report='final'
-    )
+   client = ISONEClient()
 
-    # 5-minute regulation prices
-    paths = client.get_5min_regulation_prices(
-        start_date=date(2024, 1, 1),
-        end_date_exclusive=date(2024, 2, 1)
-    )
+   # Day-ahead hourly LMP
+   paths = client.get_hourly_lmp(
+       start_date=date(2024, 1, 1),
+       end_date_exclusive=date(2024, 2, 1),
+       market='da',
+       report='final'
+   )
 
+   # 5-minute regulation prices
+   paths = client.get_5min_regulation_prices(
+       start_date=date(2024, 1, 1),
+       end_date_exclusive=date(2024, 2, 1)
+   )
 
 Weather Client
 --------------
@@ -453,22 +453,22 @@ Weather Client
 Download Weather Data
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from lib.weather.client import WeatherClient
+.. code-block:: python
 
-    client = WeatherClient()
+   from lib.weather.client import WeatherClient
 
-    # Download weather data (interactive station selection)
-    client.download_weather_data(
-        state='CA',
-        start_date=date(2024, 1, 1),
-        duration=30,
-        interactive=True
-    )
+   client = WeatherClient()
 
-    # Download solar data
-    client.download_solar_data(year=2024)
+   # Download weather data (interactive station selection)
+   client.download_weather_data(
+       state='CA',
+       start_date=date(2024, 1, 1),
+       duration=30,
+       interactive=True
+   )
 
+   # Download solar data
+   client.download_solar_data(year=2024)
 
 Advanced Patterns
 -----------------
@@ -476,260 +476,262 @@ Advanced Patterns
 Multi-ISO Download
 ~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from datetime import date
-    from lib.iso.caiso import CAISOClient, Market as CAISOMarket
-    from lib.iso.miso import MISOClient, MISOConfig
-    from lib.iso.nyiso import NYISOClient, NYISOMarket
+.. code-block:: python
 
-    start = date(2024, 1, 1)
-    end = date(2024, 1, 31)
+   from datetime import date
+   from lib.iso.caiso import CAISOClient, Market as CAISOMarket
+   from lib.iso.miso import MISOClient, MISOConfig
+   from lib.iso.nyiso import NYISOClient, NYISOMarket
 
-    # CAISO
-    caiso = CAISOClient()
-    caiso.get_lmp(CAISOMarket.DAM, start, end)
-    caiso.cleanup()
+   start = date(2024, 1, 1)
+   end = date(2024, 1, 31)
 
-    # MISO
-    miso_config = MISOConfig.from_ini_file()
-    miso = MISOClient(miso_config)
-    miso.get_lmp('da_exante', start, 30)
+   # CAISO
+   caiso = CAISOClient()
+   caiso.get_lmp(CAISOMarket.DAM, start, end)
+   caiso.cleanup()
 
-    # NYISO
-    nyiso = NYISOClient()
-    nyiso.get_lbmp(NYISOMarket.DAM, 'zonal', start, 30)
-    nyiso.cleanup()
+   # MISO
+   miso_config = MISOConfig.from_ini_file()
+   miso = MISOClient(miso_config)
+   miso.get_lmp('da_exante', start, 30)
 
-    print("Downloaded data from all three ISOs")
+   # NYISO
+   nyiso = NYISOClient()
+   nyiso.get_lbmp(NYISOMarket.DAM, 'zonal', start, 30)
+   nyiso.cleanup()
 
+   print("Downloaded data from all three ISOs")
 
 Error Handling
 ~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from datetime import date
-    from lib.iso.caiso import CAISOClient, Market
-    import logging
+.. code-block:: python
 
-    # Setup logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
+   from datetime import date
+   from lib.iso.caiso import CAISOClient, Market
+   import logging
 
-    client = CAISOClient()
+   # Setup logging
+   logging.basicConfig(level=logging.INFO)
+   logger = logging.getLogger(__name__)
 
-    try:
-        success = client.get_lmp(
-            market=Market.DAM,
-            start_date=date(2024, 1, 1),
-            end_date=date(2024, 1, 31)
-        )
+   client = CAISOClient()
 
-        if success:
-            logger.info("Download successful")
-        else:
-            logger.error("Download failed")
+   try:
+       success = client.get_lmp(
+           market=Market.DAM,
+           start_date=date(2024, 1, 1),
+           end_date=date(2024, 1, 31)
+       )
 
-    except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
+       if success:
+           logger.info("Download successful")
+       else:
+           logger.error("Download failed")
 
-    finally:
-        client.cleanup()
+   except Exception as e:
+       logger.error(f"Error: {e}", exc_info=True)
 
+   finally:
+       client.cleanup()
 
 Async/Parallel Downloads
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from concurrent.futures import ThreadPoolExecutor
-    from datetime import date
-    from lib.iso.caiso import CAISOClient, Market
+.. code-block:: python
 
-    def download_market(market, start, end):
-        """Download data for a specific market."""
-        client = CAISOClient()
-        try:
-            result = client.get_lmp(market, start, end)
-            return market, result
-        finally:
-            client.cleanup()
+   from concurrent.futures import ThreadPoolExecutor
+   from datetime import date
+   from lib.iso.caiso import CAISOClient, Market
 
-    # Download multiple markets in parallel
-    markets = [Market.DAM, Market.HASP, Market.RTM]
-    start = date(2024, 1, 1)
-    end = date(2024, 1, 31)
+   def download_market(market, start, end):
+       """Download data for a specific market."""
+       client = CAISOClient()
+       try:
+           result = client.get_lmp(market, start, end)
+           return market, result
+       finally:
+           client.cleanup()
 
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [
-            executor.submit(download_market, m, start, end)
-            for m in markets
-        ]
-        results = [f.result() for f in futures]
+   # Download multiple markets in parallel
+   markets = [Market.DAM, Market.HASP, Market.RTM]
+   start = date(2024, 1, 1)
+   end = date(2024, 1, 31)
 
-    for market, success in results:
-        print(f"{market.value}: {'✓' if success else '✗'}")
+   with ThreadPoolExecutor(max_workers=3) as executor:
+       futures = [
+           executor.submit(download_market, m, start, end)
+           for m in markets
+       ]
+       results = [f.result() for f in futures]
 
+   for market, success in results:
+       print(f"{market.value}: {'✓' if success else '✗'}")
 
 Data Processing Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    import pandas as pd
-    from datetime import date
-    from lib.iso.caiso import CAISOClient, Market
+.. code-block:: python
 
-    def download_and_process(start_date, end_date):
-        """Download data and perform basic processing."""
+   import pandas as pd
+   from datetime import date
+   from pathlib import Path
+   from lib.iso.caiso import CAISOClient, Market
 
-        # Download
-        client = CAISOClient()
-        success = client.get_lmp(Market.DAM, start_date, end_date)
-        client.cleanup()
+   def download_and_process(start_date, end_date):
+       """Download data and perform basic processing."""
 
-        if not success:
-            return None
+       # Download
+       client = CAISOClient()
+       success = client.get_lmp(Market.DAM, start_date, end_date)
+       client.cleanup()
 
-        # Load the most recent file
-        data_dir = Path('data/CAISO')
-        files = sorted(data_dir.glob('*PRC_LMP*.csv'))
-        if not files:
-            return None
+       if not success:
+           return None
 
-        # Process
-        df = pd.read_csv(files[-1])
+       # Load the most recent file
+       data_dir = Path('data/CAISO')
+       files = sorted(data_dir.glob('*PRC_LMP*.csv'))
+       if not files:
+           return None
 
-        # Add datetime column
-        df['datetime'] = pd.to_datetime(df['OPR_DATE'])
+       # Process
+       df = pd.read_csv(files[-1])
 
-        # Calculate statistics
-        stats = {
-            'mean_price': df['VALUE'].mean(),
-            'max_price': df['VALUE'].max(),
-            'min_price': df['VALUE'].min(),
-            'date_range': f"{df['OPR_DATE'].min()} to {df['OPR_DATE'].max()}"
-        }
+       # Add datetime column
+       df['datetime'] = pd.to_datetime(df['OPR_DATE'])
 
-        return df, stats
+       # Calculate statistics
+       stats = {
+           'mean_price': df['VALUE'].mean(),
+           'max_price': df['VALUE'].max(),
+           'min_price': df['VALUE'].min(),
+           'date_range': f"{df['OPR_DATE'].min()} to {df['OPR_DATE'].max()}"
+       }
 
-    # Use it
-    df, stats = download_and_process(date(2024, 1, 1), date(2024, 1, 7))
-    if df is not None:
-        print(f"Mean price: ${stats['mean_price']:.2f}/MWh")
+       return df, stats
 
+   # Use it
+   df, stats = download_and_process(date(2024, 1, 1), date(2024, 1, 7))
+   if df is not None:
+       print(f"Mean price: ${stats['mean_price']:.2f}/MWh")
 
 Custom Retry Logic
 ~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    import time
-    from datetime import date
-    from lib.iso.caiso import CAISOClient, Market
+.. code-block:: python
 
-    def download_with_retry(client, market, start, end, max_retries=5):
-        """Download with custom retry logic."""
+   import time
+   from datetime import date
+   from lib.iso.caiso import CAISOClient, Market
 
-        for attempt in range(max_retries):
-            try:
-                success = client.get_lmp(market, start, end)
-                if success:
-                    return True
+   def download_with_retry(client, market, start, end, max_retries=5):
+       """Download with custom retry logic."""
 
-                print(f"Attempt {attempt + 1} failed, retrying...")
-                time.sleep(30 * (attempt + 1))  # Exponential backoff
+       for attempt in range(max_retries):
+           try:
+               success = client.get_lmp(market, start, end)
+               if success:
+                   return True
 
-            except Exception as e:
-                print(f"Error on attempt {attempt + 1}: {e}")
-                if attempt < max_retries - 1:
-                    time.sleep(30 * (attempt + 1))
+               print(f"Attempt {attempt + 1} failed, retrying...")
+               time.sleep(30 * (attempt + 1))  # Exponential backoff
 
-        return False
+           except Exception as e:
+               print(f"Error on attempt {attempt + 1}: {e}")
+               if attempt < max_retries - 1:
+                   time.sleep(30 * (attempt + 1))
 
-    # Use it
-    client = CAISOClient()
-    success = download_with_retry(
-        client, Market.DAM,
-        date(2024, 1, 1), date(2024, 1, 31)
-    )
-    client.cleanup()
+       return False
 
+   # Use it
+   client = CAISOClient()
+   success = download_with_retry(
+       client, Market.DAM,
+       date(2024, 1, 1), date(2024, 1, 31)
+   )
+   client.cleanup()
 
 Best Practices
----------------
+--------------
 
 1. Always Clean Up
 ~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    # Use try-finally
-    client = CAISOClient()
-    try:
-        client.get_lmp(Market.DAM, start, end)
-    finally:
-        client.cleanup()
+.. code-block:: python
 
-    # Or use context manager pattern (if implemented)
-    # with CAISOClient() as client:
-    #     client.get_lmp(Market.DAM, start, end)
+   # Use try-finally
+   client = CAISOClient()
+   try:
+       client.get_lmp(Market.DAM, start, end)
+   finally:
+       client.cleanup()
 
+   # Or use context manager pattern (if implemented)
+   # with CAISOClient() as client:
+   #     client.get_lmp(Market.DAM, start, end)
 
 2. Check Return Values
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    success = client.get_lmp(Market.DAM, start, end)
-    if not success:
-        print("Download failed - check logs")
-        # Handle failure
+.. code-block:: python
 
+   success = client.get_lmp(Market.DAM, start, end)
+   if not success:
+       print("Download failed - check logs")
+       # Handle failure
 
 3. Use Appropriate Date Ranges
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    from datetime import date, timedelta
+.. code-block:: python
 
-    # Don't download future dates
-    today = date.today()
-    safe_date = today - timedelta(days=2)
+   from datetime import date, timedelta
 
-    # Don't use excessively large ranges at once
-    # Break into chunks for better reliability
+   # Don't download future dates
+   today = date.today()
+   safe_date = today - timedelta(days=2)
 
+   # Don't use excessively large ranges at once
+   # Break into chunks for better reliability
 
 4. Configure Logging
 ~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: text
-    import logging
+.. code-block:: python
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler('isodart.log'),
-            logging.StreamHandler()
-        ]
-    )
+   import logging
 
+   logging.basicConfig(
+       level=logging.INFO,
+       format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+       handlers=[
+           logging.FileHandler('isodart.log'),
+           logging.StreamHandler()
+       ]
+   )
 
 Type Hints
 ----------
 
 ISO-DART v2.0 includes type hints for better IDE support:
 
-.. code-block:: text
-    from datetime import date
-    from lib.iso.caiso import CAISOClient, Market
+.. code-block:: python
 
-    # IDE will provide autocomplete and type checking
-    client: CAISOClient = CAISOClient()
-    market: Market = Market.DAM
-    start: date = date(2024, 1, 1)
+   from datetime import date
+   from lib.iso.caiso import CAISOClient, Market
 
-    success: bool = client.get_lmp(market, start, start)
+   # IDE will provide autocomplete and type checking
+   client: CAISOClient = CAISOClient()
+   market: Market = Market.DAM
+   start: date = date(2024, 1, 1)
 
+   success: bool = client.get_lmp(market, start, start)
 
-## Next Steps
+Next Steps
+----------
 
-- See [Command Line Guide](command-line.md) for CLI usage
-- See [Configuration Guide](configuration.md) for advanced config
-- See [Examples](../tutorials/examples/index.rst) for complete examples
+- See :doc:`command-line` for CLI usage
+- See :doc:`configuration` for advanced config
+- See :doc:`../tutorials/examples/index` for complete examples

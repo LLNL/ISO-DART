@@ -375,6 +375,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="python-api.html#type-hints">Type Hints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python-api.html#next-steps">Next Steps</a></li>
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Data Formats Guide</a><ul>
@@ -399,10 +400,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#nyiso-lbmp-data">NYISO LBMP Data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#spp-lmp-data">SPP LMP Data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#spp-operating-reserves">SPP Operating Reserves</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#bpa-data">BPA Data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pjm-lmp-data">PJM LMP Data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#weather-data">Weather Data</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#working-with-data">Working with Data</a><ul>
@@ -604,6 +601,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="python-api.html#type-hints">Type Hints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-api.html#next-steps">Next Steps</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data Formats Guide</a><ul>
@@ -628,10 +626,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#nyiso-lbmp-data">NYISO LBMP Data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#spp-lmp-data">SPP LMP Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#spp-operating-reserves">SPP Operating Reserves</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#bpa-data">BPA Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pjm-lmp-data">PJM LMP Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#weather-data">Weather Data</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#working-with-data">Working with Data</a><ul>
@@ -1156,257 +1150,577 @@
 </section>
 <section id="general-csv-format">
 <h2>General CSV Format<a class="headerlink" href="#general-csv-format" title="Link to this heading"></a></h2>
-<p>All CSV files have:
-- Header row with column names
-- UTF-8 encoding
-- Comma-separated values
-- ISO-8601 date/time formats where applicable</p>
+<p>All CSV files have:</p>
+<ul class="simple">
+<li><p>Header row with column names</p></li>
+<li><p>UTF-8 encoding</p></li>
+<li><p>Comma-separated values</p></li>
+<li><p>ISO-8601 date/time formats where applicable</p></li>
+</ul>
 </section>
 <section id="file-naming-conventions">
 <h2>File Naming Conventions<a class="headerlink" href="#file-naming-conventions" title="Link to this heading"></a></h2>
 <section id="caiso">
 <h3>CAISO<a class="headerlink" href="#caiso" title="Link to this heading"></a></h3>
+<p>Format: <code class="docutils literal notranslate"><span class="pre">{start_date}_to_{end_date}_{query_name}_{data_item}.csv</span></code></p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_SLD_FCST_CAISO_forecast.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv</span></code></p></li>
+</ul>
 </section>
 <section id="miso">
 <h3>MISO<a class="headerlink" href="#miso" title="Link to this heading"></a></h3>
+<p>Format: <code class="docutils literal notranslate"><span class="pre">miso_{data_type}_{date}.csv</span></code></p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">miso_da_exante_lmp_2024-01-01.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">miso_fuel_mix_2024-01-01.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">miso_rt_actual_load_2024-01-01.csv</span></code></p></li>
+</ul>
 </section>
 <section id="nyiso">
 <h3>NYISO<a class="headerlink" href="#nyiso" title="Link to this heading"></a></h3>
+<p>Format: <code class="docutils literal notranslate"><span class="pre">{start_date}_to_{end_date}_{dataid}_{aggregation}.csv</span></code></p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_damlbmp_zone.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_rtfuelmix.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_pal.csv</span></code></p></li>
+</ul>
 </section>
 <section id="spp">
 <h3>SPP<a class="headerlink" href="#spp" title="Link to this heading"></a></h3>
+<p>Format: <code class="docutils literal notranslate"><span class="pre">{start_date}_to_{end_date}_SPP_{market}_{data_type}_{location_type}.csv</span></code></p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_SPP_DA_LMP_SL.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_SPP_RTBM_MCP.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">20240101_to_20240131_SPP_Operating_Reserves.csv</span></code></p></li>
+</ul>
 </section>
 <section id="bpa">
 <h3>BPA<a class="headerlink" href="#bpa" title="Link to this heading"></a></h3>
+<p>Format: <code class="docutils literal notranslate"><span class="pre">{year}_BPA_{data_type}.csv</span></code></p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">2024_BPA_Wind_Generation_Total_Load.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2024_BPA_Reserves_Deployed.csv</span></code></p></li>
+</ul>
 </section>
 <section id="pjm">
 <h3>PJM<a class="headerlink" href="#pjm" title="Link to this heading"></a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{start_date}_to_{end_date}_{endpoint}.csv
-
-
-Examples:
-
-01-01-2024_to_01-31-2024_da_hrl_lmps.csv
-01-01-2024_to_01-31-2024_hrl_load_metered.csv
-</pre></div>
-</div>
+<p>Format: <code class="docutils literal notranslate"><span class="pre">{start_date}_to_{end_date}_{endpoint}.csv</span></code></p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">01-01-2024_to_01-31-2024_da_hrl_lmps.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">01-01-2024_to_01-31-2024_hrl_load_metered.csv</span></code></p></li>
+</ul>
 </section>
 <section id="weather">
 <h3>Weather<a class="headerlink" href="#weather" title="Link to this heading"></a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{start_date}_to_{end_date}_{station_name}_{state}.csv
-
-
-Examples:
-
-2024-01-01_to_2024-01-31_San_Francisco_International_Airport_CA.csv
-</pre></div>
-</div>
+<p>Format: <code class="docutils literal notranslate"><span class="pre">{start_date}_to_{end_date}_{station_name}_{state}.csv</span></code></p>
+<p>Examples:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">2024-01-01_to_2024-01-31_San_Francisco_International_Airport_CA.csv</span></code></p></li>
+</ul>
 </section>
 </section>
 <section id="data-schemas">
 <h2>Data Schemas<a class="headerlink" href="#data-schemas" title="Link to this heading"></a></h2>
 <section id="caiso-lmp-data">
 <h3>CAISO LMP Data<a class="headerlink" href="#caiso-lmp-data" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_PRC_LMP_*.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">*_PRC_LMP_*.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">INTERVALSTARTTIME_GMT</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>Interval start (GMT)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01T08:00:00Z</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">INTERVALENDTIME_GMT</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>Interval end (GMT)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01T09:00:00Z</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">OPR_DATE</span></code></p></td>
+<td><p>date</p></td>
+<td><p>Operating date</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">INTERVAL_NUM</span></code></p></td>
+<td><p>integer</p></td>
+<td><p>Hour ending (1-24)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NODE_ID_XML</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Node ID (XML format)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TH_NP15_GEN-APND</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NODE_ID</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Node ID</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NP15</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NODE</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Node name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NP15_GEN</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MARKET_RUN_ID</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Market type</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DAM</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DATA_ITEM</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Data item identifier</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TH_NP15_GEN-APND</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">VALUE</span></code></p></td>
+<td><p>float</p></td>
+<td><p>LMP value ($/MWh)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">32.45</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MLC</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Marginal Loss Component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.23</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MCC</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Marginal Congestion Component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.12</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sample Data:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC
+2024-01-01,1,TH_NP15_GEN-APND,32.45,0.23,1.12
+2024-01-01,2,TH_NP15_GEN-APND,29.87,-0.45,0.89
+</pre></div>
 </div>
-<p><a href="#id6"><span class="problematic" id="id7">|--------|</span></a>——<a href="#id8"><span class="problematic" id="id9">|-------------|</span></a>———|
-| <cite>INTERVALSTARTTIME_GMT</cite> | datetime | Interval start (GMT) | 2024-01-01T08:00:00Z |
-| <cite>INTERVALENDTIME_GMT</cite> | datetime | Interval end (GMT) | 2024-01-01T09:00:00Z |
-| <cite>OPR_DATE</cite> | date | Operating date | 2024-01-01 |
-| <cite>INTERVAL_NUM</cite> | integer | Hour ending (1-24) | 1 |
-| <cite>NODE_ID_XML</cite> | string | Node ID (XML format) | TH_NP15_GEN-APND |
-| <cite>NODE_ID</cite> | string | Node ID | NP15 |
-| <cite>NODE</cite> | string | Node name | NP15_GEN |
-| <cite>MARKET_RUN_ID</cite> | string | Market type | DAM |
-| <cite>DATA_ITEM</cite> | string | Data item identifier | TH_NP15_GEN-APND |
-| <cite>VALUE</cite> | float | LMP value ($/MWh) | 32.45 |
-| <cite>MLC</cite> | float | Marginal Loss Component | 0.23 |
-| <cite>MCC</cite> | float | Marginal Congestion Component | 1.12 |</p>
-<p><strong>Sample Data:</strong>
-<code class="docutils literal notranslate"><span class="pre">`csv</span>
-<span class="pre">OPR_DATE,INTERVAL_NUM,DATA_ITEM,VALUE,MLC,MCC</span>
-<span class="pre">2024-01-01,1,TH_NP15_GEN-APND,32.45,0.23,1.12</span>
-<span class="pre">2024-01-01,2,TH_NP15_GEN-APND,29.87,-0.45,0.89</span>
-<span class="pre">`</span></code></p>
 </section>
 <section id="caiso-load-forecast">
 <h3>CAISO Load Forecast<a class="headerlink" href="#caiso-load-forecast" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_SLD_FCST_*.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id10"><span class="problematic" id="id11">|--------|</span></a>——<a href="#id12"><span class="problematic" id="id13">|-------------|</span></a>———|
-| <cite>INTERVALSTARTTIME_GMT</cite> | datetime | Interval start | 2024-01-01T08:00:00Z |
-| <cite>OPR_DATE</cite> | date | Operating date | 2024-01-01 |
-| <cite>INTERVAL_NUM</cite> | integer | Hour ending | 1 |
-| <cite>TAC_AREA_NAME</cite> | string | Area name | CAISO |
-| <cite>MARKET_RUN_ID</cite> | string | Market type | DAM |
-| <cite>VALUE</cite> | float | Load (MW) | 28500.0 |</p>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">*_SLD_FCST_*.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">INTERVALSTARTTIME_GMT</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>Interval start</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01T08:00:00Z</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OPR_DATE</span></code></p></td>
+<td><p>date</p></td>
+<td><p>Operating date</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">INTERVAL_NUM</span></code></p></td>
+<td><p>integer</p></td>
+<td><p>Hour ending</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TAC_AREA_NAME</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Area name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CAISO</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MARKET_RUN_ID</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Market type</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DAM</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">VALUE</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Load (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">28500.0</span></code></p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="caiso-wind-solar-summary">
 <h3>CAISO Wind/Solar Summary<a class="headerlink" href="#caiso-wind-solar-summary" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_ENE_WIND_SOLAR_SUMMARY_*.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id14"><span class="problematic" id="id15">|--------|</span></a>——<a href="#id16"><span class="problematic" id="id17">|-------------|</span></a>———|
-| <cite>INTERVALSTARTTIME_GMT</cite> | datetime | Interval start | 2024-01-01T08:00:00Z |
-| <cite>OPR_DATE</cite> | date | Operating date | 2024-01-01 |
-| <cite>INTERVAL_NUM</cite> | integer | 5-min interval (1-288) | 97 |
-| <cite>DATA_ITEM</cite> | string | Data type | WIND_TOTAL_GEN_MW |
-| <cite>VALUE</cite> | float | Generation (MW) | 2450.0 |</p>
-<p><strong>Available DATA_ITEM values:</strong>
-- <cite>WIND_TOTAL_GEN_MW</cite> - Wind generation
-- <cite>SOLAR_TOTAL_GEN_MW</cite> - Solar generation
-- <cite>WIND_FORECAST_MW</cite> - Wind forecast
-- <cite>SOLAR_FORECAST_MW</cite> - Solar forecast</p>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">*_ENE_WIND_SOLAR_SUMMARY_*.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">INTERVALSTARTTIME_GMT</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>Interval start</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01T08:00:00Z</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OPR_DATE</span></code></p></td>
+<td><p>date</p></td>
+<td><p>Operating date</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">INTERVAL_NUM</span></code></p></td>
+<td><p>integer</p></td>
+<td><p>5-min interval (1-288)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">97</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DATA_ITEM</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Data type</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WIND_TOTAL_GEN_MW</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">VALUE</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2450.0</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Available DATA_ITEM values:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">WIND_TOTAL_GEN_MW</span></code> - Wind generation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOLAR_TOTAL_GEN_MW</span></code> - Solar generation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WIND_FORECAST_MW</span></code> - Wind forecast</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOLAR_FORECAST_MW</span></code> - Solar forecast</p></li>
+</ul>
 </section>
 <section id="miso-lmp-data">
 <h3>MISO LMP Data<a class="headerlink" href="#miso-lmp-data" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>miso_*_lmp_*.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id18"><span class="problematic" id="id19">|--------|</span></a>——<a href="#id20"><span class="problematic" id="id21">|-------------|</span></a>———|
-| <cite>interval</cite> | datetime | Timestamp | 2024-01-01T00:00:00Z |
-| <cite>node</cite> | string | Pricing node | ALTW.WELLS1 |
-| <cite>lmp</cite> | float | Total LMP ($/MWh) | 25.34 |
-| <cite>mcc</cite> | float | Congestion component | 0.45 |
-| <cite>mlc</cite> | float | Loss component | 0.12 |
-| <cite>value</cite> | float | LMP value | 25.34 |
-| <cite>preliminaryFinal</cite> | string | Data status | Final |</p>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">miso_*_lmp_*.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">interval</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>Timestamp</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01T00:00:00Z</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">node</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Pricing node</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ALTW.WELLS1</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lmp</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Total LMP ($/MWh)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">25.34</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mcc</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Congestion component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.45</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mlc</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Loss component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.12</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">value</span></code></p></td>
+<td><p>float</p></td>
+<td><p>LMP value</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">25.34</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preliminaryFinal</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Data status</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Final</span></code></p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="miso-fuel-mix">
 <h3>MISO Fuel Mix<a class="headerlink" href="#miso-fuel-mix" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>miso_fuel_mix_*.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id22"><span class="problematic" id="id23">|--------|</span></a>——<a href="#id24"><span class="problematic" id="id25">|-------------|</span></a>———|
-| <cite>interval</cite> | datetime | 5-min timestamp | 2024-01-01T00:05:00Z |
-| <cite>fuelType</cite> | string | Fuel type | Coal |
-| <cite>region</cite> | string | MISO region | MISO |
-| <cite>value</cite> | float | Generation (MW) | 8500.0 |</p>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">miso_fuel_mix_*.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">interval</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>5-min timestamp</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01T00:05:00Z</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fuelType</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Fuel type</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Coal</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">region</span></code></p></td>
+<td><p>string</p></td>
+<td><p>MISO region</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MISO</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">value</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8500.0</span></code></p></td>
+</tr>
+</tbody>
+</table>
 <p><strong>Fuel Types:</strong> Coal, Gas, Nuclear, Wind, Solar, Hydro, Other</p>
 </section>
 <section id="nyiso-lbmp-data">
 <h3>NYISO LBMP Data<a class="headerlink" href="#nyiso-lbmp-data" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_damlbmp_zone.csv</cite> or <cite>*_realtime_zone.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id26"><span class="problematic" id="id27">|--------|</span></a>——<a href="#id28"><span class="problematic" id="id29">|-------------|</span></a>———|
-| <cite>Time Stamp</cite> | datetime | Timestamp (ET) | 01/01/2024 00:00:00 |
-| <cite>Name</cite> | string | Zone name | N.Y.C. |
-| <cite>LBMP ($/MWHr)</cite> | float | Total LBMP | 35.67 |
-| <cite>Marginal Cost Losses ($/MWHr)</cite> | float | Loss component | 0.89 |
-| <cite>Marginal Cost Congestion ($/MWHr)</cite> | float | Congestion component | 1.23 |</p>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">*_damlbmp_zone.csv</span></code> or <code class="docutils literal notranslate"><span class="pre">*_realtime_zone.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Time</span> <span class="pre">Stamp</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>Timestamp (ET)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">01/01/2024</span> <span class="pre">00:00:00</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Name</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Zone name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">N.Y.C.</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LBMP</span> <span class="pre">($/MWHr)</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Total LBMP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">35.67</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Marginal</span> <span class="pre">Cost</span> <span class="pre">Losses</span> <span class="pre">($/MWHr)</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Loss component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.89</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Marginal</span> <span class="pre">Cost</span> <span class="pre">Congestion</span> <span class="pre">($/MWHr)</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Congestion component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.23</span></code></p></td>
+</tr>
+</tbody>
+</table>
 <p><strong>Zone Names:</strong> CAPITL, CENTRL, DUNWOD, GENESE, H.Q, HUD VL, LONGIL, MHK VL, MILLWD, N.Y.C., NORTH, O.H., PJM, WEST</p>
 </section>
 <section id="nyiso-fuel-mix">
 <h3>NYISO Fuel Mix<a class="headerlink" href="#nyiso-fuel-mix" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_rtfuelmix.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id30"><span class="problematic" id="id31">|--------|</span></a>——<a href="#id32"><span class="problematic" id="id33">|-------------|</span></a>———|
-| <cite>Time Stamp</cite> | datetime | 5-min timestamp | 01/01/2024 00:05:00 |
-| <cite>Time Zone</cite> | string | Time zone | EST |
-| <cite>Dual Fuel</cite> | float | Generation (MW) | 450.0 |
-| <cite>Natural Gas</cite> | float | Generation (MW) | 8500.0 |
-| <cite>Nuclear</cite> | float | Generation (MW) | 4200.0 |
-| <cite>Other Fossil Fuels</cite> | float | Generation (MW) | 120.0 |
-| <cite>Other Renewables</cite> | float | Generation (MW) | 850.0 |
-| <cite>Wind</cite> | float | Generation (MW) | 1200.0 |
-| <cite>Hydro</cite> | float | Generation (MW) | 2100.0 |</p>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">*_rtfuelmix.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Time</span> <span class="pre">Stamp</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>5-min timestamp</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">01/01/2024</span> <span class="pre">00:05:00</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Time</span> <span class="pre">Zone</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Time zone</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EST</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Dual</span> <span class="pre">Fuel</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">450.0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Natural</span> <span class="pre">Gas</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8500.0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Nuclear</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4200.0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Other</span> <span class="pre">Fossil</span> <span class="pre">Fuels</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">120.0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Other</span> <span class="pre">Renewables</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">850.0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Wind</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1200.0</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Hydro</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Generation (MW)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2100.0</span></code></p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="spp-lmp-data">
 <h3>SPP LMP Data<a class="headerlink" href="#spp-lmp-data" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_SPP_*_LMP_*.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id34"><span class="problematic" id="id35">|--------|</span></a>——<a href="#id36"><span class="problematic" id="id37">|-------------|</span></a>———|
-| <cite>GMTIntervalEnd</cite> | datetime | GMT interval end | 2024-01-01T07:00:00 |
-| <cite>Settlement Location</cite> | string | Location name | KCPL.HSTNS5 |
-| <cite>Pnode</cite> | string | Physical node | KCPL.HSTNS5 |
-| <cite>LMP</cite> | float | Total LMP ($/MWh) | 28.45 |
-| <cite>MLC</cite> | float | Loss component | 0.34 |
-| <cite>MCC</cite> | float | Congestion component | 0.89 |
-| <cite>MEC</cite> | float | Energy component | 27.22 |</p>
-</section>
-<section id="spp-operating-reserves">
-<h3>SPP Operating Reserves<a class="headerlink" href="#spp-operating-reserves" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_SPP_Operating_Reserves.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id38"><span class="problematic" id="id39">|--------|</span></a>——<a href="#id40"><span class="problematic" id="id41">|-------------|</span></a>———|
-| <cite>GMTIntervalEnd</cite> | datetime | 5-min interval end | 2024-01-01T00:05:00 |
-| <cite>Reserve_Type</cite> | string | Reserve product | RegUp |
-| <cite>Requirement_MW</cite> | float | Requirement (MW) | 450.0 |
-| <cite>Cleared_MW</cite> | float | Cleared (MW) | 465.0 |</p>
-<p><strong>Reserve Types:</strong> RegUp, RegDN, Spin, Supp</p>
-</section>
-<section id="bpa-data">
-<h3>BPA Data<a class="headerlink" href="#bpa-data" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_BPA_Wind_Generation_Total_Load.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id42"><span class="problematic" id="id43">|--------|</span></a>——<a href="#id44"><span class="problematic" id="id45">|-------------|</span></a>———|
-| <cite>Date</cite> | date | Operating date | 1/1/2024 |
-| <cite>Hour</cite> | integer | Hour ending | 1 |
-| <cite>Wind</cite> | float | Wind generation (MW) | 3450.0 |
-| <cite>Load</cite> | float | Total load (MW) | 8200.0 |</p>
-</section>
-<section id="pjm-lmp-data">
-<h3>PJM LMP Data<a class="headerlink" href="#pjm-lmp-data" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_da_hrl_lmps.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id46"><span class="problematic" id="id47">|--------|</span></a>——<a href="#id48"><span class="problematic" id="id49">|-------------|</span></a>———|
-| <cite>datetime_beginning_ept</cite> | datetime | Hour beginning (EPT) | 01/01/2024 00:00 |
-| <cite>pnode_id</cite> | integer | Pricing node ID | 51288 |
-| <cite>pnode_name</cite> | string | Node name | AECO-1 |
-| <cite>voltage</cite> | string | Voltage level | 500 |
-| <cite>equipment</cite> | string | Equipment type | ZONE |
-| <cite>type</cite> | string | Node type | ZONE |
-| <cite>zone</cite> | string | Zone name | AECO |
-| <cite>total_lmp_ept</cite> | float | Total LMP ($/MWh) | 32.45 |
-| <cite>congestion_price_ept</cite> | float | Congestion ($/MWh) | 1.23 |
-| <cite>marginal_loss_price_ept</cite> | float | Loss ($/MWh) | 0.67 |
-| <cite>system_energy_price_ept</cite> | float | Energy ($/MWh) | 30.55 |
-| <cite>row_is_current</cite> | string | Current flag | True |</p>
-</section>
-<section id="weather-data">
-<h3>Weather Data<a class="headerlink" href="#weather-data" title="Link to this heading"></a></h3>
-<p><strong>File Pattern:</strong> <cite>*_{station}_{state}.csv</cite></p>
-<div class="line-block">
-<div class="line">Column | Type | Description | Example |</div>
-</div>
-<p><a href="#id50"><span class="problematic" id="id51">|--------|</span></a>——<a href="#id52"><span class="problematic" id="id53">|-------------|</span></a>———|
-| <cite>time</cite> | datetime | Hourly timestamp | 2024-01-01 00:00:00 |
-| <cite>temperature</cite> | float | Temperature (°F) | 45.3 |
-| <cite>dew_point</cite> | float | Dew point (°F) | 38.2 |
-| <cite>relative_humidity</cite> | float | Humidity (%) | 75.0 |
-| <cite>precipitation</cite> | float | Precip (inches) | 0.02 |
-| <cite>wind_speed</cite> | float | Wind speed (mph) | 12.5 |
-| <cite>wind_dir</cite> | float | Wind direction (degrees) | 225.0 |
-| <cite>air_pressure</cite> | float | Pressure (inHg) | 30.15 |
-| <cite>weather_condition</cite> | string | Condition | Cloudy |</p>
+<p><strong>File Pattern:</strong> <code class="docutils literal notranslate"><span class="pre">*_SPP_*_LMP_*.csv</span></code></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Example</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GMTIntervalEnd</span></code></p></td>
+<td><p>datetime</p></td>
+<td><p>GMT interval end</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2024-01-01T07:00:00</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Settlement</span> <span class="pre">Location</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Location name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">KCPL.HSTNS5</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Pnode</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Physical node</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">KCPL.HSTNS5</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LMP</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Total LMP ($/MWh)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">28.45</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MLC</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Loss component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.34</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MCC</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Congestion component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.89</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MEC</span></code></p></td>
+<td><p>float</p></td>
+<td><p>Energy component</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">27.22</span></code></p></td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 <section id="working-with-data">
 <h2>Working with Data<a class="headerlink" href="#working-with-data" title="Link to this heading"></a></h2>
 <section id="loading-in-python">
 <h3>Loading in Python<a class="headerlink" href="#loading-in-python" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># CAISO LMP</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+
+<span class="c1"># MISO with datetime index</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/MISO/miso_da_exante_lmp_2024-01-01.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;interval&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;interval&#39;</span><span class="p">])</span>
+<span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;interval&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Weather data</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/weather/2024-01-01_to_2024-01-31_San_Francisco_CA.csv&#39;</span><span class="p">,</span>
+                 <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="loading-in-r">
 <h3>Loading in R<a class="headerlink" href="#loading-in-r" title="Link to this heading"></a></h3>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># CAISO LMP</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">readr</span><span class="p">)</span>
+<span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="s">&#39;data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="o">$</span><span class="n">OPR_DATE</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.Date</span><span class="p">(</span><span class="n">df</span><span class="o">$</span><span class="n">OPR_DATE</span><span class="p">)</span>
+
+<span class="c1"># MISO</span>
+<span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="s">&#39;data/MISO/miso_da_exante_lmp_2024-01-01.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="o">$</span><span class="n">interval</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.POSIXct</span><span class="p">(</span><span class="n">df</span><span class="o">$</span><span class="n">interval</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="excel-import">
 <h3>Excel Import<a class="headerlink" href="#excel-import" title="Link to this heading"></a></h3>
@@ -1420,12 +1734,12 @@ Examples:
 </section>
 <section id="database-import">
 <h3>Database Import<a class="headerlink" href="#database-import" title="Link to this heading"></a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>-- PostgreSQL
-COPY caiso_lmp FROM &#39;/path/to/file.csv&#39; DELIMITER &#39;,&#39; CSV HEADER;
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="c1">-- PostgreSQL</span>
+<span class="k">COPY</span><span class="w"> </span><span class="n">caiso_lmp</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="s1">&#39;/path/to/file.csv&#39;</span><span class="w"> </span><span class="k">DELIMITER</span><span class="w"> </span><span class="s1">&#39;,&#39;</span><span class="w"> </span><span class="n">CSV</span><span class="w"> </span><span class="n">HEADER</span><span class="p">;</span>
 
--- SQLite
-.mode csv
-.import data/CAISO/file.csv caiso_lmp
+<span class="c1">-- SQLite</span>
+<span class="p">.</span><span class="k">mode</span><span class="w"> </span><span class="n">csv</span>
+<span class="p">.</span><span class="n">import</span><span class="w"> </span><span class="k">data</span><span class="o">/</span><span class="n">CAISO</span><span class="o">/</span><span class="n">file</span><span class="p">.</span><span class="n">csv</span><span class="w"> </span><span class="n">caiso_lmp</span>
 </pre></div>
 </div>
 </section>
@@ -1434,12 +1748,35 @@ COPY caiso_lmp FROM &#39;/path/to/file.csv&#39; DELIMITER &#39;,&#39; CSV HEADER
 <h2>Data Quality Checks<a class="headerlink" href="#data-quality-checks" title="Link to this heading"></a></h2>
 <section id="validate-date-ranges">
 <h3>Validate Date Ranges<a class="headerlink" href="#validate-date-ranges" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;your_file.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+
+<span class="c1"># Check for gaps</span>
+<span class="n">date_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
+<span class="n">missing_dates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">date_range</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+<span class="k">if</span> <span class="n">missing_dates</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing dates: </span><span class="si">{</span><span class="n">missing_dates</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="check-for-nulls">
 <h3>Check for Nulls<a class="headerlink" href="#check-for-nulls" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">null_counts</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">null_counts</span><span class="p">[</span><span class="n">null_counts</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
 </section>
 <section id="validate-intervals">
 <h3>Validate Intervals<a class="headerlink" href="#validate-intervals" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check hourly data has 24 intervals per day</span>
+<span class="n">intervals_per_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">)[</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+<span class="n">irregular_days</span> <span class="o">=</span> <span class="n">intervals_per_day</span><span class="p">[</span><span class="n">intervals_per_day</span> <span class="o">!=</span> <span class="mi">24</span><span class="p">]</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">irregular_days</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Irregular days: </span><span class="si">{</span><span class="n">irregular_days</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="time-zones">
@@ -1484,8 +1821,8 @@ COPY caiso_lmp FROM &#39;/path/to/file.csv&#39; DELIMITER &#39;,&#39; CSV HEADER
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>See [Python API Guide](python-api.md) for data processing examples</p></li>
-<li><p>See [Tutorials](../tutorials/examples/index.rst) for analysis examples</p></li>
+<li><p>See <a class="reference internal" href="python-api.html"><span class="doc">Python API Guide</span></a> for data processing examples</p></li>
+<li><p>See <a class="reference internal" href="../tutorials/examples/index.html"><span class="doc">Analysis Examples</span></a> for analysis examples</p></li>
 </ul>
 </section>
 </section>

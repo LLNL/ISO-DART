@@ -375,6 +375,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#type-hints">Type Hints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="data-formats.html">Data Formats Guide</a><ul>
@@ -399,10 +400,6 @@
 <li class="toctree-l4"><a class="reference internal" href="data-formats.html#nyiso-lbmp-data">NYISO LBMP Data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="data-formats.html#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
 <li class="toctree-l4"><a class="reference internal" href="data-formats.html#spp-lmp-data">SPP LMP Data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="data-formats.html#spp-operating-reserves">SPP Operating Reserves</a></li>
-<li class="toctree-l4"><a class="reference internal" href="data-formats.html#bpa-data">BPA Data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="data-formats.html#pjm-lmp-data">PJM LMP Data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="data-formats.html#weather-data">Weather Data</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="data-formats.html#working-with-data">Working with Data</a><ul>
@@ -604,6 +601,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#type-hints">Type Hints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="data-formats.html">Data Formats Guide</a><ul>
@@ -628,10 +626,6 @@
 <li class="toctree-l3"><a class="reference internal" href="data-formats.html#nyiso-lbmp-data">NYISO LBMP Data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data-formats.html#nyiso-fuel-mix">NYISO Fuel Mix</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data-formats.html#spp-lmp-data">SPP LMP Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="data-formats.html#spp-operating-reserves">SPP Operating Reserves</a></li>
-<li class="toctree-l3"><a class="reference internal" href="data-formats.html#bpa-data">BPA Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="data-formats.html#pjm-lmp-data">PJM LMP Data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="data-formats.html#weather-data">Weather Data</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="data-formats.html#working-with-data">Working with Data</a><ul>
@@ -1156,133 +1150,700 @@
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Use as a library (recommended)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;/path/to/ISO-DART&#39;</span><span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.miso</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISOClient</span><span class="p">,</span> <span class="n">MISOConfig</span>
+<span class="c1"># ... etc</span>
+
+<span class="c1"># Option 2: Install as package (future)</span>
+<span class="c1"># pip install isodart</span>
+</pre></div>
+</div>
 </section>
 <section id="basic-usage-pattern">
 <h2>Basic Usage Pattern<a class="headerlink" href="#basic-usage-pattern" title="Link to this heading"></a></h2>
 <p>All ISO clients follow a similar pattern:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+
+<span class="c1"># 1. Import the client</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+
+<span class="c1"># 2. Create client instance</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+
+<span class="c1"># 3. Download data</span>
+<span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># 4. Clean up</span>
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 <section id="caiso-client">
 <h2>CAISO Client<a class="headerlink" href="#caiso-client" title="Link to this heading"></a></h2>
 <section id="basic-lmp-download">
 <h3>Basic LMP Download<a class="headerlink" href="#basic-lmp-download" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+
+<span class="c1"># Initialize client</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+
+<span class="c1"># Download Day-Ahead LMP</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Download Real-Time LMP</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">RTM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 <section id="available-markets">
 <h3>Available Markets<a class="headerlink" href="#available-markets" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">Market</span>
+
+<span class="n">Market</span><span class="o">.</span><span class="n">DAM</span>      <span class="c1"># Day-Ahead Market</span>
+<span class="n">Market</span><span class="o">.</span><span class="n">HASP</span>     <span class="c1"># Hour-Ahead Scheduling Process</span>
+<span class="n">Market</span><span class="o">.</span><span class="n">RTM</span>      <span class="c1"># Real-Time Market</span>
+<span class="n">Market</span><span class="o">.</span><span class="n">RTPD</span>     <span class="c1"># Real-Time Pre-Dispatch</span>
+<span class="n">Market</span><span class="o">.</span><span class="n">RUC</span>      <span class="c1"># Residual Unit Commitment</span>
+<span class="n">Market</span><span class="o">.</span><span class="n">TWO_DA</span>   <span class="c1"># Two Day-Ahead</span>
+<span class="n">Market</span><span class="o">.</span><span class="n">SEVEN_DA</span> <span class="c1"># Seven Day-Ahead</span>
+</pre></div>
+</div>
 </section>
 <section id="load-forecasts">
 <h3>Load Forecasts<a class="headerlink" href="#load-forecasts" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Day-Ahead forecast</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_load_forecast</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># 7-Day forecast</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_load_forecast</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">SEVEN_DA</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="renewable-generation">
 <h3>Renewable Generation<a class="headerlink" href="#renewable-generation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Wind and solar summary</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_wind_solar_summary</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="ancillary-services">
 <h3>Ancillary Services<a class="headerlink" href="#ancillary-services" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># AS prices</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_ancillary_services_prices</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># AS requirements</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_ancillary_services_requirements</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
+    <span class="n">anc_type</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span><span class="p">,</span>  <span class="c1"># or &#39;RU&#39;, &#39;RD&#39;, &#39;SR&#39;, &#39;NR&#39;</span>
+    <span class="n">anc_region</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="custom-configuration">
 <h3>Custom Configuration<a class="headerlink" href="#custom-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">CAISOConfig</span>
+
+<span class="c1"># Custom config</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">CAISOConfig</span><span class="p">(</span>
+    <span class="n">data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_data/CAISO&#39;</span><span class="p">),</span>
+    <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+    <span class="n">retry_delay</span><span class="o">=</span><span class="mi">10</span>
+<span class="p">)</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="miso-client">
 <h2>MISO Client<a class="headerlink" href="#miso-client" title="Link to this heading"></a></h2>
 <section id="setup-with-api-keys">
 <h3>Setup with API Keys<a class="headerlink" href="#setup-with-api-keys" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.miso</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISOClient</span><span class="p">,</span> <span class="n">MISOConfig</span>
+
+<span class="c1"># Load from config file</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">MISOConfig</span><span class="o">.</span><span class="n">from_ini_file</span><span class="p">()</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">MISOClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<span class="c1"># Or specify directly</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">MISOConfig</span><span class="p">(</span>
+    <span class="n">pricing_api_key</span><span class="o">=</span><span class="s1">&#39;your-pricing-key&#39;</span><span class="p">,</span>
+    <span class="n">lgi_api_key</span><span class="o">=</span><span class="s1">&#39;your-lgi-key&#39;</span>
+<span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">MISOClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="lmp-data">
 <h3>LMP Data<a class="headerlink" href="#lmp-data" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+
+<span class="c1"># Day-Ahead ExAnte LMP</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">lmp_type</span><span class="o">=</span><span class="s1">&#39;da_exante&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">node</span><span class="o">=</span><span class="s1">&#39;ALTW.WELLS1&#39;</span>  <span class="c1"># Optional: specific node</span>
+<span class="p">)</span>
+
+<span class="c1"># Save to CSV</span>
+<span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">save_to_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;miso_lmp.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="available-lmp-types">
 <h3>Available LMP Types<a class="headerlink" href="#available-lmp-types" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;da_exante&#39;</span>   <span class="c1"># Day-Ahead ExAnte</span>
+<span class="s1">&#39;da_expost&#39;</span>   <span class="c1"># Day-Ahead ExPost</span>
+<span class="s1">&#39;rt_exante&#39;</span>   <span class="c1"># Real-Time ExAnte</span>
+<span class="s1">&#39;rt_expost&#39;</span>   <span class="c1"># Real-Time ExPost</span>
+</pre></div>
+</div>
 </section>
 <section id="load-and-generation">
 <h3>Load and Generation<a class="headerlink" href="#load-and-generation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Actual load</span>
+<span class="n">load_data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_demand</span><span class="p">(</span>
+    <span class="n">demand_type</span><span class="o">=</span><span class="s1">&#39;rt_actual&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">time_resolution</span><span class="o">=</span><span class="s1">&#39;daily&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Fuel mix</span>
+<span class="n">fuel_data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_fuel_mix</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="c1"># Generation by fuel type</span>
+<span class="n">gen_data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_generation</span><span class="p">(</span>
+    <span class="n">gen_type</span><span class="o">=</span><span class="s1">&#39;rt_fuel_type&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="working-with-miso-data">
 <h3>Working with MISO Data<a class="headerlink" href="#working-with-miso-data" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download and process</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="s1">&#39;da_exante&#39;</span><span class="p">,</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">7</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+    <span class="c1"># Data is a dict: {date: [records]}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloaded data for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> dates&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Save to CSV</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">save_to_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;output.csv&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Or process directly</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+    <span class="n">all_records</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">date_key</span><span class="p">,</span> <span class="n">records</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+            <span class="n">record</span><span class="p">[</span><span class="s1">&#39;query_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">date_key</span>
+            <span class="n">all_records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">all_records</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="nyiso-client">
 <h2>NYISO Client<a class="headerlink" href="#nyiso-client" title="Link to this heading"></a></h2>
 <section id="basic-usage">
 <h3>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.nyiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">NYISOClient</span><span class="p">,</span> <span class="n">NYISOMarket</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">NYISOClient</span><span class="p">()</span>
+
+<span class="c1"># LBMP data</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_lbmp</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">NYISOMarket</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">level</span><span class="o">=</span><span class="s1">&#39;zonal&#39;</span><span class="p">,</span>  <span class="c1"># or &#39;generator&#39;</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="c1"># Load data</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_load_data</span><span class="p">(</span>
+    <span class="n">load_type</span><span class="o">=</span><span class="s1">&#39;actual&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="c1"># Fuel mix</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_fuel_mix</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span>
+<span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="spp-client">
 <h2>SPP Client<a class="headerlink" href="#spp-client" title="Link to this heading"></a></h2>
 <section id="id1">
 <h3>LMP Data<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.spp</span><span class="w"> </span><span class="kn">import</span> <span class="n">SPPClient</span><span class="p">,</span> <span class="n">SPPMarket</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">SPPClient</span><span class="p">()</span>
+
+<span class="c1"># LMP by settlement location</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">SPPMarket</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
+    <span class="n">by_location</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># False for by bus</span>
+<span class="p">)</span>
+
+<span class="c1"># Market clearing prices</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_mcp</span><span class="p">(</span>
+    <span class="n">market</span><span class="o">=</span><span class="n">SPPMarket</span><span class="o">.</span><span class="n">RTBM</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 <section id="load-and-resource-forecasts">
 <h3>Load and Resource Forecasts<a class="headerlink" href="#load-and-resource-forecasts" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Short-term load forecast</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_load_forecast</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
+    <span class="n">forecast_type</span><span class="o">=</span><span class="s1">&#39;stlf&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Medium-term resource (wind + solar) forecast</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_resource_forecast</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
+    <span class="n">forecast_type</span><span class="o">=</span><span class="s1">&#39;mtrf&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="bpa-client">
 <h2>BPA Client<a class="headerlink" href="#bpa-client" title="Link to this heading"></a></h2>
 <section id="historical-data">
 <h3>Historical Data<a class="headerlink" href="#historical-data" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.bpa</span><span class="w"> </span><span class="kn">import</span> <span class="n">BPAClient</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">BPAClient</span><span class="p">()</span>
+
+<span class="c1"># Wind generation and total load</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_wind_gen_total_load</span><span class="p">(</span>
+    <span class="n">year</span><span class="o">=</span><span class="mi">2024</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Operating reserves</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_reserves_deployed</span><span class="p">(</span>
+    <span class="n">year</span><span class="o">=</span><span class="mi">2024</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Outages</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_outages</span><span class="p">(</span>
+    <span class="n">year</span><span class="o">=</span><span class="mi">2024</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="pjm-client">
 <h2>PJM Client<a class="headerlink" href="#pjm-client" title="Link to this heading"></a></h2>
 <section id="setup">
 <h3>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.pjm</span><span class="w"> </span><span class="kn">import</span> <span class="n">PJMClient</span><span class="p">,</span> <span class="n">PJMConfig</span>
+
+<span class="c1"># Load from config</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">PJMConfig</span><span class="o">.</span><span class="n">from_ini_file</span><span class="p">()</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">PJMClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<span class="c1"># Or specify directly</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">PJMConfig</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s1">&#39;your-api-key&#39;</span><span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">PJMClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="id2">
 <h3>LMP Data<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Day-ahead hourly LMP</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">lmp_type</span><span class="o">=</span><span class="s1">&#39;da_hourly&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+    <span class="n">pnode_id</span><span class="o">=</span><span class="mi">51288</span>  <span class="c1"># Optional: specific node</span>
+<span class="p">)</span>
+
+<span class="c1"># Real-time 5-minute LMP</span>
+<span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+    <span class="n">lmp_type</span><span class="o">=</span><span class="s1">&#39;rt_5min&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">1</span>  <span class="c1"># Use shorter duration for 5-min data</span>
+<span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="iso-ne-client">
 <h2>ISO-NE Client<a class="headerlink" href="#iso-ne-client" title="Link to this heading"></a></h2>
 <section id="id3">
 <h3>Basic Usage<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.isone</span><span class="w"> </span><span class="kn">import</span> <span class="n">ISONEClient</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ISONEClient</span><span class="p">()</span>
+
+<span class="c1"># Day-ahead hourly LMP</span>
+<span class="n">paths</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_hourly_lmp</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date_exclusive</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">market</span><span class="o">=</span><span class="s1">&#39;da&#39;</span><span class="p">,</span>
+    <span class="n">report</span><span class="o">=</span><span class="s1">&#39;final&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># 5-minute regulation prices</span>
+<span class="n">paths</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_5min_regulation_prices</span><span class="p">(</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_date_exclusive</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="weather-client">
 <h2>Weather Client<a class="headerlink" href="#weather-client" title="Link to this heading"></a></h2>
 <section id="download-weather-data">
 <h3>Download Weather Data<a class="headerlink" href="#download-weather-data" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lib.weather.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">WeatherClient</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">WeatherClient</span><span class="p">()</span>
+
+<span class="c1"># Download weather data (interactive station selection)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">download_weather_data</span><span class="p">(</span>
+    <span class="n">state</span><span class="o">=</span><span class="s1">&#39;CA&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Download solar data</span>
+<span class="n">client</span><span class="o">.</span><span class="n">download_solar_data</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2024</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="advanced-patterns">
 <h2>Advanced Patterns<a class="headerlink" href="#advanced-patterns" title="Link to this heading"></a></h2>
 <section id="multi-iso-download">
 <h3>Multi-ISO Download<a class="headerlink" href="#multi-iso-download" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span> <span class="k">as</span> <span class="n">CAISOMarket</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.miso</span><span class="w"> </span><span class="kn">import</span> <span class="n">MISOClient</span><span class="p">,</span> <span class="n">MISOConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.nyiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">NYISOClient</span><span class="p">,</span> <span class="n">NYISOMarket</span>
+
+<span class="n">start</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+
+<span class="c1"># CAISO</span>
+<span class="n">caiso</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+<span class="n">caiso</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">CAISOMarket</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+<span class="n">caiso</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+<span class="c1"># MISO</span>
+<span class="n">miso_config</span> <span class="o">=</span> <span class="n">MISOConfig</span><span class="o">.</span><span class="n">from_ini_file</span><span class="p">()</span>
+<span class="n">miso</span> <span class="o">=</span> <span class="n">MISOClient</span><span class="p">(</span><span class="n">miso_config</span><span class="p">)</span>
+<span class="n">miso</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="s1">&#39;da_exante&#39;</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+
+<span class="c1"># NYISO</span>
+<span class="n">nyiso</span> <span class="o">=</span> <span class="n">NYISOClient</span><span class="p">()</span>
+<span class="n">nyiso</span><span class="o">.</span><span class="n">get_lbmp</span><span class="p">(</span><span class="n">NYISOMarket</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="s1">&#39;zonal&#39;</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">nyiso</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Downloaded data from all three ISOs&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="error-handling">
 <h3>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="c1"># Setup logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span>
+        <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+        <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Download successful&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Download failed&quot;</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 <section id="async-parallel-downloads">
 <h3>Async/Parallel Downloads<a class="headerlink" href="#async-parallel-downloads" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">download_market</span><span class="p">(</span><span class="n">market</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download data for a specific market.&quot;&quot;&quot;</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">market</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">market</span><span class="p">,</span> <span class="n">result</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+<span class="c1"># Download multiple markets in parallel</span>
+<span class="n">markets</span> <span class="o">=</span> <span class="p">[</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">Market</span><span class="o">.</span><span class="n">HASP</span><span class="p">,</span> <span class="n">Market</span><span class="o">.</span><span class="n">RTM</span><span class="p">]</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">download_market</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">markets</span>
+    <span class="p">]</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">futures</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">market</span><span class="p">,</span> <span class="n">success</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">market</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;✓&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;✗&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="data-processing-pipeline">
 <h3>Data Processing Pipeline<a class="headerlink" href="#data-processing-pipeline" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">download_and_process</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download data and perform basic processing.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Download</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+    <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">)</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Load the most recent file</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">&#39;data/CAISO&#39;</span><span class="p">)</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;*PRC_LMP*.csv&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Process</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="c1"># Add datetime column</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Calculate statistics</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;mean_price&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+        <span class="s1">&#39;max_price&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+        <span class="s1">&#39;min_price&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+        <span class="s1">&#39;date_range&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">stats</span>
+
+<span class="c1"># Use it</span>
+<span class="n">df</span><span class="p">,</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">download_and_process</span><span class="p">(</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+<span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean price: $</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;mean_price&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/MWh&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="custom-retry-logic">
 <h3>Custom Retry Logic<a class="headerlink" href="#custom-retry-logic" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">download_with_retry</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download with custom retry logic.&quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retries</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">market</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> failed, retrying...&quot;</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">30</span> <span class="o">*</span> <span class="p">(</span><span class="n">attempt</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>  <span class="c1"># Exponential backoff</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error on attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">30</span> <span class="o">*</span> <span class="p">(</span><span class="n">attempt</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="kc">False</span>
+
+<span class="c1"># Use it</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+<span class="n">success</span> <span class="o">=</span> <span class="n">download_with_retry</span><span class="p">(</span>
+    <span class="n">client</span><span class="p">,</span> <span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
+    <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="best-practices">
 <h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
 <section id="always-clean-up">
 <h3>1. Always Clean Up<a class="headerlink" href="#always-clean-up" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use try-finally</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+<span class="c1"># Or use context manager pattern (if implemented)</span>
+<span class="c1"># with CAISOClient() as client:</span>
+<span class="c1">#     client.get_lmp(Market.DAM, start, end)</span>
+</pre></div>
+</div>
 </section>
 <section id="check-return-values">
 <h3>2. Check Return Values<a class="headerlink" href="#check-return-values" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Download failed - check logs&quot;</span><span class="p">)</span>
+    <span class="c1"># Handle failure</span>
+</pre></div>
+</div>
 </section>
 <section id="use-appropriate-date-ranges">
 <h3>3. Use Appropriate Date Ranges<a class="headerlink" href="#use-appropriate-date-ranges" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="c1"># Don&#39;t download future dates</span>
+<span class="n">today</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+<span class="n">safe_date</span> <span class="o">=</span> <span class="n">today</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># Don&#39;t use excessively large ranges at once</span>
+<span class="c1"># Break into chunks for better reliability</span>
+</pre></div>
+</div>
 </section>
 <section id="configure-logging">
 <h3>4. Configure Logging<a class="headerlink" href="#configure-logging" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;isodart.log&#39;</span><span class="p">),</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="type-hints">
 <h2>Type Hints<a class="headerlink" href="#type-hints" title="Link to this heading"></a></h2>
 <p>ISO-DART v2.0 includes type hints for better IDE support:</p>
-<p>## Next Steps</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
+
+<span class="c1"># IDE will provide autocomplete and type checking</span>
+<span class="n">client</span><span class="p">:</span> <span class="n">CAISOClient</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
+<span class="n">market</span><span class="p">:</span> <span class="n">Market</span> <span class="o">=</span> <span class="n">Market</span><span class="o">.</span><span class="n">DAM</span>
+<span class="n">start</span><span class="p">:</span> <span class="n">date</span> <span class="o">=</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">success</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">market</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>See [Command Line Guide](command-line.md) for CLI usage</p></li>
-<li><p>See [Configuration Guide](configuration.md) for advanced config</p></li>
-<li><p>See [Examples](../tutorials/examples/index.rst) for complete examples</p></li>
+<li><p>See <a class="reference internal" href="command-line.html"><span class="doc">Command Line Usage Guide</span></a> for CLI usage</p></li>
+<li><p>See <span class="xref std std-doc">configuration</span> for advanced config</p></li>
+<li><p>See <a class="reference internal" href="../tutorials/examples/index.html"><span class="doc">Analysis Examples</span></a> for complete examples</p></li>
 </ul>
 </section>
 </section>
