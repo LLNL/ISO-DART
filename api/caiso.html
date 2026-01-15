@@ -935,6 +935,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_operating_reserves"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_operating_reserves()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_scheduling_point_tie_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_scheduling_point_tie_prices()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_advisory_demand_forecast"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_advisory_demand_forecast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_curtailed_non_operational_reports()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.cleanup"><code class="docutils literal notranslate"><span class="pre">CAISOClient.cleanup()</span></code></a></li>
 </ul>
 </li>
@@ -1002,6 +1003,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_operating_reserves"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_operating_reserves()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_scheduling_point_tie_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_scheduling_point_tie_prices()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_advisory_demand_forecast"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_advisory_demand_forecast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_curtailed_non_operational_reports()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#lib.iso.caiso.CAISOClient.cleanup"><code class="docutils literal notranslate"><span class="pre">CAISOClient.cleanup()</span></code></a></li>
 </ul>
 </li>
@@ -1362,7 +1364,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>market</strong> (<a class="reference internal" href="#lib.iso.caiso.Market" title="lib.iso.caiso.Market"><em>Market</em></a>) – Market type (DAM, RTPD, or RTD)</p></li>
+<li><p><strong>market</strong> (<a class="reference internal" href="#lib.iso.caiso.Market" title="lib.iso.caiso.Market"><em>Market</em></a>) – Market type (DAM or RTPD)</p></li>
 <li><p><strong>start_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.date" title="(in Python v3.14)"><em>date</em></a>) – Start date</p></li>
 <li><p><strong>end_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.date" title="(in Python v3.14)"><em>date</em></a>) – End date</p></li>
 <li><p><strong>step_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of days per request</p></li>
@@ -1375,6 +1377,23 @@
 <dt class="sig sig-object py" id="lib.iso.caiso.CAISOClient.get_advisory_demand_forecast">
 <span class="sig-name descname"><span class="pre">get_advisory_demand_forecast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lib/iso/caiso.html#CAISOClient.get_advisory_demand_forecast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.iso.caiso.CAISOClient.get_advisory_demand_forecast" title="Link to this definition"></a></dt>
 <dd><p>Get advisory CAISO demand forecast (RTPD).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports">
+<span class="sig-name descname"><span class="pre">get_curtailed_non_operational_reports</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'curtailed_non_operational_generator_reports'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_raw_html</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_html_to_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lib/iso/caiso.html#CAISOClient.get_curtailed_non_operational_reports"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports" title="Link to this definition"></a></dt>
+<dd><p>Download CAISO ‘Curtailed and Non-Operational Generator’ reports.</p>
+<p>Newer reports are posted as .xlsx. Older historical reports were posted as .html.
+This method:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>tries .xlsx first</p></li>
+<li><p>if missing, tries the same filename with .html</p></li>
+<li><p>optionally parses .html into a normalized CSV with report_date/report_kind columns</p></li>
+</ul>
+</div></blockquote>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

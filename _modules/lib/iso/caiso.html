@@ -932,6 +932,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_operating_reserves"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_operating_reserves()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_scheduling_point_tie_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_scheduling_point_tie_prices()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_advisory_demand_forecast"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_advisory_demand_forecast()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_curtailed_non_operational_reports()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.cleanup"><code class="docutils literal notranslate"><span class="pre">CAISOClient.cleanup()</span></code></a></li>
 </ul>
 </li>
@@ -999,6 +1000,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_operating_reserves"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_operating_reserves()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_scheduling_point_tie_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_scheduling_point_tie_prices()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_advisory_demand_forecast"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_advisory_demand_forecast()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_curtailed_non_operational_reports()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.cleanup"><code class="docutils literal notranslate"><span class="pre">CAISOClient.cleanup()</span></code></a></li>
 </ul>
 </li>
@@ -2176,7 +2178,7 @@
 <span class="sd">        Get scheduling point tie prices.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            market: Market type (DAM, RTPD, or RTD)</span>
+<span class="sd">            market: Market type (DAM or RTPD)</span>
 <span class="sd">            start_date: Start date</span>
 <span class="sd">            end_date: End date</span>
 <span class="sd">            step_size: Number of days per request</span>
@@ -2265,6 +2267,175 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No advisory forecast data available for date range&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_looks_like_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resp</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">ctype</span> <span class="o">=</span> <span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;text/html&quot;</span> <span class="ow">in</span> <span class="n">ctype</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="c1"># sometimes content-type can be generic; sniff the body</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">[:</span><span class="mi">300</span><span class="p">]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&lt;!doctype html&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&lt;html&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_xlsx_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># XLSX is a ZIP; starts with PK</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;PK&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_curtailed_nonop_html</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_bytes</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">report_date</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span> <span class="n">report_kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse legacy CAISO curtailed/non-operational HTML report into a normalized DataFrame.</span>
+
+<span class="sd">        The HTML files (older history) are typically UTF-16 and contain multiple tables,</span>
+<span class="sd">        including decorative header tables. We select the detail table by looking for the expected</span>
+<span class="sd">        &#39;Resource ID&#39;/&#39;Resource Name&#39; columns.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+        <span class="c1"># Decode (older CAISO HTML often comes as UTF-16 with BOM / embedded NULs)</span>
+        <span class="k">if</span> <span class="n">html_bytes</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xff\xfe</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xfe\xff</span><span class="s2">&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">html_bytes</span><span class="p">[:</span><span class="mi">200</span><span class="p">]:</span>
+            <span class="n">html</span> <span class="o">=</span> <span class="n">html_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-16&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">html</span> <span class="o">=</span> <span class="n">html_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+
+        <span class="n">tables</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">html</span><span class="p">))</span>
+
+        <span class="n">detail</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">tbl</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tbl</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+            <span class="c1"># Flatten MultiIndex columns, if any</span>
+            <span class="n">flat</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="n">flat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">flat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+
+            <span class="n">norm</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">flat</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;resource id&quot;</span> <span class="ow">in</span> <span class="n">norm</span> <span class="ow">and</span> <span class="s2">&quot;resource name&quot;</span> <span class="ow">in</span> <span class="n">norm</span><span class="p">:</span>
+                <span class="n">tbl</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">flat</span>
+                <span class="n">detail</span> <span class="o">=</span> <span class="n">tbl</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">detail</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Could not locate detail table in HTML report (expected &#39;Resource ID&#39; columns).&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Basic cleanup</span>
+        <span class="n">detail</span> <span class="o">=</span> <span class="n">detail</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">detail</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
+        <span class="n">detail</span> <span class="o">=</span> <span class="n">detail</span><span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="sa">r</span><span class="s2">&quot;^\s*$&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Coerce numeric columns when present</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Capacity (MW)&quot;</span><span class="p">,</span> <span class="s2">&quot;Curtailed (MW)&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">detail</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">detail</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">detail</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                    <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="o">.</span><span class="n">replace</span><span class="p">({</span><span class="s2">&quot;None&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;nan&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">})</span>
+                <span class="p">)</span>
+                <span class="n">detail</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">detail</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
+
+        <span class="n">detail</span><span class="p">[</span><span class="s2">&quot;report_date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">report_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+        <span class="n">detail</span><span class="p">[</span><span class="s2">&quot;report_kind&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">report_kind</span>
+        <span class="k">return</span> <span class="n">detail</span>
+
+<div class="viewcode-block" id="CAISOClient.get_curtailed_non_operational_reports">
+<a class="viewcode-back" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_curtailed_non_operational_reports</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_date</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span>
+        <span class="n">end_date</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span>
+        <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;both&quot;</span><span class="p">,</span>  <span class="c1"># &quot;am&quot; | &quot;prior&quot; | &quot;both&quot;</span>
+        <span class="n">out_subdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;curtailed_non_operational_generator_reports&quot;</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_raw_html</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">parse_html_to_csv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Download CAISO &#39;Curtailed and Non-Operational Generator&#39; reports.</span>
+
+<span class="sd">        Newer reports are posted as .xlsx. Older historical reports were posted as .html.</span>
+<span class="sd">        This method:</span>
+<span class="sd">          * tries .xlsx first</span>
+<span class="sd">          * if missing, tries the same filename with .html</span>
+<span class="sd">          * optionally parses .html into a normalized CSV with report_date/report_kind columns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="p">(</span><span class="n">kind</span> <span class="ow">or</span> <span class="s2">&quot;both&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;prior&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid kind=</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">. Use am|prior|both&quot;</span><span class="p">)</span>
+
+        <span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;https://www.caiso.com/documents&quot;</span>
+        <span class="n">patterns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}:</span>
+            <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;curtailed-non-operational-generator-am-report-</span><span class="si">{yyyymmdd}</span><span class="s2">.xlsx&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;prior&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}:</span>
+            <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="s2">&quot;prior&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;curtailed-non-operational-generator-prior-trade-date-report-</span><span class="si">{yyyymmdd}</span><span class="s2">.xlsx&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">out_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="n">out_subdir</span>
+        <span class="n">out_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">ok_any</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">start_date</span>
+        <span class="k">while</span> <span class="n">cur</span> <span class="o">&lt;</span> <span class="n">end_date</span><span class="p">:</span>
+            <span class="n">yyyymmdd</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+                <span class="n">xlsx_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pat</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">yyyymmdd</span><span class="o">=</span><span class="n">yyyymmdd</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">xlsx_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.xlsx&quot;</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                        <span class="n">xlsx_url</span><span class="p">,</span>
+                        <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">timeout</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timeout</span><span class="p">),</span>
+                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;iso-dart/2.0 (+https://github.com/...)&quot;</span><span class="p">},</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                        <span class="n">xlsx_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved: </span><span class="si">{</span><span class="n">xlsx_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">ok_any</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">continue</span>
+
+                    <span class="c1"># Fallback: older HTML reports (same name, different extension)</span>
+                    <span class="n">html_url</span> <span class="o">=</span> <span class="n">xlsx_url</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.html&quot;</span>  <span class="c1"># replace .xlsx</span>
+                    <span class="n">html_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.html&quot;</span>
+
+                    <span class="n">r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                        <span class="n">html_url</span><span class="p">,</span>
+                        <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">timeout</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timeout</span><span class="p">),</span>
+                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;iso-dart/2.0 (+https://github.com/...)&quot;</span><span class="p">},</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">r2</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">r2</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">save_raw_html</span><span class="p">:</span>
+                            <span class="n">html_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved: </span><span class="si">{</span><span class="n">html_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">parse_html_to_csv</span><span class="p">:</span>
+                            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_curtailed_nonop_html</span><span class="p">(</span>
+                                <span class="n">r2</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">report_date</span><span class="o">=</span><span class="n">cur</span><span class="p">,</span> <span class="n">report_kind</span><span class="o">=</span><span class="n">label</span>
+                            <span class="p">)</span>
+                            <span class="n">csv_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+                            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parsed &amp; saved: </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                        <span class="n">ok_any</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Missing/failed (xlsx=</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">, html=</span><span class="si">{</span><span class="n">r2</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">xlsx_url</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+
+                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request error for </span><span class="si">{</span><span class="n">xlsx_url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">cur</span> <span class="o">+=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ok_any</span></div>
 
 
 <div class="viewcode-block" id="CAISOClient.cleanup">
