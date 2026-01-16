@@ -732,11 +732,9 @@ class TestNYISODirectCSVDownloads:
         mock_resp.content = b""
 
         # Act
-        with (
-            patch.object(client.session, "get", return_value=mock_resp) as mock_get,
-            patch("time.sleep") as _mock_sleep,
-        ):
-            ok = client._download_csv(url, out_file)
+        with patch.object(client.session, "get", return_value=mock_resp) as mock_get:
+            with patch("time.sleep") as _mock_sleep:
+                ok = client._download_csv(url, out_file)
 
         # Assert
         assert ok is False
@@ -752,13 +750,11 @@ class TestNYISODirectCSVDownloads:
         url = "https://mis.nyiso.com/public/csv/test/test.csv"
         out_file = temp_dir.data_dir / "outages" / "direct" / "file.csv"
 
-        with (
-            patch.object(
-                client.session, "get", side_effect=requests.RequestException("boom")
-            ) as mock_get,
-            patch("time.sleep") as _mock_sleep,
-        ):
-            ok = client._download_csv(url, out_file)
+        with patch.object(
+            client.session, "get", side_effect=requests.RequestException("boom")
+        ) as mock_get:
+            with patch("time.sleep") as _mock_sleep:
+                ok = client._download_csv(url, out_file)
 
         assert ok is False
         assert not out_file.exists()

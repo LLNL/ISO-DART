@@ -1106,39 +1106,62 @@ class CAISOClient:
         return detail
 
     def get_curtailed_non_operational_reports(
-        self,
-        start_date: date,
-        end_date: date,
-        kind: str = "both",  # "am" | "prior" | "both"
-        out_subdir: str = "curtailed_non_operational_generator_reports",
-        timeout: int | None = None,
-        save_raw_html: bool = True,
-        parse_html_to_csv: bool = True,
+            self,
+            start_date: date,
+            end_date: date,
+            kind: str = "both",  # "am" | "prior" | "both"
+            out_subdir: str = "curtailed_non_operational_generator_reports",
+            timeout: int | None = None,
+            save_raw_html: bool = True,
+            parse_html_to_csv: bool = True,
     ) -> bool:
         """
         Download CAISO 'Curtailed and Non-Operational Generator' reports.
 
-        Newer reports are posted as .xlsx. Older historical reports were posted as .html.
-        This method:
-          * tries .xlsx first
-          * if missing, tries the same filename with .html
-          * optionally parses .html into a normalized CSV with report_date/report_kind columns
+        CAISO has changed BOTH:
+          - date token formats in filenames (YYYYMMDD vs YYYY-MM-DD vs mon-dd-yyyy)
+          - the stem (sometimes includes "-and-": "curtailed-and-non-operational-...")
+
+        This method tries multiple stem variants per report + multiple date tokens + .xlsx then .html.
         """
         kind = (kind or "both").lower()
         if kind not in {"am", "prior", "both"}:
             raise ValueError(f"Invalid kind={kind}. Use am|prior|both")
 
         base = "https://www.caiso.com/documents"
-        patterns: list[tuple[str, str]] = []
+
+        # Stem variants: CAISO sometimes includes "-and-" in early June 2024 (and possibly elsewhere).
+        # We try both.
+        def _stem_variants(stem: str) -> list[str]:
+            # If caller already passed the "and" version, still keep both unique variants.
+            variants = [
+                stem.replace("curtailed-and-non-operational", "curtailed-non-operational"),
+                stem.replace("curtailed-non-operational", "curtailed-and-non-operational"),
+            ]
+            # de-dupe preserving order
+            seen = set()
+            out = []
+            for s in variants:
+                if s not in seen:
+                    out.append(s)
+                    seen.add(s)
+            return out
+
+        # Date token variants observed across time
+        def _date_tokens(d: date) -> list[str]:
+            return [
+                d.strftime("%Y%m%d"),  # 20240530
+                d.strftime("%Y-%m-%d"),  # 2024-05-31
+                d.strftime("%b-%d-%Y").lower(),  # jun-01-2024
+            ]
+
+        # Base stems WITHOUT the date token/extension (we append those dynamically).
+        # Note: include one of the stem variants here; _stem_variants() will generate both forms.
+        report_stems: list[tuple[str, str]] = []
         if kind in {"am", "both"}:
-            patterns.append(("am", "curtailed-non-operational-generator-am-report-{yyyymmdd}.xlsx"))
+            report_stems.append(("am", "curtailed-non-operational-generator-am-report-"))
         if kind in {"prior", "both"}:
-            patterns.append(
-                (
-                    "prior",
-                    "curtailed-non-operational-generator-prior-trade-date-report-{yyyymmdd}.xlsx",
-                )
-            )
+            report_stems.append(("prior", "curtailed-non-operational-generator-prior-trade-date-report-"))
 
         out_dir = self.config.data_dir / out_subdir
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -1148,52 +1171,66 @@ class CAISOClient:
         while cur < end_date:
             yyyymmdd = cur.strftime("%Y%m%d")
 
-            for label, pat in patterns:
-                xlsx_url = f"{base}/{pat.format(yyyymmdd=yyyymmdd)}"
+            for label, stem in report_stems:
+                # Stable output names in your filesystem (independent of CAISO’s filename weirdness)
                 xlsx_path = out_dir / f"{label}_{yyyymmdd}.xlsx"
+                html_path = out_dir / f"{label}_{yyyymmdd}.html"
+                csv_path = out_dir / f"{label}_{yyyymmdd}.csv"
 
-                try:
-                    r = self.session.get(
-                        xlsx_url,
-                        timeout=(timeout or self.config.timeout),
-                        headers={"User-Agent": "iso-dart/2.0 (+https://github.com/...)"},
+                found_for_day = False
+
+                # Try XLSX first across all variants, then HTML across all variants
+                for ext in (".xlsx", ".html"):
+                    if found_for_day:
+                        break
+
+                    for stem_variant in _stem_variants(stem):
+                        if found_for_day:
+                            break
+
+                        for token in _date_tokens(cur):
+                            url = f"{base}/{stem_variant}{token}{ext}"
+                            try:
+                                r = self.session.get(
+                                    url,
+                                    timeout=(timeout or self.config.timeout),
+                                    headers={"User-Agent": "iso-dart/2.0 (+https://github.com/...)"},
+                                )
+
+                                if r.status_code != 200 or not r.content:
+                                    continue
+
+                                if ext == ".xlsx":
+                                    xlsx_path.write_bytes(r.content)
+                                    logger.info(f"Saved: {xlsx_path}  (source: {url})")
+                                    ok_any = True
+                                    found_for_day = True
+                                    break
+
+                                # HTML path
+                                if save_raw_html:
+                                    html_path.write_bytes(r.content)
+                                    logger.info(f"Saved: {html_path}  (source: {url})")
+
+                                if parse_html_to_csv:
+                                    df = self._parse_curtailed_nonop_html(
+                                        r.content, report_date=cur, report_kind=label
+                                    )
+                                    df.to_csv(csv_path, index=False)
+                                    logger.info(f"Parsed & saved: {csv_path}")
+
+                                ok_any = True
+                                found_for_day = True
+                                break
+
+                            except requests.RequestException as e:
+                                # Keep trying other variants for the same date
+                                logger.warning(f"Request error for {url}: {e}")
+
+                if not found_for_day:
+                    logger.warning(
+                        f"Missing/failed for {label} {cur.isoformat()} (tried stems/date formats)"
                     )
-                    if r.status_code == 200 and r.content:
-                        xlsx_path.write_bytes(r.content)
-                        logger.info(f"Saved: {xlsx_path}")
-                        ok_any = True
-                        continue
-
-                    # Fallback: older HTML reports (same name, different extension)
-                    html_url = xlsx_url[:-5] + ".html"  # replace .xlsx
-                    html_path = out_dir / f"{label}_{yyyymmdd}.html"
-
-                    r2 = self.session.get(
-                        html_url,
-                        timeout=(timeout or self.config.timeout),
-                        headers={"User-Agent": "iso-dart/2.0 (+https://github.com/...)"},
-                    )
-                    if r2.status_code == 200 and r2.content:
-                        if save_raw_html:
-                            html_path.write_bytes(r2.content)
-                            logger.info(f"Saved: {html_path}")
-
-                        if parse_html_to_csv:
-                            df = self._parse_curtailed_nonop_html(
-                                r2.content, report_date=cur, report_kind=label
-                            )
-                            csv_path = out_dir / f"{label}_{yyyymmdd}.csv"
-                            df.to_csv(csv_path, index=False)
-                            logger.info(f"Parsed & saved: {csv_path}")
-
-                        ok_any = True
-                    else:
-                        logger.warning(
-                            f"Missing/failed (xlsx={r.status_code}, html={r2.status_code}): {xlsx_url}"
-                        )
-
-                except requests.RequestException as e:
-                    logger.warning(f"Request error for {xlsx_url}: {e}")
 
             cur += timedelta(days=1)
 

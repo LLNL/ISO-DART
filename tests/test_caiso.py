@@ -1187,25 +1187,27 @@ def test_get_curtailed_non_operational_reports_invalid_kind_raises(client):
 
 
 def test_get_curtailed_non_operational_reports_missing_both_logs_warning(client, tmp_path, caplog):
-    """
-    Covers the 'Missing/failed' warning path when neither XLSX nor HTML exists for a date.
-    """
+    import logging
+    from unittest.mock import Mock, patch
+    from datetime import date
+
     client.config.data_dir = tmp_path
 
     mock_404 = Mock()
     mock_404.status_code = 404
     mock_404.content = b""
 
-    with patch.object(client.session, "get", side_effect=[mock_404, mock_404]) as mock_get:
-        ok = client.get_curtailed_non_operational_reports(
-            start_date=date(2020, 1, 1),
-            end_date=date(2020, 1, 2),
-            kind="am",
-        )
-        assert ok is False
-        assert mock_get.call_count == 2
-        # message text may vary slightly; assert on a stable fragment
-        assert "Missing" in caplog.text or "failed" in caplog.text
+    with caplog.at_level(logging.WARNING):
+        with patch.object(client.session, "get", return_value=mock_404) as mock_get:
+            ok = client.get_curtailed_non_operational_reports(
+                start_date=date(2020, 1, 1),
+                end_date=date(2020, 1, 2),
+                kind="am",
+            )
+
+    assert ok is False
+    assert mock_get.call_count >= 2  # now it's >2 because of multiple filename variants
+    assert "Missing" in caplog.text or "failed" in caplog.text
 
 
 def test_get_curtailed_non_operational_reports_request_exception_logs_warning(
