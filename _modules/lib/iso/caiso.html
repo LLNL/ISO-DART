@@ -2350,26 +2350,51 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Download CAISO &#39;Curtailed and Non-Operational Generator&#39; reports.</span>
 
-<span class="sd">        Newer reports are posted as .xlsx. Older historical reports were posted as .html.</span>
-<span class="sd">        This method:</span>
-<span class="sd">          * tries .xlsx first</span>
-<span class="sd">          * if missing, tries the same filename with .html</span>
-<span class="sd">          * optionally parses .html into a normalized CSV with report_date/report_kind columns</span>
+<span class="sd">        CAISO has changed BOTH:</span>
+<span class="sd">          - date token formats in filenames (YYYYMMDD vs YYYY-MM-DD vs mon-dd-yyyy)</span>
+<span class="sd">          - the stem (sometimes includes &quot;-and-&quot;: &quot;curtailed-and-non-operational-...&quot;)</span>
+
+<span class="sd">        This method tries multiple stem variants per report + multiple date tokens + .xlsx then .html.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">kind</span> <span class="o">=</span> <span class="p">(</span><span class="n">kind</span> <span class="ow">or</span> <span class="s2">&quot;both&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;prior&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid kind=</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">. Use am|prior|both&quot;</span><span class="p">)</span>
 
         <span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;https://www.caiso.com/documents&quot;</span>
-        <span class="n">patterns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Stem variants: CAISO sometimes includes &quot;-and-&quot; in early June 2024 (and possibly elsewhere).</span>
+        <span class="c1"># We try both.</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_stem_variants</span><span class="p">(</span><span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+            <span class="c1"># If caller already passed the &quot;and&quot; version, still keep both unique variants.</span>
+            <span class="n">variants</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">stem</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;curtailed-and-non-operational&quot;</span><span class="p">,</span> <span class="s2">&quot;curtailed-non-operational&quot;</span><span class="p">),</span>
+                <span class="n">stem</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;curtailed-non-operational&quot;</span><span class="p">,</span> <span class="s2">&quot;curtailed-and-non-operational&quot;</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="c1"># de-dupe preserving order</span>
+            <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">variants</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">out</span>
+
+        <span class="c1"># Date token variants observed across time</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_date_tokens</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">date</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">),</span>  <span class="c1"># 20240530</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">),</span>  <span class="c1"># 2024-05-31</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%b-</span><span class="si">%d</span><span class="s2">-%Y&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>  <span class="c1"># jun-01-2024</span>
+            <span class="p">]</span>
+
+        <span class="c1"># Base stems WITHOUT the date token/extension (we append those dynamically).</span>
+        <span class="c1"># Note: include one of the stem variants here; _stem_variants() will generate both forms.</span>
+        <span class="n">report_stems</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}:</span>
-            <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;curtailed-non-operational-generator-am-report-</span><span class="si">{yyyymmdd}</span><span class="s2">.xlsx&quot;</span><span class="p">))</span>
+            <span class="n">report_stems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;am&quot;</span><span class="p">,</span> <span class="s2">&quot;curtailed-non-operational-generator-am-report-&quot;</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;prior&quot;</span><span class="p">,</span> <span class="s2">&quot;both&quot;</span><span class="p">}:</span>
-            <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="p">(</span>
-                    <span class="s2">&quot;prior&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;curtailed-non-operational-generator-prior-trade-date-report-</span><span class="si">{yyyymmdd}</span><span class="s2">.xlsx&quot;</span><span class="p">,</span>
-                <span class="p">)</span>
+            <span class="n">report_stems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span><span class="s2">&quot;prior&quot;</span><span class="p">,</span> <span class="s2">&quot;curtailed-non-operational-generator-prior-trade-date-report-&quot;</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="n">out_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">/</span> <span class="n">out_subdir</span>
@@ -2380,52 +2405,68 @@
         <span class="k">while</span> <span class="n">cur</span> <span class="o">&lt;</span> <span class="n">end_date</span><span class="p">:</span>
             <span class="n">yyyymmdd</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">pat</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
-                <span class="n">xlsx_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pat</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">yyyymmdd</span><span class="o">=</span><span class="n">yyyymmdd</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">stem</span> <span class="ow">in</span> <span class="n">report_stems</span><span class="p">:</span>
+                <span class="c1"># Stable output names in your filesystem (independent of CAISO’s filename weirdness)</span>
                 <span class="n">xlsx_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.xlsx&quot;</span>
+                <span class="n">html_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.html&quot;</span>
+                <span class="n">csv_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.csv&quot;</span>
 
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                        <span class="n">xlsx_url</span><span class="p">,</span>
-                        <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">timeout</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timeout</span><span class="p">),</span>
-                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;iso-dart/2.0 (+https://github.com/...)&quot;</span><span class="p">},</span>
+                <span class="n">found_for_day</span> <span class="o">=</span> <span class="kc">False</span>
+
+                <span class="c1"># Try XLSX first across all variants, then HTML across all variants</span>
+                <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.xlsx&quot;</span><span class="p">,</span> <span class="s2">&quot;.html&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">found_for_day</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+                    <span class="k">for</span> <span class="n">stem_variant</span> <span class="ow">in</span> <span class="n">_stem_variants</span><span class="p">(</span><span class="n">stem</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">found_for_day</span><span class="p">:</span>
+                            <span class="k">break</span>
+
+                        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">_date_tokens</span><span class="p">(</span><span class="n">cur</span><span class="p">):</span>
+                            <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">stem_variant</span><span class="si">}{</span><span class="n">token</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                    <span class="n">url</span><span class="p">,</span>
+                                    <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">timeout</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timeout</span><span class="p">),</span>
+                                    <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                                        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;iso-dart/2.0 (+https://github.com/...)&quot;</span>
+                                    <span class="p">},</span>
+                                <span class="p">)</span>
+
+                                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+                                    <span class="k">continue</span>
+
+                                <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.xlsx&quot;</span><span class="p">:</span>
+                                    <span class="n">xlsx_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved: </span><span class="si">{</span><span class="n">xlsx_path</span><span class="si">}</span><span class="s2">  (source: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                                    <span class="n">ok_any</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="n">found_for_day</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="k">break</span>
+
+                                <span class="c1"># HTML path</span>
+                                <span class="k">if</span> <span class="n">save_raw_html</span><span class="p">:</span>
+                                    <span class="n">html_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+                                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved: </span><span class="si">{</span><span class="n">html_path</span><span class="si">}</span><span class="s2">  (source: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+                                <span class="k">if</span> <span class="n">parse_html_to_csv</span><span class="p">:</span>
+                                    <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_curtailed_nonop_html</span><span class="p">(</span>
+                                        <span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">report_date</span><span class="o">=</span><span class="n">cur</span><span class="p">,</span> <span class="n">report_kind</span><span class="o">=</span><span class="n">label</span>
+                                    <span class="p">)</span>
+                                    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parsed &amp; saved: </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                                <span class="n">ok_any</span> <span class="o">=</span> <span class="kc">True</span>
+                                <span class="n">found_for_day</span> <span class="o">=</span> <span class="kc">True</span>
+                                <span class="k">break</span>
+
+                            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                <span class="c1"># Keep trying other variants for the same date</span>
+                                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request error for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">found_for_day</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Missing/failed for </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cur</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="si">}</span><span class="s2"> (tried stems/date formats)&quot;</span>
                     <span class="p">)</span>
-                    <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
-                        <span class="n">xlsx_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved: </span><span class="si">{</span><span class="n">xlsx_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                        <span class="n">ok_any</span> <span class="o">=</span> <span class="kc">True</span>
-                        <span class="k">continue</span>
-
-                    <span class="c1"># Fallback: older HTML reports (same name, different extension)</span>
-                    <span class="n">html_url</span> <span class="o">=</span> <span class="n">xlsx_url</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.html&quot;</span>  <span class="c1"># replace .xlsx</span>
-                    <span class="n">html_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.html&quot;</span>
-
-                    <span class="n">r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                        <span class="n">html_url</span><span class="p">,</span>
-                        <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="n">timeout</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timeout</span><span class="p">),</span>
-                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;iso-dart/2.0 (+https://github.com/...)&quot;</span><span class="p">},</span>
-                    <span class="p">)</span>
-                    <span class="k">if</span> <span class="n">r2</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="ow">and</span> <span class="n">r2</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">save_raw_html</span><span class="p">:</span>
-                            <span class="n">html_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved: </span><span class="si">{</span><span class="n">html_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-                        <span class="k">if</span> <span class="n">parse_html_to_csv</span><span class="p">:</span>
-                            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_curtailed_nonop_html</span><span class="p">(</span>
-                                <span class="n">r2</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">report_date</span><span class="o">=</span><span class="n">cur</span><span class="p">,</span> <span class="n">report_kind</span><span class="o">=</span><span class="n">label</span>
-                            <span class="p">)</span>
-                            <span class="n">csv_path</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">yyyymmdd</span><span class="si">}</span><span class="s2">.csv&quot;</span>
-                            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parsed &amp; saved: </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-                        <span class="n">ok_any</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;Missing/failed (xlsx=</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">, html=</span><span class="si">{</span><span class="n">r2</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">xlsx_url</span><span class="si">}</span><span class="s2">&quot;</span>
-                        <span class="p">)</span>
-
-                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request error for </span><span class="si">{</span><span class="n">xlsx_url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">cur</span> <span class="o">+=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 

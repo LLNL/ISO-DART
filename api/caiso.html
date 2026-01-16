@@ -1379,15 +1379,14 @@
 <dt class="sig sig-object py" id="lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports">
 <span class="sig-name descname"><span class="pre">get_curtailed_non_operational_reports</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'curtailed_non_operational_generator_reports'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_raw_html</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parse_html_to_csv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/lib/iso/caiso.html#CAISOClient.get_curtailed_non_operational_reports"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#lib.iso.caiso.CAISOClient.get_curtailed_non_operational_reports" title="Link to this definition"></a></dt>
 <dd><p>Download CAISO ‘Curtailed and Non-Operational Generator’ reports.</p>
-<p>Newer reports are posted as .xlsx. Older historical reports were posted as .html.
-This method:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>tries .xlsx first</p></li>
-<li><p>if missing, tries the same filename with .html</p></li>
-<li><p>optionally parses .html into a normalized CSV with report_date/report_kind columns</p></li>
+<dl class="simple">
+<dt>CAISO has changed BOTH:</dt><dd><ul class="simple">
+<li><p>date token formats in filenames (YYYYMMDD vs YYYY-MM-DD vs mon-dd-yyyy)</p></li>
+<li><p>the stem (sometimes includes “-and-”: “curtailed-and-non-operational-…”)</p></li>
 </ul>
-</div></blockquote>
+</dd>
+</dl>
+<p>This method tries multiple stem variants per report + multiple date tokens + .xlsx then .html.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
