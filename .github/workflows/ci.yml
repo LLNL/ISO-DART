@@ -51,7 +51,7 @@ jobs:
         
     - name: Run tests
       run: |
-        pytest tests/ -v --cov=lib --cov-branch --cov-report=xml --cov-report=term-missing -m "not integration"
+        pytest tests/ -v --cov=lib --cov-branch --cov-report=xml --cov-report=term-missing
         
     - name: Upload coverage to Codecov
       if: matrix.os == 'macos-latest' && matrix.python-version == '3.12'
@@ -63,29 +63,3 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
         verbose: true
-
-  integration-test:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    # Only run integration tests on dev branch or manual trigger
-    if: github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        
-    - name: Run integration tests
-      run: |
-        pytest tests/ -v -m integration --maxfail=3
-      continue-on-error: true  # Don't fail if API is temporarily down
