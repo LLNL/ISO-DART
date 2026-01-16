@@ -684,5 +684,128 @@ def test_failed_download_logs_warning(client, method_name, args, kwargs):
     assert isinstance(result, bool)
 
 
+class TestNYISODirectCSVDownloads:
+    """Tests for direct CSV (non-zip) download helpers and wrappers."""
+
+    def test_download_csv_success_writes_file_and_uses_headers(self, client, temp_dir):
+        # Arrange
+        client.config.max_retries = 1
+        client.config.retry_delay = 0
+
+        url = "https://mis.nyiso.com/public/csv/test/test.csv"
+        out_file = temp_dir.data_dir / "outages" / "direct" / "file.csv"
+        payload = b"col1,col2\n1,2\n"
+
+        mock_resp = Mock()
+        mock_resp.ok = True
+        mock_resp.status_code = 200
+        mock_resp.text = payload.decode("utf-8")
+        mock_resp.content = payload
+
+        # Act
+        with patch.object(client.session, "get", return_value=mock_resp) as mock_get:
+            ok = client._download_csv(url, out_file)
+
+        # Assert
+        assert ok is True
+        assert out_file.exists()
+        assert out_file.read_bytes() == payload
+
+        # Ensure we sent the headers we expect (coverage + correctness)
+        _, kwargs = mock_get.call_args
+        assert "headers" in kwargs
+        assert "User-Agent" in kwargs["headers"]
+        assert "Accept" in kwargs["headers"]
+
+    def test_download_csv_retries_and_returns_false_on_http_failure(self, client, temp_dir):
+        # Arrange: force 2 attempts without sleeping
+        client.config.max_retries = 2
+        client.config.retry_delay = 0
+
+        url = "https://mis.nyiso.com/public/csv/test/test.csv"
+        out_file = temp_dir.data_dir / "outages" / "direct" / "file.csv"
+
+        mock_resp = Mock()
+        mock_resp.ok = False
+        mock_resp.status_code = 500
+        mock_resp.text = ""
+        mock_resp.content = b""
+
+        # Act
+        with (
+            patch.object(client.session, "get", return_value=mock_resp) as mock_get,
+            patch("time.sleep") as _mock_sleep,
+        ):
+            ok = client._download_csv(url, out_file)
+
+        # Assert
+        assert ok is False
+        assert not out_file.exists()
+        assert mock_get.call_count == 2
+
+    def test_download_csv_retries_and_returns_false_on_request_exception(self, client, temp_dir):
+        import requests
+
+        client.config.max_retries = 2
+        client.config.retry_delay = 0
+
+        url = "https://mis.nyiso.com/public/csv/test/test.csv"
+        out_file = temp_dir.data_dir / "outages" / "direct" / "file.csv"
+
+        with (
+            patch.object(
+                client.session, "get", side_effect=requests.RequestException("boom")
+            ) as mock_get,
+            patch("time.sleep") as _mock_sleep,
+        ):
+            ok = client._download_csv(url, out_file)
+
+        assert ok is False
+        assert not out_file.exists()
+        assert mock_get.call_count == 2
+
+    def test_get_outage_schedule_builds_expected_path_and_calls_download(self, client, temp_dir):
+        start = date(2024, 1, 1)
+        duration = 3
+        end = start + timedelta(days=duration - 1)
+
+        with patch.object(client, "_download_csv", return_value=True) as mock_dl:
+            ok = client.get_outage_schedule(start, duration)
+
+        assert ok is True
+        assert mock_dl.call_count == 1
+
+        called_url, called_path = mock_dl.call_args.args
+        assert called_url == "https://mis.nyiso.com/public/csv/os/outage-schedule.csv"
+        assert called_path == (
+            temp_dir.data_dir
+            / "outages"
+            / "outage_schedule"
+            / f"{start:%Y%m%d}_to_{end:%Y%m%d}_outage_schedule.csv"
+        )
+
+    def test_get_generation_maintenance_report_builds_expected_path_and_calls_download(
+        self, client, temp_dir
+    ):
+        start = date(2024, 1, 1)
+        duration = 3
+        end = start + timedelta(days=duration - 1)
+
+        with patch.object(client, "_download_csv", return_value=True) as mock_dl:
+            ok = client.get_generation_maintenance_report(start, duration)
+
+        assert ok is True
+        assert mock_dl.call_count == 1
+
+        called_url, called_path = mock_dl.call_args.args
+        assert called_url == "https://mis.nyiso.com/public/csv/genmaint/gen_maint_report.csv"
+        assert called_path == (
+            temp_dir.data_dir
+            / "outages"
+            / "generation_maintenance"
+            / f"{start:%Y%m%d}_to_{end:%Y%m%d}_generation_maintenance_report.csv"
+        )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

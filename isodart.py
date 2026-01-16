@@ -424,21 +424,44 @@ def handle_nyiso(args):
             success = client.get_bid_data(bid_type, args.start, args.duration)
 
         elif args.data_type == "outages":
-            if not market:
-                logger.error("Market type required for outage data")
-                return False
+            # NYISO publishes several "outage" products:
+            #   - Real-time transmission line scheduled/actual outages (P-54A/P-54B)
+            #   - Day-ahead scheduled outages (P-54C)
+            #   - Consolidated outage schedules CSV (P-14B)
+            #   - Generation maintenance report (P-15)
+            outage_type = getattr(args, "outage_type", None)
 
-            if market == NYISOMarket.DAM:
-                outage_type = None
-                logger.info(f"Downloading NYISO {market.value} outage data...")
+            if outage_type in {"outage-schedule", "schedule"}:
+                logger.info("Downloading NYISO Outage Schedules CSV (P-14B)...")
+                success = client.get_outage_schedule(args.start, args.duration)
+
+            elif outage_type in {"gen-maint", "generation-maintenance", "maintenance"}:
+                logger.info("Downloading NYISO Generation Maintenance Report (P-15)...")
+                success = client.get_generation_maintenance_report(args.start, args.duration)
+
             else:
-                # Default to actual if not specified (outage type only for RTM)
-                outage_type = getattr(args, "outage_type", "actual")
-                logger.info(f"Downloading NYISO {market.value} {outage_type} outage data...")
+                # Transmission line outage feeds require a market selection (DAM or RTM)
+                if not market:
+                    logger.error(
+                        "Market type required for NYISO transmission outage feeds (use --market dam|rtm), "
+                        "or set --outage-type outage-schedule|gen-maint for the schedule/maintenance CSVs."
+                    )
+                    return False
 
-            success = client.get_outages(
-                market, outage_type=outage_type, start_date=args.start, duration=args.duration
-            )
+                if market == NYISOMarket.DAM:
+                    outage_type = None
+                    logger.info(f"Downloading NYISO {market.value} outage data...")
+                else:
+                    # Default to actual if not specified (outage type only for RTM)
+                    outage_type = outage_type or "actual"
+                    logger.info(f"Downloading NYISO {market.value} {outage_type} outage data...")
+
+                success = client.get_outages(
+                    market,
+                    outage_type=outage_type,
+                    start_date=args.start,
+                    duration=args.duration,
+                )
 
         elif args.data_type == "constraints":
             if not market:
@@ -1120,7 +1143,16 @@ Examples:
 
     parser.add_argument(
         "--outage-type",
-        choices=["forecast", "rt_outage", "scheduled", "actual", "short-term", "long-term"],
+        choices=[
+            "forecast",
+            "rt_outage",
+            "scheduled",
+            "actual",
+            "gen-maint",
+            "outage-schedule",
+            "short-term",
+            "long-term",
+        ],
         help="For MISO, NYISO and ISO-NE Outage: type of outage data to download",
     )
 

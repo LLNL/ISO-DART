@@ -34,6 +34,7 @@ class NYISODataType(Enum):
     POWER_GRID = "power_grid"
     LOAD = "load"
     BID = "bid"
+    OUTAGES = "outages"
 
 
 @dataclass
@@ -104,6 +105,40 @@ class NYISOClient:
 
             except requests.RequestException as e:
                 logger.error(f"Request error: {e}")
+
+            if attempt < self.config.max_retries - 1:
+                import time
+
+                time.sleep(self.config.retry_delay)
+
+        return False
+
+    def _download_csv(self, url: str, output_file: Path) -> bool:
+        """Download a plain CSV file (non-zip) and write to disk.
+
+        NYISO publishes a few outage-related datasets as direct CSVs (not monthly ZIPs), e.g.
+        the Outage Schedules CSV (P-14B) and the Generation Maintenance Report (P-15).
+        """
+        headers = {
+            # Be polite; some CDNs/WAFs are picky about default Python UA.
+            "User-Agent": "ISO-DART/2.0 (+https://github.com/llnl/ISO-DART)",
+            "Accept": "text/csv,text/plain,*/*",
+        }
+
+        for attempt in range(self.config.max_retries):
+            try:
+                logger.debug(
+                    f"Requesting CSV: {url} (attempt {attempt + 1}/{self.config.max_retries})"
+                )
+                r = self.session.get(url, headers=headers, timeout=self.config.timeout)
+                if r.ok and r.text:
+                    output_file.parent.mkdir(parents=True, exist_ok=True)
+                    output_file.write_bytes(r.content)
+                    logger.info(f"Saved CSV: {output_file}")
+                    return True
+                logger.warning(f"CSV request failed with status {r.status_code} for {url}")
+            except requests.RequestException as e:
+                logger.error(f"CSV request error: {e}")
 
             if attempt < self.config.max_retries - 1:
                 import time
@@ -552,3 +587,45 @@ class NYISOClient:
             shutil.rmtree(self.config.raw_dir)
 
         return success
+
+    # ---------------------------------------------------------------------
+    # Generator / OMS-style outage data (public)
+    # ---------------------------------------------------------------------
+    def get_outage_schedule(self, start_date: date, duration: int) -> bool:
+        """Get NYISO Outage Schedules CSV (P-14B).
+
+        NYISO publishes a consolidated outage schedule as a direct CSV. It is *not* the
+        same as the real-time line outage feeds (P-54A/B/C) and may include both
+        transmission and generation outage schedule entries depending on NYISO's
+        publication contents.
+
+        Source: P-14B "Outage Schedules CSV".
+        """
+
+        # P-14B link target as shown on the P-14B index page.
+        # (The web UI label is "CSV File".)
+        url = "https://mis.nyiso.com/public/csv/os/outage-schedule.csv"
+        end_date = start_date + timedelta(days=duration - 1)
+
+        out_dir = self.config.data_dir / "outages" / "outage_schedule"
+        out_file = out_dir / f"{start_date:%Y%m%d}_to_{end_date:%Y%m%d}_outage_schedule.csv"
+        return self._download_csv(url, out_file)
+
+    def get_generation_maintenance_report(self, start_date: date, duration: int) -> bool:
+        """Get NYISO Generation Maintenance Report (P-15).
+
+        NYISO publishes the Generation Maintenance Report as a direct CSV (single file).
+        This is best interpreted as planned maintenance / outage schedule information
+        rather than real-time forced outage status.
+
+        Source: P-15 "Generation Maintenance Report".
+        """
+
+        url = "https://mis.nyiso.com/public/csv/genmaint/gen_maint_report.csv"
+        end_date = start_date + timedelta(days=duration - 1)
+
+        out_dir = self.config.data_dir / "outages" / "generation_maintenance"
+        out_file = out_dir / (
+            f"{start_date:%Y%m%d}_to_{end_date:%Y%m%d}_generation_maintenance_report.csv"
+        )
+        return self._download_csv(url, out_file)

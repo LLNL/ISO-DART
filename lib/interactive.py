@@ -1086,24 +1086,26 @@ def run_nyiso_mode():
     print("NYISO DATA SELECTION")
     print("=" * 60)
 
+    # NOTE: Keep this menu in sync with NYISOClient methods.
+    # NYISO publishes several datasets as monthly ZIPs (most methods), and a couple
+    # as direct CSVs (outage schedule + generation maintenance).
     print("\nWhat type of data?")
     print("  (1) Pricing Data")
-    print("  (2) Power Grid Data")
+    print("  (2) Power Grid Data (Outages, Constraints, Schedules)")
     print("  (3) Load Data")
     print("  (4) Bid Data")
     print("  (5) Fuel Mix")
     print("  (6) Interface Flows")
-    print("  (7) Wind Generation")
-    print("  (8) BTM Solar Generation")
+    print("  (7) BTM Solar Generation")
 
     while True:
         try:
-            data_type = int(input("\nYour choice (1-8): "))
-            if data_type in range(1, 9):
+            data_type = int(input("\nYour choice (1-7): "))
+            if data_type in range(1, 8):
                 break
         except ValueError:
             pass
-        print("Please enter a number between 1 and 8")
+        print("Please enter a number between 1 and 7")
 
     if data_type == 1:
         run_nyiso_pricing()
@@ -1117,8 +1119,6 @@ def run_nyiso_mode():
         run_nyiso_fuel_mix()
     elif data_type == 6:
         run_nyiso_interface_flows()
-    elif data_type == 7:
-        run_nyiso_wind()
     else:
         run_nyiso_btm_solar()
 
@@ -1217,17 +1217,41 @@ def run_nyiso_power_grid():
     print("=" * 60)
 
     print("\nWhat type of power grid data?")
-    print("  (1) Outages")
+    print("  (1) Transmission Outages (monthly ZIPs; DAM / RTM scheduled / RTM actual)")
     print("  (2) Constraints")
+    print("  (3) Outage Schedule (P-14B direct CSV)")
+    print("  (4) Generation Maintenance Report (P-15 direct CSV)")
 
     while True:
         try:
-            grid_type = int(input("\nYour choice (1-2): "))
-            if grid_type in [1, 2]:
+            grid_type = int(input("\nYour choice (1-4): "))
+            if grid_type in [1, 2, 3, 4]:
                 break
         except ValueError:
             pass
-        print("Please enter 1 or 2")
+        print("Please enter a number between 1 and 4")
+
+    # Direct CSV products do not depend on DAM/RTM market selection.
+    if grid_type in [3, 4]:
+        start_date, duration = get_date_input()
+        client = NYISOClient()
+        try:
+            if grid_type == 3:
+                print("\n📥 Downloading NYISO Outage Schedule (P-14B)...")
+                success = client.get_outage_schedule(start_date, duration)
+            else:
+                print("\n📥 Downloading NYISO Generation Maintenance Report (P-15)...")
+                success = client.get_generation_maintenance_report(start_date, duration)
+
+            if success:
+                print("\n✅ Download complete!")
+                print("   Data saved to: data/NYISO/")
+            else:
+                print("\n❌ Download failed. Check logs for details.")
+        except Exception as e:
+            logger.error(f"Error downloading data: {e}", exc_info=True)
+            print(f"\n❌ Error: {e}")
+        return
 
     print("\nWhich energy market?")
     print("  (1) Day-Ahead Market (DAM)")
@@ -1244,7 +1268,7 @@ def run_nyiso_power_grid():
 
     market = NYISOMarket.DAM if market_choice == 1 else NYISOMarket.RTM
 
-    if grid_type == 1:  # Outages
+    if grid_type == 1:  # Transmission Outages
         outage_type = None
         if market == NYISOMarket.RTM:
             print("\nWhat type of outages?")
