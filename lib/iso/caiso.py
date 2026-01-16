@@ -1106,14 +1106,14 @@ class CAISOClient:
         return detail
 
     def get_curtailed_non_operational_reports(
-            self,
-            start_date: date,
-            end_date: date,
-            kind: str = "both",  # "am" | "prior" | "both"
-            out_subdir: str = "curtailed_non_operational_generator_reports",
-            timeout: int | None = None,
-            save_raw_html: bool = True,
-            parse_html_to_csv: bool = True,
+        self,
+        start_date: date,
+        end_date: date,
+        kind: str = "both",  # "am" | "prior" | "both"
+        out_subdir: str = "curtailed_non_operational_generator_reports",
+        timeout: int | None = None,
+        save_raw_html: bool = True,
+        parse_html_to_csv: bool = True,
     ) -> bool:
         """
         Download CAISO 'Curtailed and Non-Operational Generator' reports.
@@ -1161,7 +1161,9 @@ class CAISOClient:
         if kind in {"am", "both"}:
             report_stems.append(("am", "curtailed-non-operational-generator-am-report-"))
         if kind in {"prior", "both"}:
-            report_stems.append(("prior", "curtailed-non-operational-generator-prior-trade-date-report-"))
+            report_stems.append(
+                ("prior", "curtailed-non-operational-generator-prior-trade-date-report-")
+            )
 
         out_dir = self.config.data_dir / out_subdir
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -1194,7 +1196,9 @@ class CAISOClient:
                                 r = self.session.get(
                                     url,
                                     timeout=(timeout or self.config.timeout),
-                                    headers={"User-Agent": "iso-dart/2.0 (+https://github.com/...)"},
+                                    headers={
+                                        "User-Agent": "iso-dart/2.0 (+https://github.com/...)"
+                                    },
                                 )
 
                                 if r.status_code != 200 or not r.content:
