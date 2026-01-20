@@ -27,7 +27,6 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 import pandas as pd
 import requests
 
-
 logger = logging.getLogger(__name__)
 if not logger.handlers:
     logging.basicConfig(
