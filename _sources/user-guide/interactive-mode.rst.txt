@@ -113,6 +113,9 @@ Step 3: Select Specific Data Type
 
    What type of pricing data?
      (1) Locational Marginal Prices (LMP)
+         - Available for DAM, HASP, RTM, RTPD
+         - Most common pricing metric
+         - Hourly or 5-minute intervals
      (2) Scheduling Point Tie Prices
      (3) Ancillary Services Clearing Prices
      (4) Intertie Constraint Shadow Prices
@@ -709,7 +712,8 @@ After mastering interactive mode:
 
 1. **Try Command-Line Mode**: :doc:`command-line`
 2. **Learn Python API**: :doc:`python-api`
-3. **Explore Examples**: :doc:`../tutorials/examples/index`
+3. **Set Up Automation**: :doc:`../tutorials/intermediate/automation`
+4. **Explore Examples**: :doc:`../tutorials/examples/index`
 
 See Also
 --------
