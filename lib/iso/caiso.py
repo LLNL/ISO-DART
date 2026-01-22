@@ -31,6 +31,7 @@ class Market(Enum):
     RUC = "RUC"  # Residual Unit Commitment
     TWO_DA = "2DA"  # Two Day-Ahead
     SEVEN_DA = "7DA"  # Seven Day-Ahead
+    ACTUAL = "ACTUAL"  # Actuals
 
 
 class ReportVersion(Enum):

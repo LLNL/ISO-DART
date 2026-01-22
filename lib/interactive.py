@@ -404,17 +404,24 @@ def run_caiso_demand():
         print("  (2) Two Day-Ahead (2DA)")
         print("  (3) Seven Day-Ahead (7DA)")
         print("  (4) Real-Time Market (RTM)")
+        print("  (5) Actual")
 
         while True:
             try:
-                market_choice = int(input("\nYour choice (1-4): "))
-                if market_choice in range(1, 5):
+                market_choice = int(input("\nYour choice (1-5): "))
+                if market_choice in range(1, 6):
                     break
             except ValueError:
                 pass
-            print("Please enter a number between 1 and 4")
+            print("Please enter a number between 1 and 5")
 
-        market_map = {1: Market.DAM, 2: Market.TWO_DA, 3: Market.SEVEN_DA, 4: Market.RTM}
+        market_map = {
+            1: Market.DAM,
+            2: Market.TWO_DA,
+            3: Market.SEVEN_DA,
+            4: Market.RTM,
+            5: Market.ACTUAL,
+        }
         market = market_map[market_choice]
 
         start_date, duration = get_date_input()

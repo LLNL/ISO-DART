@@ -69,6 +69,7 @@ def handle_caiso(args):
             "hasp": Market.HASP,
             "rtpd": Market.RTPD,
             "ruc": Market.RUC,
+            "actual": Market.ACTUAL,
         }
 
         if args.data_type == "lmp":
@@ -90,7 +91,7 @@ def handle_caiso(args):
                 return False
 
             market = market_map.get(args.market.lower())
-            if market not in [Market.DAM, Market.RTM]:
+            if market not in [Market.DAM, Market.RTM, Market.ACTUAL]:
                 logger.error(f"Invalid market for load forecast: {args.market}")
                 return False
 
@@ -1037,7 +1038,7 @@ Examples:
 
     parser.add_argument(
         "--market",
-        choices=["dam", "rtm", "rtbm", "hasp", "rtpd", "ruc"],
+        choices=["dam", "rtm", "rtbm", "hasp", "rtpd", "ruc", "actual"],
         help="Energy market type (rtbm = Real-Time Balancing Market for SPP)",
     )
 
