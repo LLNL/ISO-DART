@@ -608,7 +608,7 @@ def handle_bpa(args):
 
 def handle_spp(args):
     """Handle SPP-specific data download logic."""
-    from lib.iso.spp_updated import SPPClient, SPPMarket
+    from lib.iso.spp import SPPClient, SPPMarket
 
     logger.info(f"Processing SPP data request: {args.data_type}")
 
