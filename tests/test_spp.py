@@ -776,33 +776,23 @@ class TestSPPLMPMethods:
 class TestSPPMCPMethods:
     """Test SPP MCP data methods."""
 
-    @patch.object(SPPClient, "_connect_ftp")
-    @patch.object(SPPClient, "_download_ftp_file")
-    def test_mcp_data_structure(
-        self, mock_download, mock_connect, client, temp_dir, sample_mcp_csv
-    ):
+    @patch.object(SPPClient, "_get_file_bytes")
+    def test_mcp_data_structure(self, mock_get_file_bytes, client, temp_dir, sample_mcp_csv):
         """Test that MCP data has expected structure."""
-        mock_ftp = Mock()
-        mock_ftp.quit = Mock()
-        mock_connect.return_value = mock_ftp
-        mock_download.return_value = sample_mcp_csv
+        mock_get_file_bytes.return_value = (sample_mcp_csv, None, "https")
 
         for f in temp_dir.data_dir.glob("*MCP*.csv"):
             f.unlink()
 
         success = client.get_mcp(SPPMarket.DAM, date(2024, 1, 15), date(2024, 1, 15))
-
         assert success
 
         # Read output file
         output_file = list(temp_dir.data_dir.glob("*MCP*.csv"))[0]
         df = pd.read_csv(output_file)
 
-        # Check for expected columns
-        assert "GMTIntervalEnd" in df.columns
-        assert "RegUP" in df.columns
-        assert "RegDN" in df.columns
-        assert "Spin" in df.columns
+        assert set(df.columns) == {"GMTIntervalEnd", "Product", "MCP"}
+        assert set(df["Product"]) == {"Reg-Up", "Reg-Down", "Spin"}
 
     @patch.object(SPPClient, "_get_file_bytes")
     def test_get_mcp_dam_success(self, mock_get_file_bytes, client, temp_dir, sample_mcp_csv):
