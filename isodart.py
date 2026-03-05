@@ -956,6 +956,7 @@ def handle_isone(args):
 def handle_weather(args):
     """Handle weather data download logic."""
     from lib.weather.client import WeatherClient
+    from datetime import timedelta
 
     logger.info("Processing weather data request")
 
@@ -964,25 +965,41 @@ def handle_weather(args):
         return False
 
     client = WeatherClient()
-    success = False
+
+    # --list-stations: just print available stations and exit
+    if getattr(args, "list_stations", False):
+        end_date = args.start + timedelta(days=args.duration)
+        stations_df = client.find_stations(args.state, args.start, end_date)
+        if stations_df.empty:
+            print(f"\nNo stations found in {args.state.upper()} for {args.start} – {end_date}")
+            return False
+        print(f"\nAvailable weather stations in {args.state.upper()} ({len(stations_df)} found):")
+        print("-" * 60)
+        for _, row in stations_df.iterrows():
+            print(
+                f"  {row['name']:<40} "
+                f"lat={row['latitude']:.3f}  lon={row['longitude']:.3f}  "
+                f"elev={row['elevation']:.0f}m"
+            )
+        print(f'\nUsage: pass --station "<name>" (partial match ok) to select one')
+        return True
 
     try:
+        station_name = getattr(args, "station", None)
         logger.info(f"Downloading weather data for {args.state}...")
         success = client.download_weather_data(
             state=args.state,
             start_date=args.start,
             duration=args.duration,
-            interactive=False,  # Auto-select first station in CLI mode
+            interactive=False,
+            station_name=station_name,
         )
 
         if success:
-            logger.info(f"✅ Weather data downloaded successfully to data/weather/")
-
-            # Optionally download solar data
+            logger.info("✅ Weather data downloaded successfully to data/weather/")
             if getattr(args, "include_solar", False):
-                year = args.start.year
-                logger.info(f"Downloading solar data for {year}...")
-                client.download_solar_data(year=year)
+                logger.info(f"Downloading solar data for {args.start.year}...")
+                client.download_solar_data(year=args.start.year)
         else:
             logger.error("❌ Weather data download failed")
 
@@ -1236,6 +1253,17 @@ Examples:
     )
 
     parser.add_argument(
+        "--list-stations",
+        action="store_true",
+        help="List available weather stations for the given --state and date range, then exit",
+    )
+
+    parser.add_argument(
+        "--station",
+        help="Station name to select (partial match, case-insensitive). Use --list-stations first to see options.",
+    )
+
+    parser.add_argument(
         "--interactive",
         action="store_true",
         default=False,
@@ -1273,7 +1301,7 @@ Examples:
     if args.data_type == "weather":
         if not args.state or not args.start or not args.duration:
             parser.error("Weather data requires --state, --start, and --duration")
-        return handle_weather(args)
+        sys.exit(0 if handle_weather(args) else 1)
 
     if not args.iso:
         parser.error("--iso is required (or use --interactive mode)")

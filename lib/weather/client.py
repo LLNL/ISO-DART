@@ -59,7 +59,12 @@ class WeatherClient:
         return available_stations
 
     def download_weather_data(
-        self, state: str, start_date: date, duration: int, interactive: bool = True
+        self,
+        state: str,
+        start_date: date,
+        duration: int,
+        interactive: bool = True,
+        station_name: Optional[str] = None,
     ) -> bool:
         """
         Download weather data for a location.
@@ -83,12 +88,28 @@ class WeatherClient:
             return False
 
         # Station selection
-        if interactive:
+        if station_name is not None:
+            # Match by name (case-insensitive partial match)
+            mask = stations_df["name"].str.contains(station_name, case=False, na=False)
+            matches = stations_df[mask]
+            if matches.empty:
+                logger.error(f"No station found matching '{station_name}' in {state}")
+                print(
+                    f"\n❌ No station matched '{station_name}'. Run with --list-stations to see options."
+                )
+                return False
+            if len(matches) > 1:
+                print(f"\n⚠️  Multiple stations match '{station_name}':")
+                for _, row in matches.iterrows():
+                    print(f"   {row['name']}")
+                print("Using the first match. Use a more specific name to disambiguate.")
+            station_idx = stations_df.index.get_loc(matches.index[0])
+        elif interactive:
             print(f"\nFound {len(stations_df)} weather stations with data:")
             print("-" * 60)
             for idx, (_, row) in enumerate(stations_df.iterrows(), 1):
                 print(f"  ({idx}) {row['name']}")
-                if idx >= 20:  # Limit display
+                if idx >= 20:
                     print(f"  ... and {len(stations_df) - 20} more")
                     break
 
@@ -231,14 +252,14 @@ class WeatherClient:
             print("\n" + "=" * 60)
             print("NSRDB API KEY REQUIRED")
             print("=" * 60)
-            print("\nTo download solar data, you need an API key from NREL.")
-            print("Get one at: https://developer.nrel.gov/signup/")
+            print("\nTo download solar data, you need an API key from NLR.")
+            print("Get one at: https://developer.nlr.gov/signup/")
 
             open_browser = input("\nOpen registration page in browser? (y/n): ").lower()
             if open_browser == "y":
-                webbrowser.open("https://developer.nrel.gov/signup/")
+                webbrowser.open("https://developer.nlr.gov/signup/")
 
-            print("\nPlease enter your NREL credentials:")
+            print("\nPlease enter your NLR credentials:")
             api_key = input("  API Key: ").strip()
             first_name = input("  First Name: ").strip()
             last_name = input("  Last Name: ").strip()
@@ -252,11 +273,11 @@ class WeatherClient:
         config = configparser.ConfigParser()
         config.read(config_path)
 
-        api_key = config["API"]["api_key"]
-        first_name = config["USER_INFO"]["first_name"]
-        last_name = config["USER_INFO"]["last_name"]
-        affiliation = config["USER_INFO"]["affiliation"]
-        email = config["USER_INFO"]["email"]
+        api_key = config["nlr"]["api_key"]
+        first_name = config["nlr"]["first_name"]
+        last_name = config["nlr"]["last_name"]
+        affiliation = config["nlr"]["affiliation"]
+        email = config["nlr"]["email"]
 
         # Determine year
         if year is None and self.selected_station is not None:
@@ -272,11 +293,11 @@ class WeatherClient:
         your_name = f"{first_name}+{last_name}"
 
         url = (
-            f"https://developer.nrel.gov/api/solar/nsrdb_psm3_download.csv"
+            f"https://developer.nlr.gov/api/nsrdb/v2/solar/nsrdb-GOES-aggregated-v4-0-0-download.csv"
             f"?wkt=POINT({lon}%20{lat})"
             f"&names={year}"
             f"&leap_day=true"
-            f"&interval=60"
+            f"&interval=30"
             f"&utc=false"
             f"&full_name={your_name}"
             f"&email={email}"
@@ -286,7 +307,6 @@ class WeatherClient:
             f"&api_key={api_key}"
             f"&attributes={attributes}"
         )
-
         try:
             # Download data (skip first 2 rows of metadata)
             solar_df = pd.read_csv(url, skiprows=2)
@@ -298,7 +318,7 @@ class WeatherClient:
                 min_in_year = 525600
 
             # Create datetime index
-            solar_df.index = pd.date_range(f"1/1/{year}", freq="60Min", periods=min_in_year // 60)
+            solar_df.index = pd.date_range(f"1/1/{year}", freq="30Min", periods=min_in_year // 30)
 
             # Save data
             station_name = self.selected_station["name"].replace("/", "-").replace(" ", "_")
@@ -328,8 +348,8 @@ class WeatherClient:
     ):
         """Write user configuration file."""
         config = configparser.ConfigParser()
-        config["API"] = {"api_key": api_key}
-        config["USER_INFO"] = {
+        config["nlr"] = {
+            "api_key": api_key,
             "first_name": first_name,
             "last_name": last_name,
             "affiliation": affiliation,

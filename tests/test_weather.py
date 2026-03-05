@@ -392,8 +392,8 @@ class TestSolarDataDownload:
             mock_config = Mock()
             mock_config.__getitem__ = Mock(
                 side_effect=lambda x: {
-                    "API": {"api_key": "test_key"},
-                    "USER_INFO": {
+                    "nlr": {
+                        "api_key": "test_key",
                         "first_name": "Test",
                         "last_name": "User",
                         "affiliation": "Test Org",
@@ -454,21 +454,24 @@ class TestSolarDataDownload:
         self, mock_datetime, mock_read_csv, client, temp_dir
     ):
         # selected_location must have _lat/_lon (client uses private attrs)
-        client.selected_location = Mock(_lat=37.62, _lon=-122.38)
+        mock_location = Mock()
+        mock_location._lat = 37.62
+        mock_location._lon = -122.38
+        client.selected_location = mock_location
         client.selected_station = {"name": "Test/Station Name"}
 
         # Make datetime.now().year == 2023 (non-leap)
         mock_datetime.now.return_value = real_datetime(2023, 1, 1)
 
         # Ensure row count matches periods=8760 for non-leap year
-        mock_read_csv.return_value = pd.DataFrame({"ghi": [0] * 8760})
+        mock_read_csv.return_value = pd.DataFrame({"ghi": [0] * 17520})
 
         # Provide config via fake file read (configparser reads from disk)
         mock_config = Mock()
         mock_config.__getitem__ = Mock(
             side_effect=lambda x: {
-                "API": {"api_key": "k"},
-                "USER_INFO": {
+                "nlr": {
+                    "api_key": "k",
                     "first_name": "A",
                     "last_name": "B",
                     "affiliation": "Org",
@@ -481,7 +484,7 @@ class TestSolarDataDownload:
             patch.object(Path, "exists", return_value=True),
             patch("lib.weather.client.configparser.ConfigParser", return_value=mock_config),
         ):
-            success = client.download_solar_data(year=None, config_file=Path("user_config.ini"))
+            success = client.download_solar_data(year=2023, config_file=Path("user_config.ini"))
 
         assert success is True
         output_files = list(temp_dir["solar_dir"].glob("solar_data_*.csv"))
@@ -516,11 +519,11 @@ class TestWeatherUtilityMethods:
         config = configparser.ConfigParser()
         config.read(config_path)
 
-        assert config["API"]["api_key"] == "test_key"
-        assert config["USER_INFO"]["first_name"] == "Test"
-        assert config["USER_INFO"]["last_name"] == "User"
-        assert config["USER_INFO"]["affiliation"] == "Test Org"
-        assert config["USER_INFO"]["email"] == "test@example.com"
+        assert config["nlr"]["api_key"] == "test_key"
+        assert config["nlr"]["first_name"] == "Test"
+        assert config["nlr"]["last_name"] == "User"
+        assert config["nlr"]["affiliation"] == "Test Org"
+        assert config["nlr"]["email"] == "test@example.com"
 
 
 class TestWeatherFilenameGeneration:

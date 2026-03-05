@@ -2881,7 +2881,7 @@ def run_weather_mode():
             # Ask about solar data
             solar = input("\n☀️  Download solar data from NSRDB? (y/n): ").lower()
             if solar == "y":
-                client.download_solar_data()
+                client.download_solar_data(start_date.year)
         else:
             print("\n❌ Weather data download failed.")
 
