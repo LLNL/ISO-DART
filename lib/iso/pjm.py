@@ -379,9 +379,9 @@ class PJMClient:
         return merged_text.encode("utf-8")
 
     def _download_paginated_csv(
-            self,
-            endpoint: PJMEndpoint,
-            base_params: Dict[str, Any],
+        self,
+        endpoint: PJMEndpoint,
+        base_params: Dict[str, Any],
     ) -> Optional[bytes]:
         """
         Download all pages for an endpoint using startRow pagination.
