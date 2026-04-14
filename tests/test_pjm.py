@@ -83,9 +83,7 @@ max_retries = 5
 retry_delay = 7
 timeout = 42
 rate_limit_delay = 1.5
-""".format(
-        data_dir=str(tmp_path / "data_dir")
-    )
+""".format(data_dir=str(tmp_path / "data_dir"))
     cfg_path.write_text(cfg_text)
 
     cfg = PJMConfig.from_ini_file(cfg_path)
