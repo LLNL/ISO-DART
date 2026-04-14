@@ -14,6 +14,7 @@ import pandas as pd
 import logging
 import requests
 import builtins
+import os
 
 from lib.iso.spp import (
     SPPClient,
@@ -664,10 +665,13 @@ class TestSPPIntegration:
         output_files = list(client.config.data_dir.glob("*DA_Virtual_Clearing*.csv"))
         assert len(output_files) > 0
 
+    @pytest.mark.skipif(
+        os.environ.get("SKIP_FTP_INTEGRATION") == "1",
+        reason="FTP passive mode data connections are blocked on macOS CI runners",
+    )
     def test_ftp_connection_integration(self, client):
         """Test actual FTP connection."""
         ftp = client._connect_ftp()
-        ftp.trust_server_pasv_ipv4_address = True
 
         assert ftp is not None
 

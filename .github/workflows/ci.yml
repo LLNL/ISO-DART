@@ -50,6 +50,8 @@ jobs:
         mypy lib/ || true  # Don't fail on type errors for now
         
     - name: Run tests
+      env:
+        SKIP_FTP_INTEGRATION: ${{ matrix.os == 'macos-latest' && '1' || '0' }}
       run: |
         pytest tests/ -v --cov=lib --cov-branch --cov-report=xml --cov-report=term-missing
         
