@@ -667,6 +667,7 @@ class TestSPPIntegration:
     def test_ftp_connection_integration(self, client):
         """Test actual FTP connection."""
         ftp = client._connect_ftp()
+        ftp.trust_server_pasv_ipv4_address = True
 
         assert ftp is not None
 
