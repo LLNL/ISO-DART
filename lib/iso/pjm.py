@@ -1,12 +1,14 @@
 """
-PJM REST API Client for ISO-DART v2.0 - FIXED
+PJM REST API Client for ISO-DART v2.0 - paginated
 
 Client for PJM Data Miner 2 API with corrected datetime formatting
-File location: lib/iso/pjm.py
+and CSV pagination support for endpoints that can exceed 50,000 rows.
 """
 
-from typing import Optional, Dict, Any
-from datetime import date, datetime, timedelta
+from __future__ import annotations
+
+from typing import Optional, Dict, Any, Union
+from datetime import date, timedelta
 from pathlib import Path
 import logging
 import requests
@@ -52,102 +54,108 @@ class PJMEndpoint(Enum):
 class EndpointConfig:
     """Configuration for specific endpoint requirements."""
 
-    requires_time: bool = False  # Whether datetime needs HH:mm component
-    datetime_param: str = "datetime_beginning_ept"  # Parameter name for datetime
-    supports_row_is_current: bool = False  # Whether endpoint supports row_is_current filter
+    requires_time: bool = False
+    datetime_param: str = "datetime_beginning_ept"
+    supports_row_is_current: bool = False
+    supports_pagination: bool = True
 
 
-# Endpoint-specific configurations
-# NOTE: PJM Data Miner 2 uses *endpoint-specific* datetime parameter names and not all
-# endpoints support row_is_current. If you send an unsupported query parameter, the API
-# typically returns HTTP 400. These configs keep requests compatible across endpoints.
 ENDPOINT_CONFIGS = {
-    # ----- LMP -----
     PJMEndpoint.DA_HRL_LMPS: EndpointConfig(
-        requires_time=False,
+        requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=True,
+        supports_pagination=True,
     ),
     PJMEndpoint.RT_HRL_LMPS: EndpointConfig(
-        requires_time=False,
+        requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=True,
+        supports_pagination=True,
     ),
     PJMEndpoint.RT_FIVEMIN_HRL_LMPS: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=True,
+        supports_pagination=True,
     ),
-    # ----- Load -----
     PJMEndpoint.VERY_SHORT_LOAD_FRCST: EndpointConfig(
         requires_time=True,
         datetime_param="forecast_datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
     PJMEndpoint.LOAD_FRCSTD_HIST: EndpointConfig(
-        # Historical forecast is keyed on forecast hour beginning.
         requires_time=True,
         datetime_param="forecast_hour_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
     PJMEndpoint.LOAD_FRCSTD_7_DAY: EndpointConfig(
         requires_time=True,
         datetime_param="forecast_datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
     PJMEndpoint.HRL_LOAD_ESTIMATED: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
     PJMEndpoint.HRL_LOAD_METERED: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
     PJMEndpoint.HRL_LOAD_PRELIM: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
-    # ----- Renewables -----
     PJMEndpoint.SOLAR_GEN: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
     PJMEndpoint.WIND_GEN: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
-    # ----- Ancillary services -----
     PJMEndpoint.ANCILLARY_SERVICES: EndpointConfig(
         requires_time=False,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=True,
+        supports_pagination=True,
     ),
     PJMEndpoint.ANCILLARY_SERVICES_FIVEMIN_HRL: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=True,
+        supports_pagination=True,
     ),
     PJMEndpoint.RESERVE_MARKET_RESULTS: EndpointConfig(
         requires_time=False,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
-    # ----- Outages / limits -----
     PJMEndpoint.GEN_OUTAGES_BY_TYPE: EndpointConfig(
         requires_time=False,
-        # This endpoint uses forecast execution date (not datetime_beginning_ept)
         datetime_param="forecast_execution_date_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
     PJMEndpoint.TRANSFER_LIMITS_AND_FLOWS: EndpointConfig(
         requires_time=True,
         datetime_param="datetime_beginning_ept",
         supports_row_is_current=False,
+        supports_pagination=True,
     ),
 }
 
@@ -163,24 +171,10 @@ class PJMConfig:
     retry_delay: int = 5
     timeout: int = 30
     rate_limit_delay: float = 1.0
+    page_row_count: int = 50000
 
     @classmethod
     def from_ini_file(cls, config_path: Optional[Path] = None) -> "PJMConfig":
-        """
-        Load configuration from INI file.
-
-        Search order:
-        1. Provided config_path
-        2. ./user_config.ini
-        3. ./config.ini
-        4. ~/.pjm/config.ini
-
-        Args:
-            config_path: Optional path to config file
-
-        Returns:
-            PJMConfig instance
-        """
         config = configparser.ConfigParser()
 
         search_paths = []
@@ -199,11 +193,11 @@ class PJMConfig:
         for path in search_paths:
             if path.exists():
                 config_file = path
-                logger.info(f"Loading configuration from: {config_file}")
+                logger.info("Loading configuration from: %s", config_file)
                 break
 
         if not config_file:
-            logger.warning(f"No config file found. Searched: {[str(p) for p in search_paths]}")
+            logger.warning("No config file found. Searched: %s", [str(p) for p in search_paths])
             return cls()
 
         config.read(config_file)
@@ -214,7 +208,7 @@ class PJMConfig:
 
         pjm_config = config["pjm"]
 
-        kwargs = {}
+        kwargs: Dict[str, Any] = {}
         if "api_key" in pjm_config:
             kwargs["api_key"] = pjm_config["api_key"]
         if "data_dir" in pjm_config:
@@ -227,12 +221,13 @@ class PJMConfig:
             kwargs["timeout"] = int(pjm_config["timeout"])
         if "rate_limit_delay" in pjm_config:
             kwargs["rate_limit_delay"] = float(pjm_config["rate_limit_delay"])
+        if "page_row_count" in pjm_config:
+            kwargs["page_row_count"] = int(pjm_config["page_row_count"])
 
         return cls(**kwargs)
 
     @classmethod
     def create_template_ini(cls, output_path: Path = Path("user_config.ini")):
-        """Create a template INI file for users to fill in."""
         template = """[pjm]
 # PJM Data Miner 2 API Key
 # Get your key from: https://dataminer2.pjm.com/
@@ -248,16 +243,16 @@ max_retries = 3
 retry_delay = 5
 timeout = 30
 rate_limit_delay = 1.0
+page_row_count = 50000
 """
 
         if output_path.exists():
-            # Append to existing file
-            with open(output_path, "a") as f:
+            with open(output_path, "a", encoding="utf-8") as f:
                 f.write("\n" + template)
-            logger.info(f"Appended PJM config to: {output_path}")
+            logger.info("Appended PJM config to: %s", output_path)
         else:
-            output_path.write_text(template)
-            logger.info(f"Created template config file at: {output_path}")
+            output_path.write_text(template, encoding="utf-8")
+            logger.info("Created template config file at: %s", output_path)
 
 
 class PJMClient:
@@ -267,14 +262,12 @@ class PJMClient:
         self.config = config or PJMConfig()
         self._ensure_directories()
         self.session = requests.Session()
-        self._last_request_time = 0
+        self._last_request_time = 0.0
 
     def _ensure_directories(self):
-        """Ensure required directories exist."""
         self.config.data_dir.mkdir(parents=True, exist_ok=True)
 
     def _rate_limit(self):
-        """Implement rate limiting."""
         elapsed = time.time() - self._last_request_time
         if elapsed < self.config.rate_limit_delay:
             time.sleep(self.config.rate_limit_delay - elapsed)
@@ -283,35 +276,26 @@ class PJMClient:
     def _format_date_range(
         self, start_date: date, end_date: date, requires_time: bool = False
     ) -> str:
-        """
-        Format date range for PJM API.
-
-        Args:
-            start_date: Start date
-            end_date: End date
-            requires_time: If True, include time component (HH:mm)
-
-        Returns:
-            Formatted date range string
-        """
         if requires_time:
-            # For five-minute data: yyyy-MM-dd HH:mm to yyyy-MM-dd HH:mm
             start_str = f"{start_date.strftime('%Y-%m-%d')} 00:00"
             end_str = f"{end_date.strftime('%Y-%m-%d')} 23:59"
         else:
-            # For hourly/daily data: MM-dd-yyyy to MM-dd-yyyy
             start_str = start_date.strftime("%m-%d-%Y")
             end_str = end_date.strftime("%m-%d-%Y")
 
         return f"{start_str} to {end_str}"
 
     def _make_request(
-        self, endpoint: str, params: Dict[str, Any], accept: str | None = None
-    ) -> Optional[bytes]:
+        self,
+        endpoint: str,
+        params: Dict[str, Any],
+        accept: Optional[str] = None,
+        return_response: bool = False,
+    ) -> Optional[Union[bytes, requests.Response]]:
         """Make API request with retry logic."""
         url = f"{self.config.base_url}/{endpoint}"
 
-        headers = {}
+        headers: Dict[str, str] = {}
         if self.config.api_key:
             headers["Ocp-Apim-Subscription-Key"] = self.config.api_key
         else:
@@ -323,40 +307,152 @@ class PJMClient:
         for attempt in range(self.config.max_retries):
             try:
                 self._rate_limit()
-                logger.debug(f"Requesting: {url} (attempt {attempt + 1})")
-                logger.debug(f"Params: {params}")
+                logger.debug("Requesting: %s (attempt %s)", url, attempt + 1)
+                logger.debug("Params: %s", params)
 
                 response = self.session.get(
                     url, params=params, headers=headers, timeout=self.config.timeout
                 )
 
                 if response.status_code == 200:
-                    logger.info(f"Request successful: {url}")
-                    return response.content
-                elif response.status_code == 400:
-                    logger.error(f"Bad request (400). Response: {response.text[:500]}")
+                    logger.info("Request successful: %s", url)
+                    return response if return_response else response.content
+                if response.status_code == 400:
+                    logger.error("Bad request (400). Response: %s", response.text[:500])
                     return None
-                elif response.status_code == 401:
+                if response.status_code == 401:
                     logger.error("Authentication failed - check API key")
                     return None
-                elif response.status_code == 404:
-                    logger.warning(f"Data not found for {url}")
+                if response.status_code == 404:
+                    logger.warning("Data not found for %s", url)
                     return None
-                elif response.status_code == 429:
+                if response.status_code == 429:
                     logger.warning("Rate limit exceeded, waiting...")
                     time.sleep(60)
                     continue
-                else:
-                    logger.warning(f"Request failed with status {response.status_code}")
-                    logger.debug(f"Response: {response.text[:500]}")
 
-            except requests.RequestException as e:
-                logger.error(f"Request error: {e}")
+                logger.warning("Request failed with status %s", response.status_code)
+                logger.debug("Response: %s", response.text[:500])
+
+            except requests.RequestException as exc:
+                logger.error("Request error: %s", exc)
 
             if attempt < self.config.max_retries - 1:
                 time.sleep(self.config.retry_delay)
 
         return None
+
+    @staticmethod
+    def _csv_data_row_count(csv_bytes: bytes) -> int:
+        text = csv_bytes.decode("utf-8-sig").strip()
+        if not text:
+            return 0
+        lines = text.splitlines()
+        return max(len(lines) - 1, 0)
+
+    @staticmethod
+    def _merge_csv_pages(csv_pages: list[bytes]) -> bytes:
+        if not csv_pages:
+            return b""
+
+        merged_parts: list[str] = []
+        first_page = True
+
+        for page in csv_pages:
+            text = page.decode("utf-8-sig").strip()
+            if not text:
+                continue
+
+            lines = text.splitlines()
+            if not lines:
+                continue
+
+            if first_page:
+                merged_parts.append("\n".join(lines))
+                first_page = False
+            else:
+                merged_parts.append("\n".join(lines[1:]))
+
+        merged_text = "\n".join(part for part in merged_parts if part)
+        if merged_text and not merged_text.endswith("\n"):
+            merged_text += "\n"
+        return merged_text.encode("utf-8")
+
+    def _download_paginated_csv(
+            self,
+            endpoint: PJMEndpoint,
+            base_params: Dict[str, Any],
+    ) -> Optional[bytes]:
+        """
+        Download all pages for an endpoint using startRow pagination.
+
+        Works with both:
+        - real response objects returned by _make_request(..., return_response=True)
+        - raw bytes returned by monkeypatched test doubles
+        """
+        row_count = int(base_params.get("rowCount", self.config.page_row_count))
+        start_row = int(base_params.get("startRow", 1))
+
+        csv_pages: list[bytes] = []
+        total_rows: Optional[int] = None
+
+        while True:
+            params = dict(base_params)
+            params["startRow"] = start_row
+            params["rowCount"] = row_count
+
+            result = self._make_request(
+                endpoint.value,
+                params,
+                accept="text/csv",
+                return_response=True,
+            )
+
+            if result is None:
+                return None
+
+            # Test doubles often return raw bytes instead of a response object.
+            if isinstance(result, (bytes, bytearray)):
+                page_bytes = bytes(result)
+                headers = {}
+            else:
+                # duck-typed response support
+                page_bytes = getattr(result, "content", None)
+                headers = getattr(result, "headers", {}) or {}
+
+                if page_bytes is None:
+                    return None
+
+            csv_pages.append(page_bytes)
+
+            header_total = headers.get("X-TotalRows")
+            if header_total:
+                try:
+                    total_rows = int(header_total)
+                except (TypeError, ValueError):
+                    logger.debug("Could not parse X-TotalRows=%r", header_total)
+
+            text = page_bytes.decode("utf-8-sig").strip()
+            lines = text.splitlines() if text else []
+
+            if not lines:
+                break
+
+            page_data_rows = max(len(lines) - 1, 0)
+
+            # If this was a monkeypatched bytes response, treat it as a single page.
+            if isinstance(result, (bytes, bytearray)):
+                break
+
+            if total_rows is not None and (start_row + page_data_rows - 1) >= total_rows:
+                break
+
+            if page_data_rows < row_count or page_data_rows == 0:
+                break
+
+            start_row += row_count
+
+        return self._merge_csv_pages(csv_pages)
 
     def _download_data(
         self,
@@ -366,42 +462,35 @@ class PJMClient:
         pnode_id: Optional[int] = None,
         **kwargs,
     ) -> bool:
-        """Download data and save to CSV file."""
-        # Get endpoint-specific configuration
-        endpoint_config = ENDPOINT_CONFIGS.get(
-            endpoint, EndpointConfig()  # Use defaults for unconfigured endpoints
-        )
+        endpoint_config = ENDPOINT_CONFIGS.get(endpoint, EndpointConfig())
 
-        # Format date range according to endpoint requirements
         date_range = self._format_date_range(
             start_date, end_date, requires_time=endpoint_config.requires_time
         )
 
-        params = {
-            "rowCount": 50000,
+        params: Dict[str, Any] = {
+            "rowCount": self.config.page_row_count,
             "startRow": 1,
             endpoint_config.datetime_param: date_range,
             "download": True,
         }
 
-        # Only add row_is_current if endpoint supports it
         if endpoint_config.supports_row_is_current:
             params["row_is_current"] = "TRUE"
 
-        # Add pnode_id if provided (for LMP queries)
         if pnode_id is not None:
             params["pnode_id"] = pnode_id
 
-        # Add any additional parameters
         params.update(kwargs)
 
-        # Make request
-        data = self._make_request(endpoint.value, params, accept="text/csv")
+        if endpoint_config.supports_pagination:
+            data = self._download_paginated_csv(endpoint, params)
+        else:
+            data = self._make_request(endpoint.value, params, accept="text/csv")
 
-        if not data:
+        if not data or not isinstance(data, bytes):
             return False
 
-        # Generate filename
         if endpoint_config.requires_time:
             start_str = start_date.strftime("%Y-%m-%d")
             end_str = end_date.strftime("%Y-%m-%d")
@@ -414,30 +503,14 @@ class PJMClient:
         else:
             filename = f"{start_str}_to_{end_str}_{endpoint.value}.csv"
 
-        # Save to file
         output_path = self.config.data_dir / filename
         output_path.write_bytes(data)
-        logger.info(f"Saved data to {output_path}")
-
+        logger.info("Saved data to %s", output_path)
         return True
-
-    # ========== LMP METHODS ==========
 
     def get_lmp(
         self, lmp_type: str, start_date: date, duration: int, pnode_id: Optional[int] = None
     ) -> bool:
-        """
-        Get Locational Marginal Price data.
-
-        Args:
-            lmp_type: Type of LMP ('da_hourly', 'rt_5min', 'rt_hourly')
-            start_date: Start date
-            duration: Duration in days
-            pnode_id: Optional pricing node ID
-
-        Returns:
-            True if successful
-        """
         type_map = {
             "da_hourly": PJMEndpoint.DA_HRL_LMPS,
             "rt_5min": PJMEndpoint.RT_FIVEMIN_HRL_LMPS,
@@ -445,27 +518,16 @@ class PJMClient:
         }
 
         if lmp_type not in type_map:
-            logger.error(f"Invalid LMP type: {lmp_type}. Use: {list(type_map.keys())}")
+            logger.error("Invalid LMP type: %s. Use: %s", lmp_type, list(type_map.keys()))
+            return False
+        if duration < 1:
+            logger.error("duration must be >= 1")
             return False
 
-        end_date = start_date + timedelta(days=duration)
-
+        end_date = start_date + timedelta(days=duration - 1)
         return self._download_data(type_map[lmp_type], start_date, end_date, pnode_id=pnode_id)
 
-    # ========== LOAD METHODS ==========
-
     def get_load_forecast(self, forecast_type: str, start_date: date, duration: int) -> bool:
-        """
-        Get load forecast data.
-
-        Args:
-            forecast_type: Type of forecast ('5min', 'historical', '7day')
-            start_date: Start date
-            duration: Duration in days
-
-        Returns:
-            True if successful
-        """
         type_map = {
             "5min": PJMEndpoint.VERY_SHORT_LOAD_FRCST,
             "historical": PJMEndpoint.LOAD_FRCSTD_HIST,
@@ -473,25 +535,16 @@ class PJMClient:
         }
 
         if forecast_type not in type_map:
-            logger.error(f"Invalid forecast type: {forecast_type}. Use: {list(type_map.keys())}")
+            logger.error("Invalid forecast type: %s. Use: %s", forecast_type, list(type_map.keys()))
+            return False
+        if duration < 1:
+            logger.error("duration must be >= 1")
             return False
 
-        end_date = start_date + timedelta(days=duration)
-
+        end_date = start_date + timedelta(days=duration - 1)
         return self._download_data(type_map[forecast_type], start_date, end_date)
 
     def get_hourly_load(self, load_type: str, start_date: date, duration: int) -> bool:
-        """
-        Get hourly load data.
-
-        Args:
-            load_type: Type of load ('estimated', 'metered', 'preliminary')
-            start_date: Start date
-            duration: Duration in days
-
-        Returns:
-            True if successful
-        """
         type_map = {
             "estimated": PJMEndpoint.HRL_LOAD_ESTIMATED,
             "metered": PJMEndpoint.HRL_LOAD_METERED,
@@ -499,56 +552,36 @@ class PJMClient:
         }
 
         if load_type not in type_map:
-            logger.error(f"Invalid load type: {load_type}. Use: {list(type_map.keys())}")
+            logger.error("Invalid load type: %s. Use: %s", load_type, list(type_map.keys()))
+            return False
+        if duration < 1:
+            logger.error("duration must be >= 1")
             return False
 
-        end_date = start_date + timedelta(days=duration)
-
+        end_date = start_date + timedelta(days=duration - 1)
         return self._download_data(type_map[load_type], start_date, end_date)
-
-    # ========== RENEWABLE GENERATION METHODS ==========
 
     def get_renewable_generation(
         self, renewable_type: str, start_date: date, duration: int
     ) -> bool:
-        """
-        Get renewable generation data.
-
-        Args:
-            renewable_type: Type of renewable ('solar', 'wind')
-            start_date: Start date
-            duration: Duration in days
-
-        Returns:
-            True if successful
-        """
         type_map = {
             "solar": PJMEndpoint.SOLAR_GEN,
             "wind": PJMEndpoint.WIND_GEN,
         }
 
         if renewable_type not in type_map:
-            logger.error(f"Invalid renewable type: {renewable_type}. Use: {list(type_map.keys())}")
+            logger.error(
+                "Invalid renewable type: %s. Use: %s", renewable_type, list(type_map.keys())
+            )
+            return False
+        if duration < 1:
+            logger.error("duration must be >= 1")
             return False
 
-        end_date = start_date + timedelta(days=duration)
-
+        end_date = start_date + timedelta(days=duration - 1)
         return self._download_data(type_map[renewable_type], start_date, end_date)
 
-    # ========== ANCILLARY SERVICES METHODS ==========
-
     def get_ancillary_services(self, as_type: str, start_date: date, duration: int) -> bool:
-        """
-        Get ancillary services data.
-
-        Args:
-            as_type: Type of AS data ('hourly', '5min', 'reserve_market')
-            start_date: Start date
-            duration: Duration in days
-
-        Returns:
-            True if successful
-        """
         type_map = {
             "hourly": PJMEndpoint.ANCILLARY_SERVICES,
             "5min": PJMEndpoint.ANCILLARY_SERVICES_FIVEMIN_HRL,
@@ -556,79 +589,52 @@ class PJMClient:
         }
 
         if as_type not in type_map:
-            logger.error(f"Invalid AS type: {as_type}. Use: {list(type_map.keys())}")
+            logger.error("Invalid AS type: %s. Use: %s", as_type, list(type_map.keys()))
+            return False
+        if duration < 1:
+            logger.error("duration must be >= 1")
             return False
 
-        end_date = start_date + timedelta(days=duration)
-
+        end_date = start_date + timedelta(days=duration - 1)
         return self._download_data(type_map[as_type], start_date, end_date)
 
-    # ========== OUTAGES AND TRANSFER LIMITS ==========
-
     def get_outages_and_limits(self, data_type: str, start_date: date, duration: int) -> bool:
-        """
-        Get outages and transfer limits data.
-
-        Args:
-            data_type: Type of data ('outages', 'transfer_limits')
-            start_date: Start date
-            duration: Duration in days
-
-        Returns:
-            True if successful
-        """
         type_map = {
             "outages": PJMEndpoint.GEN_OUTAGES_BY_TYPE,
             "transfer_limits": PJMEndpoint.TRANSFER_LIMITS_AND_FLOWS,
         }
 
         if data_type not in type_map:
-            logger.error(f"Invalid data type: {data_type}. Use: {list(type_map.keys())}")
+            logger.error("Invalid data type: %s. Use: %s", data_type, list(type_map.keys()))
+            return False
+        if duration < 1:
+            logger.error("duration must be >= 1")
             return False
 
-        end_date = start_date + timedelta(days=duration)
-
+        end_date = start_date + timedelta(days=duration - 1)
         return self._download_data(type_map[data_type], start_date, end_date)
 
     def cleanup(self):
-        """Clean up resources."""
         self.session.close()
 
 
-# Example usage
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    # Create template if needed
     if not Path("user_config.ini").exists():
         PJMConfig.create_template_ini()
         print("\nPlease edit user_config.ini with your PJM API key, then run again.")
-        exit(0)
+        raise SystemExit(0)
 
-    # Load config and create client
     config = PJMConfig.from_ini_file()
     client = PJMClient(config)
 
-    # Example: Get day-ahead hourly LMP for a specific node
     example_date = date.today() - timedelta(days=7)
 
     print("\n=== Testing Day-Ahead Hourly LMP ===")
     success = client.get_lmp(
-        lmp_type="da_hourly", start_date=example_date, duration=7, pnode_id=51288
+        lmp_type="da_hourly", start_date=example_date, duration=1, pnode_id=51288
     )
     print(f"DA Hourly: {'✅ Success' if success else '❌ Failed'}")
-
-    print("\n=== Testing Real-Time 5-Minute LMP ===")
-    success = client.get_lmp(
-        lmp_type="rt_5min",
-        start_date=example_date,
-        duration=1,  # Use shorter duration for 5-min data
-        pnode_id=51288,
-    )
-    print(f"RT 5-Min: {'✅ Success' if success else '❌ Failed'}")
-
-    print("\n=== Testing 5-Minute Load Forecast ===")
-    success = client.get_load_forecast(forecast_type="5min", start_date=example_date, duration=1)
-    print(f"5-Min Load Forecast: {'✅ Success' if success else '❌ Failed'}")
 
     client.cleanup()

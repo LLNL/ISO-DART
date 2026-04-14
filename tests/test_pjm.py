@@ -83,7 +83,9 @@ max_retries = 5
 retry_delay = 7
 timeout = 42
 rate_limit_delay = 1.5
-""".format(data_dir=str(tmp_path / "data_dir"))
+""".format(
+        data_dir=str(tmp_path / "data_dir")
+    )
     cfg_path.write_text(cfg_text)
 
     cfg = PJMConfig.from_ini_file(cfg_path)
@@ -382,7 +384,7 @@ def test_download_data_builds_correct_params(client, monkeypatch):
 
     assert success
     assert captured["endpoint"] == "da_hrl_lmps"
-    assert captured["params"]["datetime_beginning_ept"] == "01-01-2025 to 01-03-2025"
+    assert captured["params"]["datetime_beginning_ept"] == "2025-01-01 00:00 to 2025-01-03 23:59"
     assert captured["params"]["pnode_id"] == 12345
     assert captured["params"]["rowCount"] == 50000
     assert captured["params"]["startRow"] == 1
@@ -436,7 +438,7 @@ def test_download_data_saves_file_with_pnode_id(client, monkeypatch):
 
     # Check that file was created with correct name
     expected_file = (
-        client.config.data_dir / "01-01-2025_to_01-03-2025_da_hrl_lmps_pnodeid=12345.csv"
+        client.config.data_dir / "2025-01-01_to_2025-01-03_da_hrl_lmps_pnodeid=12345.csv"
     )
     assert expected_file.exists()
 
@@ -567,7 +569,7 @@ def test_get_lmp_da_hourly(client, monkeypatch):
     assert success
     assert captured["endpoint"] == PJMEndpoint.DA_HRL_LMPS
     assert captured["start_date"] == start
-    assert captured["end_date"] == start + timedelta(days=7)
+    assert captured["end_date"] == start + timedelta(days=6)
     assert captured["pnode_id"] == 12345
 
 
@@ -1071,7 +1073,7 @@ def test_full_workflow_with_mocked_api(client, monkeypatch):
 
     # Verify file was created
     expected_file = (
-        client.config.data_dir / "01-01-2025_to_01-02-2025_da_hrl_lmps_pnodeid=12345.csv"
+        client.config.data_dir / "2025-01-01_to_2025-01-01_da_hrl_lmps_pnodeid=12345.csv"
     )
     assert expected_file.exists()
 
@@ -1195,8 +1197,8 @@ def test_concurrent_downloads_use_different_filenames(client, monkeypatch):
     client._download_data(PJMEndpoint.DA_HRL_LMPS, start, end, pnode_id=222)
 
     # Both files should exist
-    file1 = client.config.data_dir / "01-01-2025_to_01-03-2025_da_hrl_lmps_pnodeid=111.csv"
-    file2 = client.config.data_dir / "01-01-2025_to_01-03-2025_da_hrl_lmps_pnodeid=222.csv"
+    file1 = client.config.data_dir / "2025-01-01_to_2025-01-03_da_hrl_lmps_pnodeid=111.csv"
+    file2 = client.config.data_dir / "2025-01-01_to_2025-01-03_da_hrl_lmps_pnodeid=222.csv"
 
     assert file1.exists()
     assert file2.exists()
