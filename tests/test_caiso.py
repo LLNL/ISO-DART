@@ -1415,5 +1415,83 @@ def test_get_curtailed_non_operational_reports_prior_kind_adds_pattern(tmp_path,
     assert ok is False
 
 
+from datetime import date
+from unittest.mock import Mock
+
+from lib.iso.caiso import CAISOClient, Market
+
+
+def test_transmission_interface_usage_rejects_invalid_market(tmp_path):
+    client = CAISOClient()
+    client.config.raw_dir = tmp_path / "raw"
+    client.config.xml_dir = tmp_path / "xml"
+    client.config.data_dir = tmp_path / "data"
+    client._ensure_directories()
+
+    assert (
+        client.get_transmission_interface_usage(
+            market=Market.RTM,
+            start_date=date(2024, 1, 1),
+            end_date=date(2024, 1, 2),
+        )
+        is False
+    )
+
+
+def test_transmission_interface_usage_builds_expected_params(
+    monkeypatch,
+    tmp_path,
+):
+    client = CAISOClient()
+    client.config.raw_dir = tmp_path / "raw"
+    client.config.xml_dir = tmp_path / "xml"
+    client.config.data_dir = tmp_path / "data"
+    client._ensure_directories()
+
+    captured_params = {}
+
+    def fake_make_request(params):
+        captured_params.update(params)
+        return b"fake-zip"
+
+    xml_path = client.config.xml_dir / "TRNS_USAGE.xml"
+    xml_path.write_text("<root />", encoding="utf-8")
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+    monkeypatch.setattr(
+        client,
+        "_extract_zip",
+        lambda content, query_name: xml_path,
+    )
+
+    def fake_xml_to_csv(xml_file, csv_file, report_version=None):
+        csv_file.write_text(
+            "OPR_DATE,OPR_HR,TI_ID,TI_DIRECTION,DATA_ITEM,VALUE\n"
+            "2024-01-01,1,MALIN500_ISL,IMPORT,TTC_MW,3000\n",
+            encoding="utf-8",
+        )
+        return True
+
+    monkeypatch.setattr(client, "_xml_to_csv", fake_xml_to_csv)
+    monkeypatch.setattr(client, "_process_csv", Mock())
+
+    success = client.get_transmission_interface_usage(
+        market=Market.DAM,
+        start_date=date(2024, 1, 1),
+        end_date=date(2024, 1, 2),
+        transmission_interface="MALIN500_ISL",
+        direction="IMPORT",
+    )
+
+    assert success is True
+    assert captured_params["queryname"] == "TRNS_USAGE"
+    assert captured_params["market_run_id"] == "DAM"
+    assert captured_params["ti_id"] == "MALIN500_ISL"
+    assert captured_params["ti_direction"] == "IMPORT"
+    assert captured_params["version"] == 1
+
+    client._process_csv.assert_called_once()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

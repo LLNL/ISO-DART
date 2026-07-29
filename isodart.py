@@ -225,11 +225,50 @@ def handle_caiso(args):
             logger.info("Downloading Advisory Demand Forecast...")
             success = client.get_advisory_demand_forecast(args.start, end_date)
 
+        elif args.data_type == "transmission-interface-usage":
+            if not args.market:
+                logger.error(
+                    "Market type is required for Transmission Interface Usage "
+                    "(use --market dam or --market hasp)"
+                )
+                return False
+
+            market = market_map.get(args.market.lower())
+            if market not in {Market.DAM, Market.HASP}:
+                logger.error(
+                    "Transmission Interface Usage only supports "
+                    "--market dam or --market hasp"
+                )
+                return False
+
+            transmission_interface = getattr(
+                args,
+                "transmission_interface",
+                "ALL",
+            )
+            direction = getattr(args, "ti_direction", "ALL")
+
+            logger.info(
+                "Downloading %s Transmission Interface Usage "
+                "(interface=%s, direction=%s)...",
+                market.value,
+                transmission_interface,
+                direction,
+            )
+
+            success = client.get_transmission_interface_usage(
+                market=market,
+                start_date=args.start,
+                end_date=end_date,
+                transmission_interface=transmission_interface,
+                direction=direction,
+            )
+
         else:
             logger.error(f"Unknown CAISO data type: {args.data_type}")
             logger.info(
                 "Available types: lmp, load-forecast, system-load, wind-solar, fuel-prices, ghg-prices, as-prices, "
-                "as-requirements, curtailed-nonop, intertie-prices, mpm-status, flex-ramp-req,"
+                "as-requirements, curtailed-nonop, intertie-prices, 'transmission-interface-usage', mpm-status, flex-ramp-req,"
                 "flex-ramp-awards, flex-ramp-curves, eim-transfer, eim-transfer-limits,"
                 "operating-reserves, point-tie-prices, advisory-demand-forecast"
             )
@@ -1124,6 +1163,7 @@ Examples:
             "rt_actual",
             "rt_state_estimator",
             "actual",
+            "actual_hourly",
             "iso_forecast",
             "zonal_bid",
             "weather_forecast",
@@ -1244,6 +1284,24 @@ Examples:
         "--list-bpa-paths",
         action="store_true",
         help="List available BPA transmission path ReportIDs (scraped from BPA PathFileLocations page) and exit",
+    )
+
+    parser.add_argument(
+        "--transmission-interface",
+        default="ALL",
+        help=(
+            "For CAISO Transmission Interface Usage: transmission interface "
+            "identifier, such as MALIN500_ISL; default: ALL"
+        ),
+    )
+
+    parser.add_argument(
+        "--ti-direction",
+        default="ALL",
+        help=(
+            "For CAISO Transmission Interface Usage: interface direction; "
+            "default: ALL"
+        ),
     )
 
     parser.add_argument(

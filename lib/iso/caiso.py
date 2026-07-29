@@ -504,6 +504,117 @@ class CAISOClient:
 
         return True
 
+    def get_transmission_interface_usage(
+            self,
+            market: Market,
+            start_date: date,
+            end_date: date,
+            transmission_interface: str = "ALL",
+            direction: str = "ALL",
+            step_size: int = 1,
+    ) -> bool:
+        """
+        Get CAISO Transmission Interface Usage data.
+
+        This report contains hourly transmission capacity and usage information
+        resulting from CAISO market operations for the Day-Ahead Market or HASP.
+
+        Args:
+            market:
+                CAISO market. Must be Market.DAM or Market.HASP.
+            start_date:
+                Inclusive start date.
+            end_date:
+                Exclusive end date.
+            transmission_interface:
+                CAISO transmission interface identifier, such as
+                ``MALIN500_ISL``, or ``ALL``.
+            direction:
+                Transmission-interface direction, or ``ALL``.
+            step_size:
+                Number of days included in each OASIS request.
+
+        Returns:
+            True when all requests are successfully downloaded and processed;
+            otherwise False.
+        """
+        if market not in {Market.DAM, Market.HASP}:
+            logger.error(
+                "Transmission Interface Usage is only available for DAM or HASP; "
+                f"received {market}"
+            )
+            return False
+
+        if step_size < 1:
+            raise ValueError("step_size must be at least 1")
+
+        query_name = "TRNS_USAGE"
+        csv_path = self.config.raw_dir / f"{query_name}.csv"
+
+        # Prevent an old interrupted download from being appended to this run.
+        csv_path.unlink(missing_ok=True)
+
+        current_date = start_date
+
+        try:
+            while current_date < end_date:
+                step_end = min(
+                    current_date + timedelta(days=step_size),
+                    end_date,
+                )
+
+                params = self._build_params(
+                    query_name=query_name,
+                    start_date=current_date,
+                    end_date=step_end,
+                    market=market,
+                    ti_id=transmission_interface,
+                    ti_direction=direction,
+                    version=1,
+                )
+
+                content = self._make_request(params)
+                if not content:
+                    logger.error(
+                        "Failed to retrieve Transmission Interface Usage for "
+                        f"{current_date} through {step_end}"
+                    )
+                    return False
+
+                xml_path = self._extract_zip(content, query_name)
+                if not xml_path:
+                    logger.error(
+                        "Failed to extract Transmission Interface Usage for "
+                        f"{current_date} through {step_end}"
+                    )
+                    return False
+
+                if not self._xml_to_csv(xml_path, csv_path):
+                    logger.error(
+                        "Failed to convert Transmission Interface Usage for "
+                        f"{current_date} through {step_end}"
+                    )
+                    return False
+
+                current_date = step_end
+
+            if not csv_path.exists() or csv_path.stat().st_size == 0:
+                logger.error("No Transmission Interface Usage data was downloaded")
+                return False
+
+            # Keep all data items together because they describe the same
+            # interface/hour record and are easier to analyze in long form.
+            self._process_csv(
+                csv_path,
+                self.config.data_dir,
+                separate_by_item=False,
+            )
+
+            return True
+
+        finally:
+            csv_path.unlink(missing_ok=True)
+
     def get_system_load(
         self, market: Market, start_date: date, end_date: date, step_size: int = 1
     ) -> bool:

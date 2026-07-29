@@ -503,6 +503,7 @@ class NYISOClient:
             "zonal_bid": "zonalBidLoad",
             "weather_forecast": "lfweather",
             "actual": "pal",
+            "actual_hourly": "palIntegrated",
         }
 
         if load_type not in type_map:
