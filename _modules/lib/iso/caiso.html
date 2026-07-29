@@ -914,6 +914,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_wind_solar_summary"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_wind_solar_summary()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_ghg_allowance_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_ghg_allowance_prices()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_intertie_constraint_shadow_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_intertie_constraint_shadow_prices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_transmission_interface_usage"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_transmission_interface_usage()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_system_load"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_system_load()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_market_power_mitigation"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_market_power_mitigation()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_flex_ramp_requirements"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_flex_ramp_requirements()</span></code></a></li>
@@ -982,6 +983,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_wind_solar_summary"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_wind_solar_summary()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_ghg_allowance_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_ghg_allowance_prices()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_intertie_constraint_shadow_prices"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_intertie_constraint_shadow_prices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_transmission_interface_usage"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_transmission_interface_usage()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_system_load"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_system_load()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_market_power_mitigation"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_market_power_mitigation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_flex_ramp_requirements"><code class="docutils literal notranslate"><span class="pre">CAISOClient.get_flex_ramp_requirements()</span></code></a></li>
@@ -1697,6 +1699,120 @@
         <span class="n">csv_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="CAISOClient.get_transmission_interface_usage">
+<a class="viewcode-back" href="../../../api/caiso.html#lib.iso.caiso.CAISOClient.get_transmission_interface_usage">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_transmission_interface_usage</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">market</span><span class="p">:</span> <span class="n">Market</span><span class="p">,</span>
+            <span class="n">start_date</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span>
+            <span class="n">end_date</span><span class="p">:</span> <span class="n">date</span><span class="p">,</span>
+            <span class="n">transmission_interface</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ALL&quot;</span><span class="p">,</span>
+            <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ALL&quot;</span><span class="p">,</span>
+            <span class="n">step_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get CAISO Transmission Interface Usage data.</span>
+
+<span class="sd">        This report contains hourly transmission capacity and usage information</span>
+<span class="sd">        resulting from CAISO market operations for the Day-Ahead Market or HASP.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            market:</span>
+<span class="sd">                CAISO market. Must be Market.DAM or Market.HASP.</span>
+<span class="sd">            start_date:</span>
+<span class="sd">                Inclusive start date.</span>
+<span class="sd">            end_date:</span>
+<span class="sd">                Exclusive end date.</span>
+<span class="sd">            transmission_interface:</span>
+<span class="sd">                CAISO transmission interface identifier, such as</span>
+<span class="sd">                ``MALIN500_ISL``, or ``ALL``.</span>
+<span class="sd">            direction:</span>
+<span class="sd">                Transmission-interface direction, or ``ALL``.</span>
+<span class="sd">            step_size:</span>
+<span class="sd">                Number of days included in each OASIS request.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True when all requests are successfully downloaded and processed;</span>
+<span class="sd">            otherwise False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">market</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">Market</span><span class="o">.</span><span class="n">HASP</span><span class="p">}:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Transmission Interface Usage is only available for DAM or HASP; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;received </span><span class="si">{</span><span class="n">market</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">step_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;step_size must be at least 1&quot;</span><span class="p">)</span>
+
+        <span class="n">query_name</span> <span class="o">=</span> <span class="s2">&quot;TRNS_USAGE&quot;</span>
+        <span class="n">csv_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">raw_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">query_name</span><span class="si">}</span><span class="s2">.csv&quot;</span>
+
+        <span class="c1"># Prevent an old interrupted download from being appended to this run.</span>
+        <span class="n">csv_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">current_date</span> <span class="o">=</span> <span class="n">start_date</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">current_date</span> <span class="o">&lt;</span> <span class="n">end_date</span><span class="p">:</span>
+                <span class="n">step_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                    <span class="n">current_date</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">step_size</span><span class="p">),</span>
+                    <span class="n">end_date</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_params</span><span class="p">(</span>
+                    <span class="n">query_name</span><span class="o">=</span><span class="n">query_name</span><span class="p">,</span>
+                    <span class="n">start_date</span><span class="o">=</span><span class="n">current_date</span><span class="p">,</span>
+                    <span class="n">end_date</span><span class="o">=</span><span class="n">step_end</span><span class="p">,</span>
+                    <span class="n">market</span><span class="o">=</span><span class="n">market</span><span class="p">,</span>
+                    <span class="n">ti_id</span><span class="o">=</span><span class="n">transmission_interface</span><span class="p">,</span>
+                    <span class="n">ti_direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+                    <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_request</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">content</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;Failed to retrieve Transmission Interface Usage for &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">current_date</span><span class="si">}</span><span class="s2"> through </span><span class="si">{</span><span class="n">step_end</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+                <span class="n">xml_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_zip</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">query_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">xml_path</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;Failed to extract Transmission Interface Usage for &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">current_date</span><span class="si">}</span><span class="s2"> through </span><span class="si">{</span><span class="n">step_end</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xml_to_csv</span><span class="p">(</span><span class="n">xml_path</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;Failed to convert Transmission Interface Usage for &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">current_date</span><span class="si">}</span><span class="s2"> through </span><span class="si">{</span><span class="n">step_end</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+                <span class="n">current_date</span> <span class="o">=</span> <span class="n">step_end</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">csv_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">csv_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No Transmission Interface Usage data was downloaded&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="c1"># Keep all data items together because they describe the same</span>
+            <span class="c1"># interface/hour record and are easier to analyze in long form.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_csv</span><span class="p">(</span>
+                <span class="n">csv_path</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span>
+                <span class="n">separate_by_item</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">csv_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CAISOClient.get_system_load">
