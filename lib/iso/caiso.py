@@ -505,13 +505,13 @@ class CAISOClient:
         return True
 
     def get_transmission_interface_usage(
-            self,
-            market: Market,
-            start_date: date,
-            end_date: date,
-            transmission_interface: str = "ALL",
-            direction: str = "ALL",
-            step_size: int = 1,
+        self,
+        market: Market,
+        start_date: date,
+        end_date: date,
+        transmission_interface: str = "ALL",
+        direction: str = "ALL",
+        step_size: int = 1,
     ) -> bool:
         """
         Get CAISO Transmission Interface Usage data.

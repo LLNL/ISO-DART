@@ -236,8 +236,7 @@ def handle_caiso(args):
             market = market_map.get(args.market.lower())
             if market not in {Market.DAM, Market.HASP}:
                 logger.error(
-                    "Transmission Interface Usage only supports "
-                    "--market dam or --market hasp"
+                    "Transmission Interface Usage only supports " "--market dam or --market hasp"
                 )
                 return False
 
@@ -249,8 +248,7 @@ def handle_caiso(args):
             direction = getattr(args, "ti_direction", "ALL")
 
             logger.info(
-                "Downloading %s Transmission Interface Usage "
-                "(interface=%s, direction=%s)...",
+                "Downloading %s Transmission Interface Usage " "(interface=%s, direction=%s)...",
                 market.value,
                 transmission_interface,
                 direction,
@@ -1298,10 +1296,7 @@ Examples:
     parser.add_argument(
         "--ti-direction",
         default="ALL",
-        help=(
-            "For CAISO Transmission Interface Usage: interface direction; "
-            "default: ALL"
-        ),
+        help=("For CAISO Transmission Interface Usage: interface direction; " "default: ALL"),
     )
 
     parser.add_argument(
