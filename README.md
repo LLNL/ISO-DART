@@ -531,7 +531,9 @@ pip install --upgrade certifi requests
 
 MIT License - Copyright (c) 2025, Lawrence Livermore National Security, LLC
 
-See [LICENSE](LICENSE) file for full terms.
+See [LICENSE](LICENSE) and [NOTICE](NOTICE) files for full terms.
+
+LLNL-CODE-815334
 
 ### Citation
 
