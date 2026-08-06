@@ -364,6 +364,102 @@ class TestWeatherDownload:
         assert "Invalid selection" in out
         assert "... and 5 more" in out
 
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
+    def test_download_weather_data_station_name_single_match(
+        self,
+        mock_point,
+        mock_stations_class,
+        mock_hourly_class,
+        client,
+        mock_stations_df,
+        mock_weather_data,
+    ):
+        """Test download with a station name that matches exactly one station."""
+        mock_stations = Mock()
+        mock_stations.region.return_value = mock_stations
+        mock_stations.fetch.return_value = mock_stations_df
+        mock_stations_class.return_value = mock_stations
+
+        mock_hourly = Mock()
+        mock_hourly.convert.return_value = mock_hourly
+        mock_hourly.fetch.return_value = mock_weather_data
+        mock_hourly_class.return_value = mock_hourly
+
+        success = client.download_weather_data(
+            state="CA",
+            start_date=date(2024, 1, 1),
+            duration=1,
+            interactive=False,
+            station_name="San Jose Airport",
+        )
+
+        assert success
+        assert client.selected_station["name"] == "San Jose Airport"
+
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
+    def test_download_weather_data_station_name_no_match(
+        self, mock_point, mock_stations_class, mock_hourly_class, client, mock_stations_df, capsys
+    ):
+        """Test download when the station name matches nothing."""
+        mock_stations = Mock()
+        mock_stations.region.return_value = mock_stations
+        mock_stations.fetch.return_value = mock_stations_df
+        mock_stations_class.return_value = mock_stations
+
+        success = client.download_weather_data(
+            state="CA",
+            start_date=date(2024, 1, 1),
+            duration=1,
+            interactive=False,
+            station_name="Nonexistent Airport",
+        )
+
+        assert not success
+        out = capsys.readouterr().out
+        assert "No station matched" in out
+        assert "--list-stations" in out
+
+    @patch("lib.weather.client.Hourly")
+    @patch("lib.weather.client.Stations")
+    @patch("lib.weather.client.Point")
+    def test_download_weather_data_station_name_multiple_matches(
+        self,
+        mock_point,
+        mock_stations_class,
+        mock_hourly_class,
+        client,
+        mock_stations_df,
+        mock_weather_data,
+        capsys,
+    ):
+        """Test download when the station name matches multiple stations."""
+        mock_stations = Mock()
+        mock_stations.region.return_value = mock_stations
+        mock_stations.fetch.return_value = mock_stations_df
+        mock_stations_class.return_value = mock_stations
+
+        mock_hourly = Mock()
+        mock_hourly.convert.return_value = mock_hourly
+        mock_hourly.fetch.return_value = mock_weather_data
+        mock_hourly_class.return_value = mock_hourly
+
+        success = client.download_weather_data(
+            state="CA",
+            start_date=date(2024, 1, 1),
+            duration=1,
+            interactive=False,
+            station_name="Airport",
+        )
+
+        assert success
+        assert client.selected_station["name"] == "San Francisco Airport"
+        out = capsys.readouterr().out
+        assert "Multiple stations match" in out
+
 
 class TestSolarDataDownload:
     """Test solar data download from NSRDB."""
@@ -488,6 +584,45 @@ class TestSolarDataDownload:
 
         assert success is True
         output_files = list(temp_dir["solar_dir"].glob("solar_data_*.csv"))
+        assert len(output_files) == 1
+
+    @patch("lib.weather.client.pd.read_csv")
+    @patch("lib.weather.client.datetime")
+    def test_download_solar_defaults_year_to_current_year(
+        self, mock_datetime, mock_read_csv, client, temp_dir
+    ):
+        """Test that year defaults to current year when not provided."""
+        mock_location = Mock()
+        mock_location._lat = 37.62
+        mock_location._lon = -122.38
+        client.selected_location = mock_location
+        client.selected_station = {"name": "Test Station"}
+
+        mock_datetime.now.return_value = real_datetime(2023, 1, 1)
+
+        mock_read_csv.return_value = pd.DataFrame({"ghi": [0] * 17520})
+
+        mock_config = Mock()
+        mock_config.__getitem__ = Mock(
+            side_effect=lambda x: {
+                "nlr": {
+                    "api_key": "k",
+                    "first_name": "A",
+                    "last_name": "B",
+                    "affiliation": "Org",
+                    "email": "a@b.com",
+                },
+            }[x]
+        )
+
+        with (
+            patch.object(Path, "exists", return_value=True),
+            patch("lib.weather.client.configparser.ConfigParser", return_value=mock_config),
+        ):
+            success = client.download_solar_data(config_file=Path("user_config.ini"))
+
+        assert success is True
+        output_files = list(temp_dir["solar_dir"].glob("solar_data_2023_*.csv"))
         assert len(output_files) == 1
 
 

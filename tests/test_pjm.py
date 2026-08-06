@@ -96,6 +96,16 @@ rate_limit_delay = 1.5
     assert cfg.rate_limit_delay == 1.5
 
 
+def test_pjm_config_from_ini_page_row_count(tmp_path):
+    """page_row_count parses from the config file."""
+    cfg_path = tmp_path / "pjm.ini"
+    cfg_path.write_text("[pjm]\npage_row_count = 1000\n")
+
+    cfg = PJMConfig.from_ini_file(cfg_path)
+
+    assert cfg.page_row_count == 1000
+
+
 def test_pjm_config_from_ini_missing_section(tmp_path):
     """Test loading config when [pjm] section is missing."""
     cfg_path = tmp_path / "pjm.ini"
@@ -355,6 +365,88 @@ def test_make_request_400_returns_none_and_logs(monkeypatch, tmp_path, caplog):
 
 
 # =========================
+# CSV helper & pagination tests
+# =========================
+
+
+def test_csv_data_row_count_empty(client):
+    assert client._csv_data_row_count(b"") == 0
+    assert client._csv_data_row_count(b"  \n\t\n") == 0
+
+
+def test_csv_data_row_count(client):
+    assert client._csv_data_row_count(b"header\nr1\nr2\n") == 2
+    assert client._csv_data_row_count(b"header\n") == 0
+    assert client._csv_data_row_count(b"\xef\xbb\xbfheader\nr1\n") == 1
+
+
+def test_merge_csv_pages_empty(client):
+    assert client._merge_csv_pages([]) == b""
+
+
+def test_merge_csv_pages_skips_empty_and_strips_headers(client):
+    pages = [b"h1\nr1\n", b"\n", b"h2\nr2\n"]
+    assert client._merge_csv_pages(pages) == b"h1\nr1\nr2\n"
+
+
+def test_download_paginated_csv_multiple_pages(client, monkeypatch):
+    pages = iter([b"h\nr1\nr2\n", b"h\nr3\nr4\n", b"h\nr5\n"])
+
+    def fake_make_request(endpoint, params, accept=None, return_response=False):
+        return SimpleNamespace(content=next(pages), headers={})
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+
+    out = client._download_paginated_csv(PJMEndpoint.DA_HRL_LMPS, {"rowCount": 2, "startRow": 1})
+
+    assert out == b"h\nr1\nr2\nr3\nr4\nr5\n"
+
+
+def test_download_paginated_csv_content_none(client, monkeypatch):
+    def fake_make_request(endpoint, params, accept=None, return_response=False):
+        return SimpleNamespace(content=None, headers={})
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+
+    assert client._download_paginated_csv(PJMEndpoint.DA_HRL_LMPS, {}) is None
+
+
+def test_download_paginated_csv_empty_content(client, monkeypatch):
+    def fake_make_request(endpoint, params, accept=None, return_response=False):
+        return SimpleNamespace(content=b"", headers={})
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+
+    assert client._download_paginated_csv(PJMEndpoint.DA_HRL_LMPS, {}) == b""
+
+
+def test_download_paginated_csv_invalid_total_rows_header(client, monkeypatch):
+    def fake_make_request(endpoint, params, accept=None, return_response=False):
+        return SimpleNamespace(content=b"h\nr1\nr2\n", headers={"X-TotalRows": "oops"})
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+
+    out = client._download_paginated_csv(
+        PJMEndpoint.DA_HRL_LMPS, {"rowCount": 50000, "startRow": 1}
+    )
+
+    assert out == b"h\nr1\nr2\n"
+
+
+def test_download_paginated_csv_stops_at_total(client, monkeypatch):
+    def fake_make_request(endpoint, params, accept=None, return_response=False):
+        return SimpleNamespace(content=b"h\nr1\nr2\nr3\n", headers={"X-TotalRows": "3"})
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+
+    out = client._download_paginated_csv(
+        PJMEndpoint.DA_HRL_LMPS, {"rowCount": 50000, "startRow": 1}
+    )
+
+    assert out == b"h\nr1\nr2\nr3\n"
+
+
+# =========================
 # _download_data tests
 # =========================
 
@@ -487,6 +579,48 @@ def test_download_data_returns_false_on_failure(client, monkeypatch):
     )
 
     assert not success
+
+
+def test_download_data_non_paginated_endpoint(client, monkeypatch):
+    """Endpoints without pagination fetch via a single request and use %m-%d-%Y names."""
+    monkeypatch.setattr(
+        pjm.ENDPOINT_CONFIGS[PJMEndpoint.GEN_OUTAGES_BY_TYPE], "supports_pagination", False
+    )
+    captured = {}
+
+    def fake_make_request(endpoint, params, accept=None, return_response=False):
+        captured["endpoint"] = endpoint
+        captured["accept"] = accept
+        return b"date,value\n2025-01-01,10\n"
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+
+    success = client._download_data(
+        PJMEndpoint.GEN_OUTAGES_BY_TYPE, date(2025, 1, 1), date(2025, 1, 2)
+    )
+
+    assert success
+    assert captured["endpoint"] == "gen_outages_by_type"
+    assert captured["accept"] == "text/csv"
+    expected = client.config.data_dir / "01-01-2025_to_01-02-2025_gen_outages_by_type.csv"
+    assert expected.exists()
+
+
+def test_download_data_non_time_endpoint_filename(client, monkeypatch):
+    """requires_time=False endpoints use %m-%d-%Y date ranges in filenames."""
+
+    def fake_make_request(endpoint, params, accept=None, return_response=False):
+        return b"date,value\n2025-01-01,10\n"
+
+    monkeypatch.setattr(client, "_make_request", fake_make_request)
+
+    success = client._download_data(
+        PJMEndpoint.ANCILLARY_SERVICES, date(2025, 1, 1), date(2025, 1, 2)
+    )
+
+    assert success
+    expected = client.config.data_dir / "01-01-2025_to_01-02-2025_ancillary_services.csv"
+    assert expected.exists()
 
 
 # =========================
@@ -1014,6 +1148,47 @@ def test_get_outages_and_limits_invalid_type_returns_false(client, caplog):
 
     assert not success
     assert "Invalid data type" in caplog.text
+
+
+# =========================
+# Invalid duration tests
+# =========================
+
+
+def test_get_lmp_invalid_duration(client, caplog):
+    with caplog.at_level(logging.ERROR):
+        assert not client.get_lmp("da_hourly", date(2025, 1, 1), duration=0)
+    assert "duration must be >= 1" in caplog.text
+
+
+def test_get_load_forecast_invalid_duration(client, caplog):
+    with caplog.at_level(logging.ERROR):
+        assert not client.get_load_forecast("5min", date(2025, 1, 1), duration=0)
+    assert "duration must be >= 1" in caplog.text
+
+
+def test_get_hourly_load_invalid_duration(client, caplog):
+    with caplog.at_level(logging.ERROR):
+        assert not client.get_hourly_load("estimated", date(2025, 1, 1), duration=0)
+    assert "duration must be >= 1" in caplog.text
+
+
+def test_get_renewable_generation_invalid_duration(client, caplog):
+    with caplog.at_level(logging.ERROR):
+        assert not client.get_renewable_generation("solar", date(2025, 1, 1), duration=0)
+    assert "duration must be >= 1" in caplog.text
+
+
+def test_get_ancillary_services_invalid_duration(client, caplog):
+    with caplog.at_level(logging.ERROR):
+        assert not client.get_ancillary_services("hourly", date(2025, 1, 1), duration=0)
+    assert "duration must be >= 1" in caplog.text
+
+
+def test_get_outages_and_limits_invalid_duration(client, caplog):
+    with caplog.at_level(logging.ERROR):
+        assert not client.get_outages_and_limits("outages", date(2025, 1, 1), duration=0)
+    assert "duration must be >= 1" in caplog.text
 
 
 # =========================

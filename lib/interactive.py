@@ -84,7 +84,7 @@ def run_interactive_mode():
 
     # Main data type selection
     print("\nWhat type of data do you want to download?")
-    print("  (1) ISO Data (CAISO, MISO, NYISO, SPP, BPA, PJM, ISO-NE)")
+    print("  (1) ISO Data (CAISO, MISO, NYISO, SPP, BPA, PJM, ISO-NE, ERCOT)")
     print("  (2) Weather Data")
 
     while True:
@@ -122,13 +122,14 @@ def run_iso_mode():
     print("  (5) BPA - Bonneville Power Administration")
     print("  (6) PJM - Pennsylvania, New Jersey, Maryland Interconnection")
     print("  (7) ISO-NE - New England Independent System Operator")
+    print("  (8) ERCOT - Electric Reliability Council of Texas")
 
     while True:
         try:
-            iso_choice = int(input("\nYour choice (1-7): "))
-            if iso_choice in range(1, 8):
+            iso_choice = int(input("\nYour choice (1-8): "))
+            if iso_choice in range(1, 9):
                 break
-            print("Please enter 1, 2, 3, 4, 5, 6, or 7")
+            print("Please enter 1, 2, 3, 4, 5, 6, 7, or 8")
         except ValueError:
             print("Please enter a valid number")
 
@@ -144,8 +145,10 @@ def run_iso_mode():
         run_bpa_mode()
     elif iso_choice == 6:
         run_pjm_mode()
-    else:
+    elif iso_choice == 7:
         run_isone_mode()
+    else:
+        run_ercot_mode()
 
 
 # ============================================================================
@@ -2783,6 +2786,241 @@ def run_isone_ams():
     except Exception as e:
         logger.error(f"Error downloading data: {e}", exc_info=True)
         print(f"\n❌ Error: {e}")
+
+
+# ============================================================================
+# ERCOT MODE
+# ============================================================================
+
+
+def _ercot_download(download_fn, label):
+    """Prompt for a date range, run an ERCOT download, and save the result to CSV."""
+    from lib.iso.ercot import ERCOTConfig, ERCOTClient
+
+    start_date, duration = get_date_input()
+    end_date = start_date + timedelta(days=duration)
+
+    config = ERCOTConfig.from_ini_file()
+    client = ERCOTClient(config)
+
+    try:
+        print(f"\n📥 Downloading {label}...")
+        print(f"   Date range: {start_date} to {end_date}")
+        print("   This may take a few minutes...\n")
+
+        payload = download_fn(client, start_date, end_date)
+        if not payload:
+            print("\n❌ Download failed. Check logs for details.")
+            return
+
+        data = list(payload.get("data") or [])
+        if not data:
+            print("\n⚠️  No records returned for the selected period.")
+            return
+
+        slug = label.lower().replace(" ", "_").replace("/", "_").replace("(", "").replace(")", "")
+        filename = f"ercot_{slug}_{start_date}.csv"
+        out = client.save_report_to_csv(payload, filename)
+        if out:
+            print("\n✅ Download complete!")
+            print(f"   Data saved to: {out}")
+            print(f"   Records: {len(data)}")
+        else:
+            print("\n❌ Failed to save data. Check logs for details.")
+
+    except Exception as e:
+        logger.error(f"Error downloading ERCOT data: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}")
+
+    finally:
+        client.cleanup()
+
+
+def run_ercot_mode():
+    """Interactive mode for ERCOT data."""
+    print("\n" + "=" * 60)
+    print("ERCOT DATA SELECTION")
+    print("=" * 60)
+
+    print("\nWhat type of data?")
+    print("  (1) Locational Marginal Prices (LMP)")
+    print("  (2) System Load")
+    print("  (3) Ancillary Services")
+    print("  (4) Outages")
+
+    while True:
+        try:
+            data_type = int(input("\nYour choice (1-4): "))
+            if data_type in range(1, 5):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 4")
+
+    if data_type == 1:
+        run_ercot_lmp()
+    elif data_type == 2:
+        run_ercot_load()
+    elif data_type == 3:
+        run_ercot_ancillary()
+    else:
+        run_ercot_outages()
+
+
+def run_ercot_lmp():
+    """ERCOT LMP data selection."""
+    print("\n" + "=" * 60)
+    print("ERCOT LOCATIONAL MARGINAL PRICES")
+    print("=" * 60)
+
+    print("\nWhat type of LMP?")
+    print("  (1) DAM Hourly LMPs")
+    print("  (2) SCED LMPs (node/zone/hub)")
+    print("  (3) RTD LMPs (node/zone/hub)")
+    print("  (4) SCED LMPs (electrical bus)")
+    print("  (5) Settlement Point Prices")
+
+    while True:
+        try:
+            lmp_type = int(input("\nYour choice (1-5): "))
+            if lmp_type in range(1, 6):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 5")
+
+    # Optional settlement point filter for the point-level products
+    settlement_point = None
+    if lmp_type in (2, 3, 5):
+        sp = input("\nSettlement point filter (e.g., HB_NORTH; Enter for all): ").strip()
+        settlement_point = sp or None
+
+    params = {"settlementPoint": settlement_point} if settlement_point else None
+
+    if lmp_type == 1:
+        _ercot_download(lambda c, s, e: c.get_dam_hourly_lmps(s, e), "DAM Hourly LMPs")
+    elif lmp_type == 2:
+        _ercot_download(
+            lambda c, s, e: c.get_sced_lmps_node_zone_hub(s, e, params=params),
+            "SCED LMPs (node/zone/hub)",
+        )
+    elif lmp_type == 3:
+        _ercot_download(
+            lambda c, s, e: c.get_rtd_lmps_node_zone_hub(s, e, params=params),
+            "RTD LMPs (node/zone/hub)",
+        )
+    elif lmp_type == 4:
+        _ercot_download(
+            lambda c, s, e: c.get_sced_lmps_electrical_bus(s, e),
+            "SCED LMPs (electrical bus)",
+        )
+    else:
+        _ercot_download(
+            lambda c, s, e: c.get_settlement_point_prices(s, e, params=params),
+            "Settlement Point Prices",
+        )
+
+
+def run_ercot_load():
+    """ERCOT system load data selection."""
+    print("\n" + "=" * 60)
+    print("ERCOT SYSTEM LOAD")
+    print("=" * 60)
+
+    print("\nWhat type of load data?")
+    print("  (1) Actual System Load by Weather Zone")
+    print("  (2) Actual System Load by Forecast Zone")
+    print("  (3) 2-Day Aggregated Load Summary")
+
+    while True:
+        try:
+            load_type = int(input("\nYour choice (1-3): "))
+            if load_type in range(1, 4):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 3")
+
+    if load_type == 1:
+        _ercot_download(
+            lambda c, s, e: c.get_actual_system_load_by_weather_zone(s, e),
+            "System Load by Weather Zone",
+        )
+    elif load_type == 2:
+        _ercot_download(
+            lambda c, s, e: c.get_actual_system_load_by_forecast_zone(s, e),
+            "System Load by Forecast Zone",
+        )
+    else:
+        _ercot_download(
+            lambda c, s, e: c.get_load_summary_2day_aggregated(s, e),
+            "2-Day Aggregated Load Summary",
+        )
+
+
+def run_ercot_ancillary():
+    """ERCOT ancillary services data selection."""
+    print("\n" + "=" * 60)
+    print("ERCOT ANCILLARY SERVICES")
+    print("=" * 60)
+
+    print("\nWhat type of ancillary services data?")
+    print("  (1) Total AS Resource Capacity")
+    print("  (2) DAM Cleared Ancillary Service")
+    print("  (3) DAM Ancillary Service Offers")
+    print("  (4) SCED Ancillary Service Offers")
+
+    while True:
+        try:
+            as_type = int(input("\nYour choice (1-4): "))
+            if as_type in range(1, 5):
+                break
+        except ValueError:
+            pass
+        print("Please enter a number between 1 and 4")
+
+    if as_type == 1:
+        _ercot_download(
+            lambda c, s, e: c.get_total_as_resource_capacity(s, e),
+            "Total AS Resource Capacity",
+        )
+        return
+
+    service = (
+        input("\nService product code (e.g., REGUP, REGDN, NSPIN, ECRSM, RRSPFR): ").strip().upper()
+    )
+    if not service:
+        print("\n❌ A service product code is required.")
+        return
+
+    if as_type == 2:
+        _ercot_download(
+            lambda c, s, e: c.get_dam_cleared_ancillary_service(service, s, e),
+            f"DAM Cleared AS {service}",
+        )
+    elif as_type == 3:
+        _ercot_download(
+            lambda c, s, e: c.get_dam_ancillary_service_offers(service, s, e),
+            f"DAM AS Offers {service}",
+        )
+    else:
+        _ercot_download(
+            lambda c, s, e: c.get_sced_ancillary_service_offers(service, s, e),
+            f"SCED AS Offers {service}",
+        )
+
+
+def run_ercot_outages():
+    """ERCOT outage data selection."""
+    print("\n" + "=" * 60)
+    print("ERCOT OUTAGES")
+    print("=" * 60)
+
+    print("\nDownloading Hourly Resource Outage Capacity...")
+    _ercot_download(
+        lambda c, s, e: c.get_hourly_resource_outage_capacity(s, e),
+        "Hourly Resource Outage Capacity",
+    )
 
 
 # ============================================================================

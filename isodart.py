@@ -27,6 +27,7 @@ def setup_directories():
         Path("data/SPP"),
         Path("data/PJM"),
         Path("data/ISONE"),
+        Path("data/ERCOT"),
         Path("data/weather"),
         Path("data/solar"),
         Path("raw_data/xml_files"),
@@ -842,6 +843,175 @@ def handle_pjm(args):
         client.cleanup()
 
 
+def handle_ercot(args):
+    """Handle ERCOT-specific data download logic."""
+    from lib.iso.ercot import ERCOTConfig, ERCOTClient
+
+    logger.info(f"Processing ERCOT data request: {args.data_type}")
+
+    config = ERCOTConfig.from_ini_file()
+    client = ERCOTClient(config)
+
+    def _save(payload, label):
+        """Save an ERCOT Report payload to CSV. Returns success bool."""
+        if not payload:
+            logger.error("ERCOT data download failed - no data returned")
+            return False
+        data = list(payload.get("data") or [])
+        if not data:
+            logger.warning("ERCOT %s returned 0 records", label)
+            return False
+        filename = f"ercot_{label}_{args.start}.csv"
+        out = client.save_report_to_csv(payload, filename)
+        if out:
+            logger.info(f"ERCOT {label} data downloaded successfully to {out}")
+            return True
+        logger.error("Failed to save ERCOT %s data", label)
+        return False
+
+    try:
+        # ERCOT date-range params (operatingDayFrom/To, deliveryDateFrom/To, ...) are
+        # inclusive of both endpoints, so the end date is exclusive to return exactly
+        # `duration` operating days.
+        end_date = calculate_end_date(args.start, max(args.duration - 1, 0))
+        settlement_point = getattr(args, "settlement_point", None)
+        service = getattr(args, "service", None)
+
+        if args.data_type == "lmp":
+            # LMP types: dam_hourly, sced, rtd, electrical_bus, settlement_point
+            lmp_type = getattr(args, "lmp_type", "sced")
+            sp_params = {"settlementPoint": settlement_point} if settlement_point else None
+
+            if lmp_type == "dam_hourly":
+                logger.info("Downloading ERCOT DAM Hourly LMPs...")
+                payload = client.get_dam_hourly_lmps(args.start, end_date)
+                return _save(payload, "dam_hourly_lmp")
+
+            elif lmp_type == "sced":
+                logger.info("Downloading ERCOT SCED LMPs (node/zone/hub)...")
+                payload = client.get_sced_lmps_node_zone_hub(args.start, end_date, params=sp_params)
+                return _save(payload, "sced_lmp_node_zone_hub")
+
+            elif lmp_type == "rtd":
+                logger.info("Downloading ERCOT RTD LMPs (node/zone/hub)...")
+                payload = client.get_rtd_lmps_node_zone_hub(args.start, end_date, params=sp_params)
+                return _save(payload, "rtd_lmp_node_zone_hub")
+
+            elif lmp_type == "electrical_bus":
+                logger.info("Downloading ERCOT SCED LMPs (electrical bus)...")
+                payload = client.get_sced_lmps_electrical_bus(args.start, end_date)
+                return _save(payload, "sced_lmp_electrical_bus")
+
+            elif lmp_type == "settlement_point":
+                logger.info("Downloading ERCOT Settlement Point Prices...")
+                payload = client.get_settlement_point_prices(args.start, end_date, params=sp_params)
+                return _save(payload, "settlement_point_prices")
+
+            else:
+                logger.error(f"Invalid ERCOT LMP type: {lmp_type}")
+                logger.info(
+                    "Available ERCOT LMP types: dam_hourly, sced, rtd, electrical_bus, "
+                    "settlement_point"
+                )
+                return False
+
+        elif args.data_type == "load":
+            # Load types: weather_zone, forecast_zone, load_summary, native_load
+            load_type = getattr(args, "load_type", "forecast_zone")
+
+            if load_type == "weather_zone":
+                logger.info("Downloading ERCOT actual system load by weather zone...")
+                payload = client.get_actual_system_load_by_weather_zone(args.start, end_date)
+                return _save(payload, "system_load_weather_zone")
+
+            elif load_type == "forecast_zone":
+                logger.info("Downloading ERCOT actual system load by forecast zone...")
+                payload = client.get_actual_system_load_by_forecast_zone(args.start, end_date)
+                return _save(payload, "system_load_forecast_zone")
+
+            elif load_type == "load_summary":
+                logger.info("Downloading ERCOT 2-day aggregated load summary...")
+                payload = client.get_load_summary_2day_aggregated(args.start, end_date)
+                return _save(payload, "load_summary")
+
+            elif load_type == "native_load":
+                logger.info("Downloading ERCOT native load (8 weather zones, public archive)...")
+                payload = client.get_native_load(args.start, end_date)
+                return _save(payload, "native_load")
+
+            else:
+                logger.error(f"Invalid ERCOT load type: {load_type}")
+                logger.info(
+                    "Available ERCOT load types: weather_zone, forecast_zone, "
+                    "load_summary, native_load"
+                )
+                return False
+
+        elif args.data_type == "ancillary-services":
+            # AS types: dam_cleared, dam_offers, sced_offers, resource_capacity
+            as_type = getattr(args, "as_type", "dam_cleared")
+
+            if as_type == "resource_capacity":
+                logger.info("Downloading ERCOT total AS resource capacity...")
+                payload = client.get_total_as_resource_capacity(args.start, end_date)
+                return _save(payload, "total_as_resource_capacity")
+
+            if not service:
+                logger.error(
+                    "--service is required for ERCOT ancillary services "
+                    "(e.g., REGUP, NSPIN, RRSPFR)"
+                )
+                return False
+
+            if as_type == "dam_cleared":
+                logger.info(f"Downloading ERCOT DAM cleared ancillary service ({service})...")
+                payload = client.get_dam_cleared_ancillary_service(service, args.start, end_date)
+                return _save(payload, f"dam_cleared_as_{service.lower()}")
+
+            elif as_type == "dam_offers":
+                logger.info(f"Downloading ERCOT DAM ancillary service offers ({service})...")
+                payload = client.get_dam_ancillary_service_offers(service, args.start, end_date)
+                return _save(payload, f"dam_as_offers_{service.lower()}")
+
+            elif as_type == "sced_offers":
+                logger.info(f"Downloading ERCOT SCED ancillary service offers ({service})...")
+                payload = client.get_sced_ancillary_service_offers(service, args.start, end_date)
+                return _save(payload, f"sced_as_offers_{service.lower()}")
+
+            else:
+                logger.error(f"Invalid ERCOT ancillary services type: {as_type}")
+                logger.info(
+                    "Available ERCOT AS types: dam_cleared, dam_offers, sced_offers, "
+                    "resource_capacity"
+                )
+                return False
+
+        elif args.data_type == "outages":
+            logger.info("Downloading ERCOT hourly resource outage capacity...")
+            payload = client.get_hourly_resource_outage_capacity(args.start, end_date)
+            return _save(payload, "hourly_resource_outage_capacity")
+
+        elif args.data_type == "demand-response":
+            logger.info(
+                f"Downloading ERCOT monthly demand response "
+                f"for {args.start.year}-{args.start.month:02d}..."
+            )
+            payload = client.get_monthly_demand_response(args.start)
+            return _save(payload, "demand_response")
+
+        else:
+            logger.error(f"Unknown ERCOT data type: {args.data_type}")
+            logger.info("Available types: lmp, load, ancillary-services, outages, demand-response")
+            return False
+
+    except Exception as e:
+        logger.error(f"Error downloading ERCOT data: {e}", exc_info=True)
+        return False
+
+    finally:
+        client.cleanup()
+
+
 def handle_isone(args):
     """Handle ISO-NE-specific data download logic (updated for new ISONEClient)."""
     from lib.iso.isone import ISONEClient
@@ -1076,12 +1246,18 @@ Examples:
 
   # Weather data
   python isodart.py --data-type weather --state CA --start 2024-01-01 --duration 30
+
+  # ERCOT SCED LMPs (node/zone/hub) for the North hub
+  python isodart.py --iso ercot --data-type lmp --lmp-type sced --settlement-point HB_NORTH --start 2024-01-01 --duration 7
+
+  # ERCOT actual system load by forecast zone
+  python isodart.py --iso ercot --data-type load --load-type forecast_zone --start 2024-01-01 --duration 7
         """,
     )
 
     parser.add_argument(
         "--iso",
-        choices=["caiso", "miso", "nyiso", "bpa", "spp", "pjm", "isone"],
+        choices=["caiso", "miso", "nyiso", "bpa", "spp", "pjm", "isone", "ercot"],
         help="Independent System Operator",
     )
 
@@ -1136,8 +1312,13 @@ Examples:
             "da_hourly",
             "rt_5min",
             "rt_hourly",
+            "dam_hourly",
+            "sced",
+            "rtd",
+            "electrical_bus",
+            "settlement_point",
         ],
-        help="For MISO, PJM, and ISO-NE LMP: type of LMP data to download",
+        help="For MISO, PJM, ISO-NE, and ERCOT LMP: type of LMP data to download",
     )
 
     parser.add_argument(
@@ -1168,8 +1349,12 @@ Examples:
             "estimated",
             "metered",
             "preliminary",
+            "weather_zone",
+            "forecast_zone",
+            "load_summary",
+            "native_load",
         ],
-        help="For MISO, NYISO, PJM Load: type of load data to download",
+        help="For MISO, NYISO, PJM, and ERCOT Load: type of load data to download",
     )
 
     parser.add_argument(
@@ -1246,8 +1431,16 @@ Examples:
 
     parser.add_argument(
         "--as-type",
-        choices=["hourly", "5min", "reserve_market"],
-        help="For PJM Ancillary Services: type of AS data",
+        choices=[
+            "hourly",
+            "5min",
+            "reserve_market",
+            "dam_cleared",
+            "dam_offers",
+            "sced_offers",
+            "resource_capacity",
+        ],
+        help="For PJM Ancillary Services and ERCOT ancillary services: type of AS data",
     )
 
     parser.add_argument(
@@ -1317,6 +1510,22 @@ Examples:
     )
 
     parser.add_argument(
+        "--settlement-point",
+        help=(
+            "For ERCOT LMP / Settlement Point Prices: settlement point to filter by "
+            "(e.g., HB_NORTH). Downloads all points if not specified."
+        ),
+    )
+
+    parser.add_argument(
+        "--service",
+        help=(
+            "For ERCOT ancillary services: service product code "
+            "(e.g., REGUP, REGDN, NSPIN, ECRSM, RRSPFR)"
+        ),
+    )
+
+    parser.add_argument(
         "--interactive",
         action="store_true",
         default=False,
@@ -1381,6 +1590,7 @@ Examples:
         "spp": handle_spp,
         "pjm": handle_pjm,
         "isone": handle_isone,
+        "ercot": handle_ercot,
     }
 
     handler = handlers.get(args.iso)

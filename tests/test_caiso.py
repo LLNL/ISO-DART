@@ -1493,5 +1493,128 @@ def test_transmission_interface_usage_builds_expected_params(
     client._process_csv.assert_called_once()
 
 
+def test_transmission_interface_usage_rejects_step_size_below_one(tmp_path):
+    client = CAISOClient()
+    client.config.raw_dir = tmp_path / "raw"
+    client.config.xml_dir = tmp_path / "xml"
+    client.config.data_dir = tmp_path / "data"
+    client._ensure_directories()
+
+    with pytest.raises(ValueError, match="step_size must be at least 1"):
+        client.get_transmission_interface_usage(
+            market=Market.DAM,
+            start_date=date(2024, 1, 1),
+            end_date=date(2024, 1, 2),
+            step_size=0,
+        )
+
+
+def test_transmission_interface_usage_handles_missing_request_content(
+    monkeypatch,
+    tmp_path,
+    caplog,
+):
+    client = CAISOClient()
+    client.config.raw_dir = tmp_path / "raw"
+    client.config.xml_dir = tmp_path / "xml"
+    client.config.data_dir = tmp_path / "data"
+    client._ensure_directories()
+
+    monkeypatch.setattr(client, "_make_request", lambda params: None)
+
+    assert (
+        client.get_transmission_interface_usage(
+            market=Market.DAM,
+            start_date=date(2024, 1, 1),
+            end_date=date(2024, 1, 2),
+        )
+        is False
+    )
+    assert "Failed to retrieve Transmission Interface Usage" in caplog.text
+
+
+def test_transmission_interface_usage_handles_extract_failure(
+    monkeypatch,
+    tmp_path,
+    caplog,
+):
+    client = CAISOClient()
+    client.config.raw_dir = tmp_path / "raw"
+    client.config.xml_dir = tmp_path / "xml"
+    client.config.data_dir = tmp_path / "data"
+    client._ensure_directories()
+
+    monkeypatch.setattr(client, "_make_request", lambda params: b"fake-zip")
+    monkeypatch.setattr(client, "_extract_zip", lambda content, query_name: None)
+
+    assert (
+        client.get_transmission_interface_usage(
+            market=Market.DAM,
+            start_date=date(2024, 1, 1),
+            end_date=date(2024, 1, 2),
+        )
+        is False
+    )
+    assert "Failed to extract Transmission Interface Usage" in caplog.text
+
+
+def test_transmission_interface_usage_handles_xml_conversion_failure(
+    monkeypatch,
+    tmp_path,
+    caplog,
+):
+    client = CAISOClient()
+    client.config.raw_dir = tmp_path / "raw"
+    client.config.xml_dir = tmp_path / "xml"
+    client.config.data_dir = tmp_path / "data"
+    client._ensure_directories()
+
+    xml_path = client.config.xml_dir / "TRNS_USAGE.xml"
+    xml_path.write_text("<root />", encoding="utf-8")
+
+    monkeypatch.setattr(client, "_make_request", lambda params: b"fake-zip")
+    monkeypatch.setattr(client, "_extract_zip", lambda content, query_name: xml_path)
+    monkeypatch.setattr(client, "_xml_to_csv", lambda *args, **kwargs: False)
+
+    assert (
+        client.get_transmission_interface_usage(
+            market=Market.DAM,
+            start_date=date(2024, 1, 1),
+            end_date=date(2024, 1, 2),
+        )
+        is False
+    )
+    assert "Failed to convert Transmission Interface Usage" in caplog.text
+
+
+def test_transmission_interface_usage_handles_empty_csv(
+    monkeypatch,
+    tmp_path,
+    caplog,
+):
+    client = CAISOClient()
+    client.config.raw_dir = tmp_path / "raw"
+    client.config.xml_dir = tmp_path / "xml"
+    client.config.data_dir = tmp_path / "data"
+    client._ensure_directories()
+
+    xml_path = client.config.xml_dir / "TRNS_USAGE.xml"
+    xml_path.write_text("<root />", encoding="utf-8")
+
+    monkeypatch.setattr(client, "_make_request", lambda params: b"fake-zip")
+    monkeypatch.setattr(client, "_extract_zip", lambda content, query_name: xml_path)
+    monkeypatch.setattr(client, "_xml_to_csv", lambda xml_file, csv_file, report_version=None: True)
+
+    assert (
+        client.get_transmission_interface_usage(
+            market=Market.DAM,
+            start_date=date(2024, 1, 1),
+            end_date=date(2024, 1, 2),
+        )
+        is False
+    )
+    assert "No Transmission Interface Usage data was downloaded" in caplog.text
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

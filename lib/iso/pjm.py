@@ -364,8 +364,6 @@ class PJMClient:
                 continue
 
             lines = text.splitlines()
-            if not lines:
-                continue
 
             if first_page:
                 merged_parts.append("\n".join(lines))
