@@ -202,6 +202,7 @@ def test_ercot_config_from_ini_expands_token_file_tilde(tmp_path, monkeypatch):
     """token_file with ~ expands to the home directory."""
     home = tmp_path / "home"
     monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
 
     cfg_path = tmp_path / "ercot.ini"
     cfg_path.write_text("[ercot]\napi_key = K\ntoken_file = ~/.ercot/token.json\n")
