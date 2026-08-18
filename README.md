@@ -23,7 +23,7 @@ ISO-DART simplifies access to electricity market data across the United States. 
 
 ### Key Features
 
-- 🔌 **7 ISO Coverage**: CAISO, MISO, NYISO, SPP, BPA, PJM, ISO-NE
+- 🔌 **8 ISO Coverage**: CAISO, MISO, NYISO, SPP, BPA, PJM, ISO-NE, ERCOT
 - 🌤️ **Weather Integration**: Historical weather and solar radiation data
 - 🚀 **Modern Python**: Type hints, async support, comprehensive error handling
 - 🎯 **User-Friendly**: Interactive CLI or programmatic API
@@ -101,6 +101,27 @@ ISO-DART simplifies access to electricity market data across the United States. 
 - **Pricing**: Hourly LMP (DA/RT), 5-Minute RT LMP
 - **Ancillary Services**: Regulation Clearing Prices, Operating Reserves
 - **Load**: 5-Minute System Demand, DA Hourly Demand
+
+</details>
+
+<details>
+<summary><b>ERCOT (Texas)</b> - Click to expand</summary>
+
+- **Pricing**: DAM Hourly LMPs, SCED LMPs (Node/Zone/Hub & Electrical Bus),
+  RTD LMPs, Settlement Point Prices
+- **Load**: Actual System Load (Weather Zone & Forecast Zone), Native Load
+  (8 weather zones)
+- **Demand Response / Load Resources**: Monthly Demand Response from Load
+  Resources (NP3-108, CLR/NCLR), DSR Loads (2-Day Aggregated), Load Resource
+  Data in SCED (60-Day), DAM Load Resource Data (60-Day), SASM Load Resource
+  AS Offers & Awards (60-Day)
+- **Ancillary Services**: Total AS Resource Capacity, DAM Cleared AS by
+  service type, DAM/SCED AS Offers, SASM Generation Resource AS Offer Awards
+- **Outages**: Hourly Resource Outage Capacity
+- **Generic access**: `get_report()` / `get_report_by_timerange()` work
+  against any published ERCOT report endpoint, and `get_archive_entries()` /
+  `download_archive()` pull posted archive files (xlsx/csv) directly —
+  useful for reports without a dedicated wrapper yet
 
 </details>
 
@@ -304,6 +325,19 @@ Get keys from:
 - MISO: https://data-exchange.misoenergy.org/
 - PJM: https://dataminer2.pjm.com/
 
+**ERCOT**: Requires a Public API subscription key *and* ERCOT B2C
+(apiexplorer.ercot.com) account credentials. Create `user_config.ini`:
+```ini
+[ercot]
+api_key = your-ercot-subscription-key
+```
+Or set environment variables:
+```bash
+export ERCOT_USERNAME="your-username"
+export ERCOT_PASSWORD="your-password"
+```
+Get access at https://apiexplorer.ercot.com/
+
 **NSRDB (Solar Data)**: Get free API key at https://developer.nrel.gov/signup/
 
 **ISO-NE**: Requires ISO Express credentials
@@ -382,7 +416,8 @@ ISO-DART/
 │   │   ├── spp.py
 │   │   ├── bpa.py
 │   │   ├── pjm.py
-│   │   └── isone.py
+│   │   ├── isone.py
+│   │   └── ercot.py
 │   ├── weather/            # Weather client
 │   │   └── client.py
 │   └── interactive.py      # Interactive mode
@@ -566,6 +601,7 @@ This work was produced under the auspices of the U.S. Department of Energy by La
 - [BPA Operations](https://transmission.bpa.gov/)
 - [PJM Data Miner](https://dataminer2.pjm.com/)
 - [ISO-NE Web Services](https://webservices.iso-ne.com/)
+- [ERCOT Public API](https://apiexplorer.ercot.com/)
 
 ### Related Projects
 
@@ -584,7 +620,6 @@ This work was produced under the auspices of the U.S. Department of Energy by La
 
 ### v2.1 (Planned)
 
-- [ ] ERCOT support
 - [ ] ISO-NE full coverage
 - [ ] Async/concurrent downloads
 - [ ] Data validation & quality checks
