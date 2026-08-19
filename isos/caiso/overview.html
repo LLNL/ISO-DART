@@ -1314,7 +1314,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">get_fuel_prices</span><span class="p">(</span>
     <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
-    <span class="n">region</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span>  <span class="c1"># or specific region</span>
+    <span class="n">region</span><span class="o">=</span><span class="s1">'ALL'</span>  <span class="c1"># or specific region</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -1408,18 +1408,18 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># Load wind/solar data</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'data/CAISO/20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv'</span><span class="p">)</span>
 
 <span class="c1"># Plot daily generation pattern</span>
-<span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DT&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
-<span class="n">daily</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DT'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">])</span>
+<span class="n">daily</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DT'</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)[</span><span class="s1">'VALUE'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">daily</span><span class="p">)),</span> <span class="n">daily</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Day of Month&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Total Generation (MWh)&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;January 2024 Wind Generation - CAISO&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;wind_generation_jan2024.png&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Day of Month'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Total Generation (MWh)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'January 2024 Wind Generation - CAISO'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'wind_generation_jan2024.png'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1463,7 +1463,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">get_flex_ramp_requirements</span><span class="p">(</span>
     <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
-    <span class="n">baa_group</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span>  <span class="c1"># or specific BAA</span>
+    <span class="n">baa_group</span><span class="o">=</span><span class="s1">'ALL'</span>  <span class="c1"># or specific BAA</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -1511,8 +1511,8 @@
     <span class="n">market</span><span class="o">=</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span>
     <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
-    <span class="n">anc_type</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span><span class="p">,</span>      <span class="c1"># or &#39;RU&#39;, &#39;RD&#39;, &#39;SR&#39;, &#39;NR&#39;</span>
-    <span class="n">anc_region</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span>     <span class="c1"># or specific region</span>
+    <span class="n">anc_type</span><span class="o">=</span><span class="s1">'ALL'</span><span class="p">,</span>      <span class="c1"># or 'RU', 'RD', 'SR', 'NR'</span>
+    <span class="n">anc_region</span><span class="o">=</span><span class="s1">'ALL'</span>     <span class="c1"># or specific region</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -1549,7 +1549,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">daily_price_update</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download yesterday&#39;s prices across all markets.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download yesterday's prices across all markets."""</span>
     <span class="n">yesterday</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
@@ -1562,9 +1562,9 @@
     <span class="n">client</span><span class="o">.</span><span class="n">get_ancillary_services_prices</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">yesterday</span><span class="p">,</span> <span class="n">yesterday</span><span class="p">)</span>
 
     <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Downloaded prices for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Downloaded prices for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
     <span class="n">daily_price_update</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1586,36 +1586,36 @@
 <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
 <span class="c1"># Load and analyze</span>
-<span class="n">wind_file</span> <span class="o">=</span> <span class="s1">&#39;data/CAISO/20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv&#39;</span>
-<span class="n">solar_file</span> <span class="o">=</span> <span class="s1">&#39;data/CAISO/20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_SOLAR_TOTAL_GEN_MW.csv&#39;</span>
+<span class="n">wind_file</span> <span class="o">=</span> <span class="s1">'data/CAISO/20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_WIND_TOTAL_GEN_MW.csv'</span>
+<span class="n">solar_file</span> <span class="o">=</span> <span class="s1">'data/CAISO/20240101_to_20240131_ENE_WIND_SOLAR_SUMMARY_SOLAR_TOTAL_GEN_MW.csv'</span>
 
 <span class="n">wind_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">wind_file</span><span class="p">)</span>
 <span class="n">solar_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">solar_file</span><span class="p">)</span>
 
 <span class="c1"># Convert to datetime</span>
-<span class="n">wind_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">wind_df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
-<span class="n">solar_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">solar_df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+<span class="n">wind_df</span><span class="p">[</span><span class="s1">'datetime'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">wind_df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">])</span>
+<span class="n">solar_df</span><span class="p">[</span><span class="s1">'datetime'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">solar_df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">])</span>
 
 <span class="c1"># Calculate daily totals</span>
-<span class="n">wind_daily</span> <span class="o">=</span> <span class="n">wind_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">wind_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-<span class="n">solar_daily</span> <span class="o">=</span> <span class="n">solar_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">solar_df</span><span class="p">[</span><span class="s1">&#39;datetime&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">wind_daily</span> <span class="o">=</span> <span class="n">wind_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">wind_df</span><span class="p">[</span><span class="s1">'datetime'</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)[</span><span class="s1">'VALUE'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="n">solar_daily</span> <span class="o">=</span> <span class="n">solar_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">solar_df</span><span class="p">[</span><span class="s1">'datetime'</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)[</span><span class="s1">'VALUE'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
 <span class="c1"># Plot</span>
 <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
 
-<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wind_daily</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">wind_daily</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Wind Generation (MWh)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;January 2024 Renewable Generation - CAISO&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">wind_daily</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">wind_daily</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s1">'b-'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Wind Generation (MWh)'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'January 2024 Renewable Generation - CAISO'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
 <span class="n">ax1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 
-<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">solar_daily</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">solar_daily</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Solar Generation (MWh)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Date&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">solar_daily</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">solar_daily</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s1">'orange'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Solar Generation (MWh)'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Date'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 <span class="n">ax2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;caiso_renewables_jan2024.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Analysis complete&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'caiso_renewables_jan2024.png'</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"✓ Analysis complete"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1687,38 +1687,38 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">validate_caiso_data</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Basic validation checks for CAISO data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Basic validation checks for CAISO data."""</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
 
     <span class="c1"># Check for required columns</span>
-    <span class="n">required_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">,</span> <span class="s1">&#39;VALUE&#39;</span><span class="p">]</span>
+    <span class="n">required_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">,</span> <span class="s1">'INTERVAL_NUM'</span><span class="p">,</span> <span class="s1">'VALUE'</span><span class="p">]</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">required_cols</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Missing columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"❌ Missing columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="c1"># Check for nulls</span>
     <span class="n">null_counts</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">required_cols</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">null_counts</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚠️  Null values found: </span><span class="si">{</span><span class="n">null_counts</span><span class="p">[</span><span class="n">null_counts</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"⚠️  Null values found: </span><span class="si">{</span><span class="n">null_counts</span><span class="p">[</span><span class="n">null_counts</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Check interval count</span>
-    <span class="n">intervals_per_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">)[</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+    <span class="n">intervals_per_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'OPR_DATE'</span><span class="p">)[</span><span class="s1">'INTERVAL_NUM'</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
     <span class="n">expected</span> <span class="o">=</span> <span class="mi">24</span>  <span class="c1"># or 288 for 5-min data</span>
     <span class="n">irregular</span> <span class="o">=</span> <span class="n">intervals_per_day</span><span class="p">[</span><span class="n">intervals_per_day</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">irregular</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚠️  Irregular interval counts on: </span><span class="si">{</span><span class="n">irregular</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"⚠️  Irregular interval counts on: </span><span class="si">{</span><span class="n">irregular</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Check for negative prices (unusual but possible)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-        <span class="n">neg_count</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;VALUE&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚠️  </span><span class="si">{</span><span class="n">neg_count</span><span class="si">}</span><span class="s2"> negative prices found (may be valid)&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'VALUE'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">neg_count</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'VALUE'</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"⚠️  </span><span class="si">{</span><span class="n">neg_count</span><span class="si">}</span><span class="s2"> negative prices found (may be valid)"</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Validation complete&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"✓ Validation complete"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">True</span>
 
 <span class="c1"># Example usage</span>
-<span class="n">validate_caiso_data</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv&#39;</span><span class="p">)</span>
+<span class="n">validate_caiso_data</span><span class="p">(</span><span class="s1">'data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1732,13 +1732,13 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_large_range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">chunk_days</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download in monthly chunks.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download in monthly chunks."""</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
 
     <span class="n">current</span> <span class="o">=</span> <span class="n">start</span>
     <span class="k">while</span> <span class="n">current</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
         <span class="n">chunk_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">chunk_days</span><span class="p">),</span> <span class="n">end</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading </span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_end</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">chunk_end</span><span class="p">)</span>
         <span class="n">current</span> <span class="o">=</span> <span class="n">chunk_end</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
@@ -1786,7 +1786,7 @@
     <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">futures</span><span class="p">]</span>
 
 <span class="k">for</span> <span class="n">market</span><span class="p">,</span> <span class="n">success</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">market</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;✓&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;✗&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">market</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">'✓'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'✗'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1805,7 +1805,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check date range is valid</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
 
-<span class="c1"># Use a date that&#39;s at least 2 days old</span>
+<span class="c1"># Use a date that's at least 2 days old</span>
 <span class="n">safe_date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">safe_date</span><span class="p">,</span> <span class="n">safe_date</span><span class="p">)</span>
 </pre></div>
@@ -1826,18 +1826,18 @@
 <h3>Issue: Missing Intervals<a class="headerlink" href="#issue-missing-intervals" title="Link to this heading"></a></h3>
 <p>Some days may have 23 or 25 hours due to Daylight Saving Time.</p>
 <p><strong>Detection</strong>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;your_file.csv&#39;</span><span class="p">)</span>
-<span class="n">intervals_by_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">)[</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'your_file.csv'</span><span class="p">)</span>
+<span class="n">intervals_by_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'OPR_DATE'</span><span class="p">)[</span><span class="s1">'INTERVAL_NUM'</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">intervals_by_day</span><span class="p">[</span><span class="n">intervals_by_day</span> <span class="o">!=</span> <span class="mi">24</span><span class="p">])</span>  <span class="c1"># Find irregular days</span>
 </pre></div>
 </div>
 <p><strong>Handling</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fill missing intervals with NaN</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">])</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">'OPR_DATE'</span><span class="p">,</span> <span class="s1">'INTERVAL_NUM'</span><span class="p">])</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">([</span>
     <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
     <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>  <span class="c1"># Always 1-24</span>
-<span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]))</span>
+<span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">,</span> <span class="s1">'INTERVAL_NUM'</span><span class="p">]))</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
 </pre></div>
 </div>

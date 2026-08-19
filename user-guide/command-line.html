@@ -1369,12 +1369,12 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--data-type<span
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Daily download at 2 AM</span>
 <span class="m">0</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/path/to/ISO-DART<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>/path/to/venv/bin/python<span class="w"> </span>isodart.py<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--iso<span class="w"> </span>caiso<span class="w"> </span>--data-type<span class="w"> </span>lmp<span class="w"> </span>--market<span class="w"> </span>dam<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--start<span class="w"> </span><span class="k">$(</span>date<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;yesterday&quot;</span><span class="w"> </span>+<span class="se">\%</span>Y-<span class="se">\%</span>m-<span class="se">\%</span>d<span class="k">)</span><span class="w"> </span>--duration<span class="w"> </span><span class="m">1</span>
+<span class="w">  </span>--start<span class="w"> </span><span class="k">$(</span>date<span class="w"> </span>-d<span class="w"> </span><span class="s2">"yesterday"</span><span class="w"> </span>+<span class="se">\%</span>Y-<span class="se">\%</span>m-<span class="se">\%</span>d<span class="k">)</span><span class="w"> </span>--duration<span class="w"> </span><span class="m">1</span>
 
 <span class="c1"># Weekly download on Monday</span>
 <span class="m">0</span><span class="w"> </span><span class="m">3</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/path/to/ISO-DART<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>/path/to/venv/bin/python<span class="w"> </span>isodart.py<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--iso<span class="w"> </span>caiso<span class="w"> </span>--data-type<span class="w"> </span>lmp<span class="w"> </span>--market<span class="w"> </span>dam<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--start<span class="w"> </span><span class="k">$(</span>date<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;7 days ago&quot;</span><span class="w"> </span>+<span class="se">\%</span>Y-<span class="se">\%</span>m-<span class="se">\%</span>d<span class="k">)</span><span class="w"> </span>--duration<span class="w"> </span><span class="m">7</span>
+<span class="w">  </span>--start<span class="w"> </span><span class="k">$(</span>date<span class="w"> </span>-d<span class="w"> </span><span class="s2">"7 days ago"</span><span class="w"> </span>+<span class="se">\%</span>Y-<span class="se">\%</span>m-<span class="se">\%</span>d<span class="k">)</span><span class="w"> </span>--duration<span class="w"> </span><span class="m">7</span>
 </pre></div>
 </div>
 </section>
@@ -1383,7 +1383,7 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--data-type<span
 <p>Create a shell script <code class="docutils literal notranslate"><span class="pre">download_all.sh</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 
-<span class="nv">START_DATE</span><span class="o">=</span><span class="s2">&quot;2024-01-01&quot;</span>
+<span class="nv">START_DATE</span><span class="o">=</span><span class="s2">"2024-01-01"</span>
 <span class="nv">DURATION</span><span class="o">=</span><span class="m">7</span>
 
 <span class="c1"># Download multiple data types</span>
@@ -1399,7 +1399,7 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class
 python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class="w"> </span>caiso<span class="w"> </span>--data-type<span class="w"> </span>wind-solar<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--start<span class="w"> </span><span class="nv">$START_DATE</span><span class="w"> </span>--duration<span class="w"> </span><span class="nv">$DURATION</span>
 
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;All downloads complete!&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"All downloads complete!"</span>
 </pre></div>
 </div>
 <p>Make it executable:</p>

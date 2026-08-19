@@ -1173,10 +1173,10 @@
 <h3>Create the Script<a class="headerlink" href="#create-the-script" title="Link to this heading"></a></h3>
 <p>Create <code class="docutils literal notranslate"><span class="pre">daily_download.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Daily automated download script for ISO-DART.</span>
-<span class="sd">Downloads yesterday&#39;s CAISO Day-Ahead LMP data.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Downloads yesterday's CAISO Day-Ahead LMP data.</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
@@ -1184,14 +1184,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
 
 <span class="c1"># Setup logging</span>
-<span class="n">log_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">)</span>
+<span class="n">log_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"logs"</span><span class="p">)</span>
 <span class="n">log_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s1">'</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">'</span><span class="p">,</span>
     <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">&#39;daily_download.log&#39;</span><span class="p">),</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">'daily_download.log'</span><span class="p">),</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
     <span class="p">]</span>
 <span class="p">)</span>
@@ -1199,10 +1199,10 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_yesterday</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download yesterday&#39;s CAISO DAM LMP data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download yesterday's CAISO DAM LMP data."""</span>
     <span class="n">yesterday</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting download for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Starting download for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
     
@@ -1214,21 +1214,21 @@
         <span class="p">)</span>
         
         <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Successfully downloaded data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Successfully downloaded data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✗ Failed to download data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✗ Failed to download data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
             
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error during download: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error during download: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
         
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
     <span class="n">success</span> <span class="o">=</span> <span class="n">download_yesterday</span><span class="p">()</span>
     <span class="n">exit</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">success</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
@@ -1253,7 +1253,7 @@
 <h2>Part 2: Multi-ISO Download Script<a class="headerlink" href="#part-2-multi-iso-download-script" title="Link to this heading"></a></h2>
 <p>Create <code class="docutils literal notranslate"><span class="pre">download_all_isos.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
-<span class="sd">&quot;&quot;&quot;Download data from multiple ISOs.&quot;&quot;&quot;</span>
+<span class="sd">"""Download data from multiple ISOs."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
@@ -1265,9 +1265,9 @@
 <span class="c1"># Setup logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s1">'</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">'</span><span class="p">,</span>
     <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;logs/multi_iso_download.log&#39;</span><span class="p">),</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">'logs/multi_iso_download.log'</span><span class="p">),</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
     <span class="p">]</span>
 <span class="p">)</span>
@@ -1275,8 +1275,8 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_caiso</span><span class="p">(</span><span class="n">target_date</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download CAISO data.&quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading CAISO data for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Download CAISO data."""</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading CAISO data for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
     
     <span class="k">try</span><span class="p">:</span>
@@ -1293,74 +1293,74 @@
         <span class="k">return</span> <span class="n">success_lmp</span> <span class="ow">and</span> <span class="n">success_load</span>
         
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CAISO error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"CAISO error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_miso</span><span class="p">(</span><span class="n">target_date</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download MISO data.&quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading MISO data for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Download MISO data."""</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading MISO data for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     
     <span class="k">try</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">MISOConfig</span><span class="o">.</span><span class="n">from_ini_file</span><span class="p">()</span>
         <span class="n">client</span> <span class="o">=</span> <span class="n">MISOClient</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         
         <span class="c1"># Download LMP</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="s1">&#39;da_exante&#39;</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="s1">'da_exante'</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
-            <span class="n">client</span><span class="o">.</span><span class="n">save_to_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;miso_lmp_</span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s1">.csv&#39;</span><span class="p">)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">save_to_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'miso_lmp_</span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s1">.csv'</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
         
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MISO error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"MISO error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_nyiso</span><span class="p">(</span><span class="n">target_date</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download NYISO data.&quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading NYISO data for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Download NYISO data."""</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading NYISO data for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">NYISOClient</span><span class="p">()</span>
     
     <span class="k">try</span><span class="p">:</span>
         <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lbmp</span><span class="p">(</span>
-            <span class="n">NYISOMarket</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="s1">&#39;zonal&#39;</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="n">NYISOMarket</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="s1">'zonal'</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="mi">1</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">success</span>
         
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NYISO error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"NYISO error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download from all ISOs.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download from all ISOs."""</span>
     <span class="n">yesterday</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;=== Starting multi-ISO download for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2"> ===&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"=== Starting multi-ISO download for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2"> ==="</span><span class="p">)</span>
     
     <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;CAISO&#39;</span><span class="p">:</span> <span class="n">download_caiso</span><span class="p">(</span><span class="n">yesterday</span><span class="p">),</span>
-        <span class="s1">&#39;MISO&#39;</span><span class="p">:</span> <span class="n">download_miso</span><span class="p">(</span><span class="n">yesterday</span><span class="p">),</span>
-        <span class="s1">&#39;NYISO&#39;</span><span class="p">:</span> <span class="n">download_nyiso</span><span class="p">(</span><span class="n">yesterday</span><span class="p">)</span>
+        <span class="s1">'CAISO'</span><span class="p">:</span> <span class="n">download_caiso</span><span class="p">(</span><span class="n">yesterday</span><span class="p">),</span>
+        <span class="s1">'MISO'</span><span class="p">:</span> <span class="n">download_miso</span><span class="p">(</span><span class="n">yesterday</span><span class="p">),</span>
+        <span class="s1">'NYISO'</span><span class="p">:</span> <span class="n">download_nyiso</span><span class="p">(</span><span class="n">yesterday</span><span class="p">)</span>
     <span class="p">}</span>
     
     <span class="c1"># Log results</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;=== Download Summary ===&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"=== Download Summary ==="</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">iso</span><span class="p">,</span> <span class="n">success</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">success</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">iso</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;Success&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Failed&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">"✓"</span> <span class="k">if</span> <span class="n">success</span> <span class="k">else</span> <span class="s2">"✗"</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">iso</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">'Success'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'Failed'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     
     <span class="c1"># Return success if all downloads succeeded</span>
     <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
     <span class="n">success</span> <span class="o">=</span> <span class="n">main</span><span class="p">()</span>
     <span class="n">exit</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">success</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
@@ -1375,7 +1375,7 @@
 </pre></div>
 </div>
 <p>Add daily download at 2 AM:</p>
-<div class="highlight-cron notranslate"><div class="highlight"><pre><span></span># Download yesterday&#39;s data every day at 2 AM
+<div class="highlight-cron notranslate"><div class="highlight"><pre><span></span># Download yesterday's data every day at 2 AM
 0 2 * * * cd /path/to/ISO-DART &amp;&amp; /path/to/venv/bin/python daily_download.py &gt;&gt; logs/cron.log 2&gt;&amp;1
 </pre></div>
 </div>
@@ -1460,14 +1460,14 @@ deactivate
 <h3>PowerShell Script Alternative<a class="headerlink" href="#powershell-script-alternative" title="Link to this heading"></a></h3>
 <p>Create <code class="docutils literal notranslate"><span class="pre">daily_download.ps1</span></code>:</p>
 <div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># ISO-DART daily download</span>
-<span class="nv">$ErrorActionPreference</span> <span class="p">=</span> <span class="s2">&quot;Stop&quot;</span>
+<span class="nv">$ErrorActionPreference</span> <span class="p">=</span> <span class="s2">"Stop"</span>
 
-<span class="nb">Set-Location</span> <span class="s2">&quot;C:\path\to\ISO-DART&quot;</span>
+<span class="nb">Set-Location</span> <span class="s2">"C:\path\to\ISO-DART"</span>
 <span class="p">&amp;</span> <span class="p">.\</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">Activate</span><span class="p">.</span><span class="n">ps1</span>
 <span class="n">python</span> <span class="n">daily_download</span><span class="p">.</span><span class="n">py</span>
 
 <span class="k">if</span> <span class="p">(</span><span class="nv">$LASTEXITCODE</span> <span class="o">-ne</span> <span class="n">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nb">Write-Error</span> <span class="s2">&quot;Download failed&quot;</span>
+    <span class="nb">Write-Error</span> <span class="s2">"Download failed"</span>
     <span class="n">exit</span> <span class="n">1</span>
 <span class="p">}</span>
 </pre></div>
@@ -1484,31 +1484,31 @@ deactivate
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">send_email</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">to_email</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send email notification.&quot;&quot;&quot;</span>
-    <span class="n">from_email</span> <span class="o">=</span> <span class="s2">&quot;your-email@gmail.com&quot;</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="s2">&quot;your-app-password&quot;</span>
+<span class="w">    </span><span class="sd">"""Send email notification."""</span>
+    <span class="n">from_email</span> <span class="o">=</span> <span class="s2">"your-email@gmail.com"</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="s2">"your-app-password"</span>
     
     <span class="n">msg</span> <span class="o">=</span> <span class="n">MIMEMultipart</span><span class="p">()</span>
-    <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;From&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">from_email</span>
-    <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;To&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_email</span>
-    <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;Subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
+    <span class="n">msg</span><span class="p">[</span><span class="s1">'From'</span><span class="p">]</span> <span class="o">=</span> <span class="n">from_email</span>
+    <span class="n">msg</span><span class="p">[</span><span class="s1">'To'</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_email</span>
+    <span class="n">msg</span><span class="p">[</span><span class="s1">'Subject'</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
     
-    <span class="n">msg</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">MIMEText</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="s1">&#39;plain&#39;</span><span class="p">))</span>
+    <span class="n">msg</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">MIMEText</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="s1">'plain'</span><span class="p">))</span>
     
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">server</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span><span class="s1">&#39;smtp.gmail.com&#39;</span><span class="p">,</span> <span class="mi">587</span><span class="p">)</span>
+        <span class="n">server</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span><span class="s1">'smtp.gmail.com'</span><span class="p">,</span> <span class="mi">587</span><span class="p">)</span>
         <span class="n">server</span><span class="o">.</span><span class="n">starttls</span><span class="p">()</span>
         <span class="n">server</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">from_email</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
         <span class="n">server</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="n">server</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Email error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Email error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_with_notification</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download with email notification.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download with email notification."""</span>
     <span class="n">yesterday</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
@@ -1516,13 +1516,13 @@ deactivate
         <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">yesterday</span><span class="p">,</span> <span class="n">yesterday</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-            <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;✓ ISO-DART: Download successful for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Successfully downloaded CAISO DAM LMP data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"✓ ISO-DART: Download successful for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Successfully downloaded CAISO DAM LMP data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;✗ ISO-DART: Download failed for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Failed to download data. Check logs for details.&quot;</span>
+            <span class="n">subject</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"✗ ISO-DART: Download failed for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Failed to download data. Check logs for details."</span>
         
-        <span class="n">send_email</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="s2">&quot;your-email@example.com&quot;</span><span class="p">)</span>
+        <span class="n">send_email</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="s2">"your-email@example.com"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">success</span>
         
     <span class="k">finally</span><span class="p">:</span>
@@ -1543,37 +1543,37 @@ deactivate
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_with_retry</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">market</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download with exponential backoff retry.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download with exponential backoff retry."""</span>
     
     <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retries</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             
             <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">market</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="n">target_date</span><span class="p">)</span>
             
             <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Download succeeded on attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Download succeeded on attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
             
             <span class="c1"># Wait before retry (exponential backoff)</span>
             <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">wait_time</span> <span class="o">=</span> <span class="mi">30</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">attempt</span><span class="p">)</span>  <span class="c1"># 30s, 60s, 120s</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> failed. Retrying in </span><span class="si">{</span><span class="n">wait_time</span><span class="si">}</span><span class="s2">s...&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> failed. Retrying in </span><span class="si">{</span><span class="n">wait_time</span><span class="si">}</span><span class="s2">s..."</span><span class="p">)</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span>
                 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error on attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error on attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             
             <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">wait_time</span> <span class="o">=</span> <span class="mi">30</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">attempt</span><span class="p">)</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span>
     
-    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✗ All </span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2"> attempts failed&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✗ All </span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2"> attempts failed"</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">False</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main download function with retry logic.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Main download function with retry logic."""</span>
     <span class="n">yesterday</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
@@ -1595,42 +1595,42 @@ deactivate
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">check_data_integrity</span><span class="p">(</span><span class="n">days_back</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if data exists for past N days.&quot;&quot;&quot;</span>
-    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/CAISO&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Check if data exists for past N days."""</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"data/CAISO"</span><span class="p">)</span>
     <span class="n">missing_dates</span> <span class="o">=</span> <span class="p">[]</span>
     
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">days_back</span><span class="p">):</span>
         <span class="n">check_date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">date_str</span> <span class="o">=</span> <span class="n">check_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">date_str</span> <span class="o">=</span> <span class="n">check_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">"</span><span class="p">)</span>
         
         <span class="c1"># Look for files with this date</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">date_str</span><span class="si">}</span><span class="s2">_*_PRC_LMP_*.csv&quot;</span><span class="p">))</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">date_str</span><span class="si">}</span><span class="s2">_*_PRC_LMP_*.csv"</span><span class="p">))</span>
         
         <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">:</span>
             <span class="n">missing_dates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">check_date</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="n">missing_dates</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing data for dates: </span><span class="si">{</span><span class="n">missing_dates</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing data for dates: </span><span class="si">{</span><span class="n">missing_dates</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">missing_dates</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ All data present for last </span><span class="si">{</span><span class="n">days_back</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ All data present for last </span><span class="si">{</span><span class="n">days_back</span><span class="si">}</span><span class="s2"> days"</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="p">[]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">backfill_missing_data</span><span class="p">(</span><span class="n">missing_dates</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download data for missing dates.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download data for missing dates."""</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
     
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">target_date</span> <span class="ow">in</span> <span class="n">missing_dates</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backfilling </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Backfilling </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="n">target_date</span><span class="p">)</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
 
 <span class="c1"># Use in main script</span>
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
     <span class="c1"># Regular download</span>
     <span class="n">download_yesterday</span><span class="p">()</span>
     
@@ -1647,10 +1647,10 @@ deactivate
 <section id="part-8-complete-production-script">
 <h2>Part 8: Complete Production Script<a class="headerlink" href="#part-8-complete-production-script" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Production-ready automated download script.</span>
 <span class="sd">Features: retry logic, email notifications, monitoring.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">smtplib</span>
@@ -1661,18 +1661,18 @@ deactivate
 <span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span><span class="p">,</span> <span class="n">Market</span>
 
 <span class="c1"># Configuration</span>
-<span class="n">LOG_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">)</span>
-<span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/CAISO&quot;</span><span class="p">)</span>
+<span class="n">LOG_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"logs"</span><span class="p">)</span>
+<span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"data/CAISO"</span><span class="p">)</span>
 <span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">NOTIFICATION_EMAIL</span> <span class="o">=</span> <span class="s2">&quot;your-email@example.com&quot;</span>
+<span class="n">NOTIFICATION_EMAIL</span> <span class="o">=</span> <span class="s2">"your-email@example.com"</span>
 
 <span class="c1"># Setup logging</span>
 <span class="n">LOG_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s1">'</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">'</span><span class="p">,</span>
     <span class="n">handlers</span><span class="o">=</span><span class="p">[</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">LOG_DIR</span> <span class="o">/</span> <span class="s1">&#39;production_download.log&#39;</span><span class="p">),</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">LOG_DIR</span> <span class="o">/</span> <span class="s1">'production_download.log'</span><span class="p">),</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
     <span class="p">]</span>
 <span class="p">)</span>
@@ -1680,37 +1680,37 @@ deactivate
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">send_notification</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Send email notification.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Send email notification."""</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Configure your email settings here</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="n">MIMEText</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
-        <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;Subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
-        <span class="n">msg</span><span class="p">[</span><span class="s1">&#39;To&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NOTIFICATION_EMAIL</span>
+        <span class="n">msg</span><span class="p">[</span><span class="s1">'Subject'</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
+        <span class="n">msg</span><span class="p">[</span><span class="s1">'To'</span><span class="p">]</span> <span class="o">=</span> <span class="n">NOTIFICATION_EMAIL</span>
         
         <span class="c1"># Add email sending code here</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Notification sent: </span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Notification sent: </span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to send notification: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to send notification: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_with_retry</span><span class="p">(</span><span class="n">target_date</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">MAX_RETRIES</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download with retry logic.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download with retry logic."""</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
     
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retries</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">max_retries</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">target_date</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             
             <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="n">target_date</span><span class="p">)</span>
             
             <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Success on attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Success on attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
             
             <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">wait</span> <span class="o">=</span> <span class="mi">30</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">attempt</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retry in </span><span class="si">{</span><span class="n">wait</span><span class="si">}</span><span class="s2">s...&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Retry in </span><span class="si">{</span><span class="n">wait</span><span class="si">}</span><span class="s2">s..."</span><span class="p">)</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="kc">False</span>
@@ -1720,33 +1720,33 @@ deactivate
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">check_recent_files</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify recent files exist.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Verify recent files exist."""</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
     
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">days</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
         <span class="n">check_date</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-        <span class="n">date_str</span> <span class="o">=</span> <span class="n">check_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">date_str</span> <span class="o">=</span> <span class="n">check_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">"</span><span class="p">)</span>
         
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">(</span><span class="n">DATA_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">date_str</span><span class="si">}</span><span class="s2">_*_PRC_LMP_*.csv&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">(</span><span class="n">DATA_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">date_str</span><span class="si">}</span><span class="s2">_*_PRC_LMP_*.csv"</span><span class="p">)):</span>
             <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">check_date</span><span class="p">)</span>
     
     <span class="k">return</span> <span class="n">missing</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main execution.&quot;&quot;&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;=== Starting automated download ===&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="sd">"""Main execution."""</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"=== Starting automated download ==="</span><span class="p">)</span>
     
     <span class="n">yesterday</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     
-    <span class="c1"># Download yesterday&#39;s data</span>
+    <span class="c1"># Download yesterday's data</span>
     <span class="n">success</span> <span class="o">=</span> <span class="n">download_with_retry</span><span class="p">(</span><span class="n">yesterday</span><span class="p">)</span>
     
     <span class="c1"># Check for missing dates</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="n">check_recent_files</span><span class="p">()</span>
     
     <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing data for: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing data for: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="c1"># Backfill</span>
         <span class="k">for</span> <span class="n">date_to_fill</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">:</span>
             <span class="n">download_with_retry</span><span class="p">(</span><span class="n">date_to_fill</span><span class="p">)</span>
@@ -1754,26 +1754,26 @@ deactivate
     <span class="c1"># Send notification</span>
     <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
         <span class="n">send_notification</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;✓ ISO-DART Download Complete&quot;</span><span class="p">,</span>
-            <span class="sa">f</span><span class="s2">&quot;Successfully downloaded data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"✓ ISO-DART Download Complete"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"Successfully downloaded data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">send_notification</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;✗ ISO-DART Download Failed&quot;</span><span class="p">,</span>
-            <span class="sa">f</span><span class="s2">&quot;Failed to download data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">. Check logs.&quot;</span>
+            <span class="sa">f</span><span class="s2">"✗ ISO-DART Download Failed"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"Failed to download data for </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">. Check logs."</span>
         <span class="p">)</span>
     
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;=== Download complete ===&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"=== Download complete ==="</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">success</span>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">success</span> <span class="o">=</span> <span class="n">main</span><span class="p">()</span>
         <span class="n">exit</span><span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">success</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fatal error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">send_notification</span><span class="p">(</span><span class="s2">&quot;✗ ISO-DART Critical Error&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fatal error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">send_notification</span><span class="p">(</span><span class="s2">"✗ ISO-DART Critical Error"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
         <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1801,7 +1801,7 @@ service<span class="w"> </span>cron<span class="w"> </span>status
 grep<span class="w"> </span>CRON<span class="w"> </span>/var/log/syslog
 
 <span class="c1"># Test with simple command first</span>
-*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Test&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/tmp/crontest.txt
+*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Test"</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/tmp/crontest.txt
 </pre></div>
 </div>
 </section>

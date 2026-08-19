@@ -1257,19 +1257,19 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class
 <section id="old-way-v1-1">
 <h3>Old Way (v1.1)<a class="headerlink" href="#old-way-v1-1" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># mainCAISO.py - Run with exec()</span>
-<span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mainCAISO.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">"mainCAISO.py"</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
 <span class="c1"># Direct date input with loops</span>
 <span class="n">ind</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="k">while</span> <span class="n">ind</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="n">month</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Month: &#39;</span><span class="p">))</span>
-    <span class="n">day</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Day: &#39;</span><span class="p">))</span>
-    <span class="n">year</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s1">&#39;Year (4-digit format): &#39;</span><span class="p">))</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s1">'Month: '</span><span class="p">))</span>
+    <span class="n">day</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s1">'Day: '</span><span class="p">))</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s1">'Year (4-digit format): '</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="n">day</span><span class="p">)</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">except</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">WARNING: The Date Does NOT Exist. Please Try Again!!&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">WARNING: The Date Does NOT Exist. Please Try Again!!'</span><span class="p">)</span>
 
 <span class="c1"># Query with hardcoded parameters</span>
 <span class="n">DAM_LMP</span><span class="p">()</span><span class="o">.</span><span class="n">get_csv</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="n">step_size</span><span class="p">)</span>
@@ -1295,9 +1295,9 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Download successful!&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Download successful!"</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Download failed, check logs&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Download failed, check logs"</span><span class="p">)</span>
 
 <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 </pre></div>
@@ -1355,8 +1355,8 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class
 
 <span class="c1"># Class inheritance based on market</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DAM_LMP</span><span class="p">(</span><span class="n">LMP</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;PRC_LMP&#39;</span>
-    <span class="n">market</span> <span class="o">=</span> <span class="s1">&#39;DAM&#39;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">'PRC_LMP'</span>
+    <span class="n">market</span> <span class="o">=</span> <span class="s1">'DAM'</span>
 </pre></div>
 </div>
 <p><strong>New:</strong></p>
@@ -1380,10 +1380,10 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
     <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Download failed&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Download failed"</span><span class="p">)</span>
         <span class="c1"># Handle error gracefully</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1"># Continue or retry</span>
 </pre></div>
 </div>
@@ -1392,8 +1392,8 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class
 <h3>5. Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h3>
 <p><strong>Old:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Hardcoded in files</span>
-<span class="n">URL</span> <span class="o">=</span> <span class="s1">&#39;http://oasis.caiso.com/oasisapi/SingleZip&#39;</span>
-<span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+<span class="n">URL</span> <span class="o">=</span> <span class="s1">'http://oasis.caiso.com/oasisapi/SingleZip'</span>
+<span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">'data'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>New:</strong></p>
@@ -1401,8 +1401,8 @@ python<span class="w"> </span>isodart.py<span class="w"> </span>--iso<span class
 <span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOConfig</span>
 
 <span class="n">config</span> <span class="o">=</span> <span class="n">CAISOConfig</span><span class="p">(</span>
-    <span class="n">base_url</span><span class="o">=</span><span class="s1">&#39;http://oasis.caiso.com/oasisapi/SingleZip&#39;</span><span class="p">,</span>
-    <span class="n">data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;custom/data/dir&#39;</span><span class="p">),</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="s1">'http://oasis.caiso.com/oasisapi/SingleZip'</span><span class="p">,</span>
+    <span class="n">data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s1">'custom/data/dir'</span><span class="p">),</span>
     <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span>
 <span class="p">)</span>
 <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
@@ -1482,8 +1482,8 @@ Program End!! Please Try Again.
 <p><strong>Old Script (v1.1):</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># daily_download_v1.py</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;/path/to/iso-dart&#39;</span><span class="p">)</span>
-<span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mainCAISO.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'/path/to/iso-dart'</span><span class="p">)</span>
+<span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">"mainCAISO.py"</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 <span class="c1"># Then manually input values...</span>
 </pre></div>
 </div>
@@ -1495,26 +1495,26 @@ Program End!! Please Try Again.
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
     <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-    <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;daily_download.log&#39;</span>
+    <span class="n">filename</span><span class="o">=</span><span class="s1">'daily_download.log'</span>
 <span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">download_yesterday</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download yesterday&#39;s CAISO DAM LMP data.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Download yesterday's CAISO DAM LMP data."""</span>
     <span class="n">yesterday</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">yesterday</span><span class="p">,</span> <span class="n">yesterday</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Downloaded </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✓ Downloaded </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✗ Failed </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"✗ Failed </span><span class="si">{</span><span class="n">yesterday</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
     <span class="n">download_yesterday</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1540,7 +1540,7 @@ Program End!! Please Try Again.
 
 <span class="c1"># Clean iteration</span>
 <span class="k">for</span> <span class="n">market</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Market</span><span class="o">.</span><span class="n">DAM</span><span class="p">,</span> <span class="n">Market</span><span class="o">.</span><span class="n">HASP</span><span class="p">,</span> <span class="n">Market</span><span class="o">.</span><span class="n">RTM</span><span class="p">]:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downloading </span><span class="si">{</span><span class="n">market</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">market</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
     <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="n">market</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
 
 <span class="n">client</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
@@ -1576,7 +1576,7 @@ data/
 <p><strong>Symptom:</strong> Old script execution pattern doesn’t work
 <strong>Solution:</strong> Use imports instead</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Old</span>
-<span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mainCAISO.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">"mainCAISO.py"</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 
 <span class="c1"># New</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span>
@@ -1590,9 +1590,9 @@ data/
 <strong>Solution:</strong> Catch proper exceptions</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Old</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mainCAISO.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">"mainCAISO.py"</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 <span class="k">except</span> <span class="ne">SystemExit</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Failed"</span><span class="p">)</span>
 
 <span class="c1"># New</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lib.iso.caiso</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAISOClient</span>
@@ -1600,9 +1600,9 @@ data/
     <span class="n">client</span> <span class="o">=</span> <span class="n">CAISOClient</span><span class="p">()</span>
     <span class="n">success</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_lmp</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Failed"</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

@@ -1698,17 +1698,17 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="c1"># CAISO LMP</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv&#39;</span><span class="p">)</span>
-<span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv'</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">])</span>
 
 <span class="c1"># MISO with datetime index</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/MISO/miso_da_exante_lmp_2024-01-01.csv&#39;</span><span class="p">)</span>
-<span class="n">df</span><span class="p">[</span><span class="s1">&#39;interval&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;interval&#39;</span><span class="p">])</span>
-<span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;interval&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'data/MISO/miso_da_exante_lmp_2024-01-01.csv'</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">'interval'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'interval'</span><span class="p">])</span>
+<span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'interval'</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Weather data</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;data/weather/2024-01-01_to_2024-01-31_San_Francisco_CA.csv&#39;</span><span class="p">,</span>
-                 <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'data/weather/2024-01-01_to_2024-01-31_San_Francisco_CA.csv'</span><span class="p">,</span>
+                 <span class="n">index_col</span><span class="o">=</span><span class="s1">'time'</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1716,11 +1716,11 @@
 <h3>Loading in R<a class="headerlink" href="#loading-in-r" title="Link to this heading"></a></h3>
 <div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># CAISO LMP</span>
 <span class="nf">library</span><span class="p">(</span><span class="n">readr</span><span class="p">)</span>
-<span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="s">&#39;data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="s">'data/CAISO/20240101_to_20240131_PRC_LMP_TH_NP15_GEN-APND.csv'</span><span class="p">)</span>
 <span class="n">df</span><span class="o">$</span><span class="n">OPR_DATE</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.Date</span><span class="p">(</span><span class="n">df</span><span class="o">$</span><span class="n">OPR_DATE</span><span class="p">)</span>
 
 <span class="c1"># MISO</span>
-<span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="s">&#39;data/MISO/miso_da_exante_lmp_2024-01-01.csv&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read_csv</span><span class="p">(</span><span class="s">'data/MISO/miso_da_exante_lmp_2024-01-01.csv'</span><span class="p">)</span>
 <span class="n">df</span><span class="o">$</span><span class="n">interval</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.POSIXct</span><span class="p">(</span><span class="n">df</span><span class="o">$</span><span class="n">interval</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1738,7 +1738,7 @@
 <section id="database-import">
 <h3>Database Import<a class="headerlink" href="#database-import" title="Link to this heading"></a></h3>
 <div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="c1">-- PostgreSQL</span>
-<span class="k">COPY</span><span class="w"> </span><span class="n">caiso_lmp</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="s1">&#39;/path/to/file.csv&#39;</span><span class="w"> </span><span class="k">DELIMITER</span><span class="w"> </span><span class="s1">&#39;,&#39;</span><span class="w"> </span><span class="n">CSV</span><span class="w"> </span><span class="n">HEADER</span><span class="p">;</span>
+<span class="k">COPY</span><span class="w"> </span><span class="n">caiso_lmp</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="s1">'/path/to/file.csv'</span><span class="w"> </span><span class="k">DELIMITER</span><span class="w"> </span><span class="s1">','</span><span class="w"> </span><span class="n">CSV</span><span class="w"> </span><span class="n">HEADER</span><span class="p">;</span>
 
 <span class="c1">-- SQLite</span>
 <span class="p">.</span><span class="k">mode</span><span class="w"> </span><span class="n">csv</span>
@@ -1753,14 +1753,14 @@
 <h3>Validate Date Ranges<a class="headerlink" href="#validate-date-ranges" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;your_file.csv&#39;</span><span class="p">)</span>
-<span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'your_file.csv'</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">])</span>
 
 <span class="c1"># Check for gaps</span>
-<span class="n">date_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
-<span class="n">missing_dates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">date_range</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">])</span>
+<span class="n">date_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">freq</span><span class="o">=</span><span class="s1">'D'</span><span class="p">)</span>
+<span class="n">missing_dates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">date_range</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">'OPR_DATE'</span><span class="p">])</span>
 <span class="k">if</span> <span class="n">missing_dates</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing dates: </span><span class="si">{</span><span class="n">missing_dates</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Missing dates: </span><span class="si">{</span><span class="n">missing_dates</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -1774,10 +1774,10 @@
 <section id="validate-intervals">
 <h3>Validate Intervals<a class="headerlink" href="#validate-intervals" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check hourly data has 24 intervals per day</span>
-<span class="n">intervals_per_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;OPR_DATE&#39;</span><span class="p">)[</span><span class="s1">&#39;INTERVAL_NUM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+<span class="n">intervals_per_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'OPR_DATE'</span><span class="p">)[</span><span class="s1">'INTERVAL_NUM'</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
 <span class="n">irregular_days</span> <span class="o">=</span> <span class="n">intervals_per_day</span><span class="p">[</span><span class="n">intervals_per_day</span> <span class="o">!=</span> <span class="mi">24</span><span class="p">]</span>
 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">irregular_days</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Irregular days: </span><span class="si">{</span><span class="n">irregular_days</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Irregular days: </span><span class="si">{</span><span class="n">irregular_days</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
