@@ -247,7 +247,7 @@ class TestSPPFTPConnection:
         ftp = client._connect_ftp()
 
         assert ftp is not None
-        mock_ftp_class.assert_called_once_with("pubftp.spp.org", timeout=30)
+        mock_ftp_class.assert_called_once_with("pubftp.spp.org", timeout=60)
         mock_ftp.login.assert_called_once_with("anonymous", "anonymous@")
 
     @patch("ftplib.FTP")
