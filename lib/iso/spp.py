@@ -86,7 +86,7 @@ class SPPConfig:
     raw_dir: Path = Path("raw_data/SPP")
     max_retries: int = 3
     retry_delay: int = 5
-    timeout: int = 30
+    timeout: int = 60  # Increased from 30 to 60 seconds for better reliability
 
     def __post_init__(self):
         # Default Portal endpoints (can be overridden by passing portal_endpoints explicitly)
@@ -134,6 +134,8 @@ class SPPClient:
         Returns:
             FTP connection object or None if failed
         """
+        import time
+
         for attempt in range(self.config.max_retries):
             try:
                 logger.debug(
@@ -143,11 +145,13 @@ class SPPClient:
                 ftp.login(self.config.ftp_user, self.config.ftp_pass)
                 logger.info(f"Connected to {self.config.ftp_host}")
                 return ftp
+            except (OSError, TimeoutError, ConnectionError) as e:
+                logger.error(f"FTP network/timeout error (attempt {attempt + 1}): {e}")
+                if attempt < self.config.max_retries - 1:
+                    time.sleep(self.config.retry_delay)
             except Exception as e:
                 logger.error(f"FTP connection error: {e}")
                 if attempt < self.config.max_retries - 1:
-                    import time
-
                     time.sleep(self.config.retry_delay)
 
         return None
@@ -301,6 +305,10 @@ class SPPClient:
                     pass
             else:
                 logger.error(f"FTP permission error for {ftp_path}/{filename}: {e}")
+            return None
+        except (OSError, TimeoutError, ConnectionError) as e:
+            logger.error(f"Network/timeout error downloading {ftp_path}/{filename}: {e}")
+            logger.info("Consider increasing timeout or checking network connectivity")
             return None
         except Exception as e:
             logger.error(f"Error downloading {ftp_path}/{filename}: {e}")

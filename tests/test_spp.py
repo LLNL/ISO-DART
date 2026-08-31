@@ -554,10 +554,24 @@ class TestSPPFTPQuit:
 
 @pytest.mark.integration
 class TestSPPIntegration:
-    """Integration tests - require actual SPP FTP access."""
+    """Integration tests - require actual SPP FTP access.
+
+    Note: These tests may fail with timeout errors in CI environments
+    due to network restrictions or FTP passive mode issues.
+
+    To skip integration tests:
+        pytest tests/ -m "not integration"
+
+    To run only integration tests:
+        pytest tests/ -m "integration"
+    """
 
     def test_get_lmp_integration(self, client):
-        """Test actual LMP data download from FTP."""
+        """Test actual LMP data download from FTP.
+
+        Note: May timeout in some environments. The timeout has been
+        increased to 60 seconds to improve reliability.
+        """
         # Use recent date (SPP typically has data from 2-3 days ago)
         start = date.today() - timedelta(days=3)
         end = date.today() - timedelta(days=2)
@@ -582,7 +596,11 @@ class TestSPPIntegration:
         assert len(output_files) > 0
 
     def test_get_operating_reserves_integration(self, client):
-        """Test actual Operating Reserves download from FTP."""
+        """Test actual Operating Reserves download from FTP.
+
+        Note: May timeout in some environments. The timeout has been
+        increased to 60 seconds to improve reliability.
+        """
         start = date.today() - timedelta(days=3)
         end = date.today() - timedelta(days=3)
 
