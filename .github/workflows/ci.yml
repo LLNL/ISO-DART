@@ -49,18 +49,18 @@ jobs:
       run: |
         mypy lib/ || true  # Don't fail on type errors for now
         
-    - name: Run tests
+    - name: Run unit tests
       env:
         SKIP_FTP_INTEGRATION: ${{ matrix.os == 'macos-latest' && '1' || '0' }}
       run: |
-        pytest tests/ -v -m "not integration" --cov=lib --cov-branch --cov-report=xml --cov-report=term-missing
+        pytest tests/ -v -m "not integration" --cov=lib --cov-branch --cov-report=term-missing
 
-    - name: Run integration tests (with retries)
+    - name: Run integration tests (with retries, include in coverage)
       env:
         SKIP_FTP_INTEGRATION: ${{ matrix.os == 'macos-latest' && '1' || '0' }}
       continue-on-error: true
       run: |
-        pytest tests/ -v -m "integration" --maxfail=3 || echo "Integration tests failed but continuing..."
+        pytest tests/ -v -m "integration" --cov=lib --cov-branch --cov-append --cov-report=xml --cov-report=term-missing --maxfail=3 || echo "Integration tests failed but continuing..."
         
     - name: Upload coverage to Codecov
       if: matrix.os == 'macos-latest' && matrix.python-version == '3.12'
